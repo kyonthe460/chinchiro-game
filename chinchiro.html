@@ -51,10 +51,9 @@
 
         <!-- メインゲームコンテナ -->
         <div id="game-container">
-            <!-- ★ WAVE情報にラウンド数表示を追加 -->
+            <!-- WAVE情報 -->
             <div id="wave-info">
-                WAVE: <span id="wave-number">1</span> | ROUND: <span id="round-number">1</span> | 倒した数: <span id="defeated-count">0</span> | 難易度: <span id="difficulty-display">普通</span>
-                <span id="consecutive-wins-display" style="display: none;"></span>
+                <!-- JSで内容が表示される -->
             </div>
             <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
                 <!-- JSで内容が表示される -->
@@ -62,8 +61,10 @@
             <div id="game-area">
                 <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
                 <div id="dice-area">
+                    <!-- 通常時のダイス表示（モーダル表示時は隠すか、そのまま表示） -->
                     <div id="dice-display">- - -</div>
                     <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
+                    <!-- 中央アナウンス -->
                     <div id="center-role-announcement" class="center-role"></div>
                     <div id="dice-choice-overlay" class="overlay"></div>
                 </div>
@@ -118,10 +119,14 @@
             </div>
             <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
             <div id="card-offers"></div>
-            <div class="shop-actions">
+             <!-- ★ ショップアクションと確認ボタンを分ける -->
+            <div id="shop-actions" class="shop-actions">
                 <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
                 <button id="close-shop-button" class="button-subtle">お店を出る</button>
             </div>
+             <div id="shop-confirmation-buttons" class="shop-actions" style="display: none;">
+                 <!-- JSで売却確認ボタンがここに追加される -->
+             </div>
         </div>
         <div id="discard-modal" class="modal" style="display: none;">
             <div class="modal-content discard-modal-content">
@@ -156,6 +161,15 @@
             <span id="close-history-modal" class="close-button">×</span>
             <h2>ゲーム履歴</h2>
             <ul id="history-log"></ul>
+        </div>
+    </div>
+
+    <!-- ★ サイコロロールモーダル -->
+    <div id="dice-roll-modal" class="modal dice-roll-modal">
+        <div class="modal-content dice-roll-modal-content">
+            <span id="close-dice-roll-modal" class="close-button">×</span>
+            <div id="dice-roll-modal-display">- - -</div>
+            <!-- 必要であればここにメッセージなどを追加 -->
         </div>
     </div>
 

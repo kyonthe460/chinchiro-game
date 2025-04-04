@@ -1,17 +1,16 @@
 /* フォント読み込み */
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap');
 
-/* ★ 修正: overflow: hidden; を削除 */
 body { font-family: 'M PLUS Rounded 1c', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4158D0, #C850C0, #FFCC70); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #f0f0f0; margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; /* overflow: hidden; */ position: relative;}
 @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
 /* ===== 画面共通 ===== */
-.screen { display: none; width: 100%; min-height: 100vh; box-sizing: border-box; position: relative; overflow: hidden; } /* screen 自体の overflow は維持 */
+.screen { display: none; width: 100%; min-height: 100vh; box-sizing: border-box; position: relative; overflow: hidden; }
 .screen.active { display: flex; animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* キラキラ背景 */
-.stars, .twinkling { position:fixed; /* ★ 修正: absolute -> fixed */ top:0; left:0; right:0; bottom:0; width:100%; height:100%; display:block; z-index: 0; }
+.stars, .twinkling { position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; display:block; z-index: 0; }
 .stars { background:#000 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAQMAAABKLAcXAAAABlBMVEVVVP////8vZtJdAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAFUlEQVQ4y2NgoBpgImBqBNAyAMgwAAD70w43s4RL4wAAAABJRU5ErkJggg==) repeat top center; background-size: auto; opacity: 0.5; }
 .twinkling{ background:transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQMAAACXljzdAAAABlBMVEVVVP////8vZtJdAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAHUlEQVQ4y2NgoBpgImBqBNAyAMgwgM0IFJsKANqnHbcY5t6dAAAAAElFTkSuQmCC) repeat top center; background-size: auto; animation: move-twink-back 200s linear infinite; opacity: 0.3; }
 @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} }
@@ -32,10 +31,17 @@ body { font-family: 'M PLUS Rounded 1c', 'Segoe UI', Tahoma, Geneva, Verdana, sa
 
 /* ===== ゲーム画面 ===== */
 #game-screen { justify-content: space-evenly; align-items: flex-start; padding: 25px 15px; background-color: rgba(0, 0, 0, 0.2); z-index: 1; }
+/* ★ ゲーム画面暗転用クラス */
+#game-screen.dimmed > *:not(#dice-roll-modal) {
+    filter: blur(3px) brightness(0.6);
+    pointer-events: none; /* 背景の操作を禁止 */
+    transition: filter 0.3s ease-out;
+}
+
 .sidebar { width: 230px; padding: 20px; background-color: rgba(40, 40, 60, 0.75); border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); align-self: stretch; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column;}
 .sidebar h2 { margin-top: 0; color: #ffcc70; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 10px; margin-bottom: 15px; text-align: center; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
 #left-sidebar ul { padding-left: 15px; margin: 0; font-size: 0.88em; line-height: 1.6; color: #ccc; flex-grow: 1; } #left-sidebar li { margin-bottom: 7px; } #left-sidebar strong { color: #f0ad4e; font-weight: bold; }
-#game-coin-info { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.2); text-align: center; position: relative; } /* position: relative 追加 */
+#game-coin-info { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.2); text-align: center; position: relative; }
 #game-coin-info h3 { margin: 0 0 5px 0; font-size: 1em; color: #ffcc70; font-weight: 500; }
 #game-coin-display { font-size: 1.2em; font-weight: bold; color: #ffeb3b; }
 
@@ -86,29 +92,30 @@ body { font-family: 'M PLUS Rounded 1c', 'Segoe UI', Tahoma, Geneva, Verdana, sa
 #message { margin: 0; font-style: italic; color: #a0ffa0; font-size: 1.1em; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); margin-bottom: 8px; /* ボタンとの間隔 */ }
 #message-button-container { display: flex; gap: 10px; margin-top: 8px; /* メッセージとの間隔 */ }
 
-/* 中央アナウンス (勝敗演出追加) */
-.center-role { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 6em; font-weight: 800; color: white; text-shadow: 3px 3px 0 #444, 6px 6px 10px rgba(0, 0, 0, 0.7); opacity: 0; pointer-events: none; z-index: 20; white-space: nowrap; padding: 0.1em 0.5em; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); width: auto; max-width: 90%; background-color: rgba(20, 20, 30, 0.7); transition: background-color 0.3s ease; }
+/* 中央アナウンス (勝敗演出含む) */
+/* ★ 修正: 中央揃えと背景削除 */
+.center-role { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 6em; font-weight: 800; color: white; text-shadow: 3px 3px 0 #444, 6px 6px 10px rgba(0, 0, 0, 0.7); opacity: 0; pointer-events: none; z-index: 20; white-space: nowrap; padding: 0.1em 0.5em; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); width: auto; max-width: 90%; /* background-color: rgba(20, 20, 30, 0.7); */ text-align: center; } /* text-align 追加, background-color 削除 */
 .center-role.role-appear { animation: centerRoleAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, centerRoleFadeOut 0.5s ease-out forwards var(--center-role-duration, 2s); }
 @keyframes centerRoleAppear { 0% { transform: translate(-50%, -50%) scale(0.5) rotate(-5deg); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; } }
 @keyframes centerRoleFadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-.center-role.role-pinzoro { font-family: 'Shippori Mincho', serif; font-size: 8em; color: gold; text-shadow: 0 0 10px white, 0 0 20px gold, 3px 3px 5px rgba(0,0,0,0.6); filter: drop-shadow(0 0 10px gold); animation-name: centerRolePinzoro, centerRoleFadeOut; animation-duration: 0.6s, 0.5s; animation-timing-function: cubic-bezier(0.68, -0.6, 0.27, 1.55), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, 2.5s; padding: 0.2em 0.6em; background-color: rgba(70, 50, 0, 0.8); }
+.center-role.role-pinzoro { font-family: 'Shippori Mincho', serif; font-size: 8em; color: gold; text-shadow: 0 0 10px white, 0 0 20px gold, 3px 3px 5px rgba(0,0,0,0.6); filter: drop-shadow(0 0 10px gold); animation-name: centerRolePinzoro, centerRoleFadeOut; animation-duration: 0.6s, 0.5s; animation-timing-function: cubic-bezier(0.68, -0.6, 0.27, 1.55), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, 2.5s; padding: 0.2em 0.6em; /* background-color: rgba(70, 50, 0, 0.8); */ }
 @keyframes centerRolePinzoro { 0% { transform: translate(-50%, -50%) scale(3) rotateY(180deg); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1) rotateY(0deg); opacity: 1; } }
-.center-role.role-arashi { font-family: 'RocknRoll One', sans-serif; font-size: 7.5em; color: #ffcc80; text-shadow: 0 0 8px #ff5722, 3px 3px 6px rgba(0, 0, 0, 0.7); animation-name: centerRoleArashi, centerRoleFadeOut; animation-duration: 0.5s, 0.5s; animation-timing-function: cubic-bezier(0.68, -0.6, 0.27, 1.55), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, 2.2s; padding: 0.15em 0.5em; background-color: rgba(80, 20, 0, 0.8); }
+.center-role.role-arashi { font-family: 'RocknRoll One', sans-serif; font-size: 7.5em; color: #ffcc80; text-shadow: 0 0 8px #ff5722, 3px 3px 6px rgba(0, 0, 0, 0.7); animation-name: centerRoleArashi, centerRoleFadeOut; animation-duration: 0.5s, 0.5s; animation-timing-function: cubic-bezier(0.68, -0.6, 0.27, 1.55), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, 2.2s; padding: 0.15em 0.5em; /* background-color: rgba(80, 20, 0, 0.8); */ }
 @keyframes centerRoleArashi { 0% { transform: translate(-50%, -50%) scale(0) rotate(720deg); opacity: 0; filter: blur(8px); } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; filter: blur(0px); } }
-.center-role.role-shigoro { font-family: 'Yuji Syuku', serif; font-size: 7em; color: #ffe082; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 5px #ff9800; --center-role-duration: 2s; padding: 0.1em 0.4em; background-color: rgba(80, 50, 0, 0.8); }
-.center-role.role-normal-eye { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 6em; color: #eee; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); --center-role-duration: 1.5s; background-color: rgba(40, 40, 80, 0.7); }
-.center-role.role-hifumi { font-family: 'Yuji Syuku', serif; font-size: 6.5em; color: #cdeaff; text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 5px #5882b4; animation-name: centerRoleHifumi, centerRoleFadeOut; animation-duration: 0.8s, 0.5s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, 1.8s; background-color: rgba(30, 40, 70, 0.8); }
+.center-role.role-shigoro { font-family: 'Yuji Syuku', serif; font-size: 7em; color: #ffe082; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 5px #ff9800; --center-role-duration: 2s; padding: 0.1em 0.4em; /* background-color: rgba(80, 50, 0, 0.8); */ }
+.center-role.role-normal-eye { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 6em; color: #eee; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); --center-role-duration: 1.5s; /* background-color: rgba(40, 40, 80, 0.7); */ }
+.center-role.role-hifumi { font-family: 'Yuji Syuku', serif; font-size: 6.5em; color: #cdeaff; text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 5px #5882b4; animation-name: centerRoleHifumi, centerRoleFadeOut; animation-duration: 0.8s, 0.5s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, 1.8s; /* background-color: rgba(30, 40, 70, 0.8); */ }
 @keyframes centerRoleHifumi { 0% { transform: translate(-50%, -50%) translateY(30px) rotate(-15deg); opacity: 0; } 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); opacity: 1; } }
-.center-role.role-shonben { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 4.8em; color: #bbb; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); --center-role-duration: 1.5s; background-color: rgba(50, 50, 50, 0.75); }
-/* ★ 勝敗演出 */
-.center-role.result-win { font-family: 'RocknRoll One', sans-serif; font-size: 7em; color: #ffeb3b; text-shadow: 0 0 8px white, 0 0 15px #ffc107, 3px 3px 6px rgba(0,0,0,0.6); animation-name: resultWinAppear, centerRoleFadeOut; animation-duration: 0.7s, 0.5s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.2em 0.6em; background: radial-gradient(circle, rgba(255,235,59,0.3) 0%, rgba(255,193,7,0) 70%); }
+.center-role.role-shonben { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 4.8em; color: #bbb; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); --center-role-duration: 1.5s; /* background-color: rgba(50, 50, 50, 0.75); */ }
+/* 勝敗演出 */
+.center-role.result-win { font-family: 'RocknRoll One', sans-serif; font-size: 7em; color: #ffeb3b; text-shadow: 0 0 8px white, 0 0 15px #ffc107, 3px 3px 6px rgba(0,0,0,0.6); animation-name: resultWinAppear, centerRoleFadeOut; animation-duration: 0.7s, 0.5s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.2em 0.6em; /* background: radial-gradient(circle, rgba(255,235,59,0.3) 0%, rgba(255,193,7,0) 70%); */ }
 @keyframes resultWinAppear { 0% { transform: translate(-50%, -50%) scale(0.2) rotate(-30deg); opacity: 0; filter: blur(5px); } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; filter: blur(0px); } }
-.center-role.result-lose { font-family: 'Yuji Syuku', serif; font-size: 6.5em; color: #add8e6; text-shadow: 0 0 6px #4682B4, 2px 2px 4px rgba(0,0,0,0.7); animation-name: resultLoseAppear, centerRoleFadeOut; animation-duration: 0.9s, 0.5s; animation-timing-function: ease-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.15em 0.5em; background-color: rgba(30, 40, 70, 0.8); }
+.center-role.result-lose { font-family: 'Yuji Syuku', serif; font-size: 6.5em; color: #add8e6; text-shadow: 0 0 6px #4682B4, 2px 2px 4px rgba(0,0,0,0.7); animation-name: resultLoseAppear, centerRoleFadeOut; animation-duration: 0.9s, 0.5s; animation-timing-function: ease-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.15em 0.5em; /* background-color: rgba(30, 40, 70, 0.8); */ }
 @keyframes resultLoseAppear { 0% { transform: translate(-50%, -80%) scale(1.1); opacity: 0; } 50% { transform: translate(-50%, -45%); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-/* WAVEクリア/ゲームオーバーはより派手に */
-.center-role.result-wave-clear { font-family: 'Shippori Mincho', serif; font-size: 8em; color: #90ee90; background: linear-gradient(45deg, #90ee90, #32cd32); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 15px white, 0 0 25px #90ee90, 4px 4px 8px rgba(0,0,0,0.6); filter: drop-shadow(0 0 15px #90ee90); animation-name: waveClearAppear, centerRoleFadeOut; animation-duration: 1.2s, 0.5s; animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 2.5s); padding: 0.3em 0.7em; background-color: rgba(40, 100, 40, 0.8); }
+/* WAVEクリア/ゲームオーバー */
+.center-role.result-wave-clear { font-family: 'Shippori Mincho', serif; font-size: 8em; color: #90ee90; background: linear-gradient(45deg, #90ee90, #32cd32); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 15px white, 0 0 25px #90ee90, 4px 4px 8px rgba(0,0,0,0.6); filter: drop-shadow(0 0 15px #90ee90); animation-name: waveClearAppear, centerRoleFadeOut; animation-duration: 1.2s, 0.5s; animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 2.5s); padding: 0.3em 0.7em; /* background-color: rgba(40, 100, 40, 0.8); */ }
 @keyframes waveClearAppear { 0% { transform: translate(-50%, -50%) scale(0.5) rotateY(-180deg); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1) rotateY(0deg); opacity: 1; } }
-.center-role.result-game-over { font-family: 'Yuji Syuku', serif; font-size: 7.5em; color: #ff7b7b; text-shadow: 0 0 10px #dc143c, 3px 3px 6px rgba(0,0,0,0.8); animation-name: gameOverAppear, centerRoleFadeOut; animation-duration: 1.5s, 0.5s; animation-timing-function: ease-in-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 2.5s); padding: 0.2em 0.6em; background-color: rgba(80, 20, 20, 0.8); }
+.center-role.result-game-over { font-family: 'Yuji Syuku', serif; font-size: 7.5em; color: #ff7b7b; text-shadow: 0 0 10px #dc143c, 3px 3px 6px rgba(0,0,0,0.8); animation-name: gameOverAppear, centerRoleFadeOut; animation-duration: 1.5s, 0.5s; animation-timing-function: ease-in-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 2.5s); padding: 0.2em 0.6em; /* background-color: rgba(80, 20, 20, 0.8); */ }
 @keyframes gameOverAppear { 0% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; filter: grayscale(100%); } 50% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; filter: grayscale(50%); } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: grayscale(0); } }
 
 /* ゲーム画面手札表示エリア */
@@ -170,26 +177,28 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #restart-same-difficulty-button { background: linear-gradient(180deg, #90ee90, #28a745); color: #333; } #restart-same-difficulty-button:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(40, 167, 69, 0.4); }
 
 /* ===== モーダル共通 ===== */
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.8); padding-top: 60px; backdrop-filter: blur(5px); }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.8); padding-top: 60px; backdrop-filter: blur(5px); animation: modalFadeIn 0.3s ease-out; }
+@keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal-content { background-color: #2a2a3a; margin: 5% auto; padding: 30px; border: 1px solid rgba(255, 255, 255, 0.1); width: 85%; max-width: 650px; border-radius: 15px; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.6); animation: slideDown 0.4s ease-out; }
 @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.close-button { color: #aaa; position: absolute; top: 15px; right: 25px; font-size: 32px; font-weight: bold; cursor: pointer; transition: color 0.2s ease; } .close-button:hover, .close-button:focus { color: #fff; }
+.close-button { color: #aaa; position: absolute; top: 15px; right: 25px; font-size: 32px; font-weight: bold; cursor: pointer; transition: color 0.2s ease; z-index: 1; /* ボタンがコンテンツより手前に来るように */ }
+.close-button:hover, .close-button:focus { color: #fff; }
 .modal h2 { margin-top: 0; color: #ffcc70; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 10px; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);}
 #history-log { list-style: none; padding: 0; max-height: 65vh; overflow-y: auto; margin-top: 20px; }
 #history-log li { background-color: rgba(70, 70, 100, 0.6); margin-bottom: 10px; padding: 12px 18px; border-radius: 8px; border-left: 6px solid #666; font-size: 0.95em; transition: background-color 0.2s ease; }
 #history-log li:hover { background-color: rgba(85, 85, 115, 0.7); }
 #history-log li.win { border-left-color: #90ee90; } #history-log li.lose { border-left-color: #ff7b7b; } #history-log li.draw { border-left-color: #aaa; }
-#history-log .wave-num { font-weight: normal; color: #ccc; display: block; margin-bottom: 6px; } /* 色と太さ変更 */
+#history-log .wave-num { font-weight: normal; color: #ccc; display: block; margin-bottom: 6px; }
 /* 履歴のWAVE/ROUND色指定用クラス */
 #history-log .wave-highlight { color: #ffcc70; font-weight: bold; }
 #history-log .round-normal { color: #ccc; font-weight: normal; }
 /* 履歴の勝敗テキスト色 */
-.history-result { font-weight: bold; margin-right: 5px; }
-.history-result.history-win { color: #90ee90; text-shadow: 0 0 3px rgba(144, 238, 144, 0.7); }
-.history-result.history-lose { color: #ff7b7b; text-shadow: 0 0 3px rgba(255, 123, 123, 0.7); }
-.history-result.history-draw { color: #aaa; }
+.history-result { font-weight: bold; margin-right: 5px; display: inline-block; min-width: 50px; text-align: center; padding: 2px 4px; border-radius: 4px; }
+.history-result.history-win { color: #111; background-color: #90ee90; box-shadow: inset 0 0 3px rgba(0,0,0,0.3); text-shadow: 0 1px 1px rgba(255,255,255,0.5); }
+.history-result.history-lose { color: #eee; background-color: #ff7b7b; box-shadow: inset 0 0 3px rgba(0,0,0,0.4); text-shadow: 0 -1px 1px rgba(0,0,0,0.4); }
+.history-result.history-draw { color: #ddd; background-color: #aaa; box-shadow: inset 0 0 3px rgba(0,0,0,0.2); }
 #history-log .details { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;} #history-log .player, #history-log .npc { font-family: monospace; color: #eee; } #history-log .vs { margin: 0 10px; font-weight: bold; color: #ccc; } #history-log .hand { font-size: 0.9em; color: #bbb; margin-left: 5px; font-style: italic;}
-#history-log .bet-amount { font-size: 0.85em; color: #ddd; margin-left: 15px; font-weight: bold; } /* 賭け金表示 */
+#history-log .bet-amount { font-size: 0.85em; color: #ddd; margin-left: 15px; font-weight: bold; }
 #history-log .score-change-history { font-size: 0.9em; text-align: right; margin-top: 4px; }
 #history-log .score-change-history .gain { color: #90ee90; font-weight: bold; }
 #history-log .score-change-history .loss { color: #ff7b7b; font-weight: bold; }
@@ -217,15 +226,15 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 /* ショップカード要素調整 & レアリティエフェクト */
 .card { border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 15px 15px 50px 15px; width: 200px; min-height: 280px; box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; overflow: hidden; /* ★ overflow: hidden 追加 */ background-size: cover; background-position: center center; background-repeat: no-repeat; background-color: rgba(60, 60, 90, 0.8); }
 .card:not(.sold-out):hover { transform: translateY(-6px) scale(1.03); box-shadow: 5px 10px 15px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(0,0,0,0.3); }
-/* ★ キラキラエフェクト用擬似要素 */
-.card::before { content: ""; position: absolute; top: 0; left: -85%; z-index: 2; display: block; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.3) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); }
-.card.rarity-rare::before { animation: shining 3.5s infinite linear; }
-.card.rarity-epic::before { animation: shining 2.8s infinite linear; }
-.card.rarity-legendary::before { width: 70%; animation: shining 2.2s infinite linear .2s; } /* より強く、少し遅れて開始 */
+/* キラキラエフェクト用擬似要素 */
+.card::before { content: ""; position: absolute; top: 0; left: -85%; z-index: 2; display: block; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.3) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); opacity: 0; /* 初期状態は非表示 */ transition: opacity 0.3s; }
+.card.rarity-rare::before { animation: shining 3.5s infinite linear; opacity: 1; }
+.card.rarity-epic::before { animation: shining 2.8s infinite linear; opacity: 1; }
+.card.rarity-legendary::before { width: 70%; animation: shining 2.2s infinite linear .2s; opacity: 1; }
 
 @keyframes shining {
   0% { left: -100%; }
-  40%, 100% { left: 120%; } /* アニメーションの間隔を調整 */
+  40%, 100% { left: 120%; }
 }
 
 .card-type-badge { position: absolute; top: 0; left: 0; padding: 3px 10px; font-size: 0.8em; font-weight: bold; border-radius: 10px 0 10px 0; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); z-index: 1; }
@@ -237,19 +246,14 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 .card.type-support .card-type-badge { background-color: #4a90e2; }
 .card.type-dice .card-type-badge { background-color: #e65252; }
 .card.type-score .card-type-badge { background-color: #28a745; }
-/* カード名スタイル調整 */
 .card-name { font-size: 1.2em; color: #ffeb3b; margin-top: 15px; margin-bottom: 8px; font-weight: 800; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); padding: 5px 10px; border-radius: 8px; display: inline-block; line-height: 1.3; text-align: center; }
 .card-name .card-level { display: block; font-size: 0.8em; color: #ffcc70; font-weight: normal; }
-/* 強化レベル表示の色 */
 .card-level-value-2 { color: #90ee90; text-shadow: 0 0 3px #28a745; font-weight: bold;}
 .card-level-value-3 { color: #ff8c00; text-shadow: 0 0 5px #ffeb3b; font-weight: bold;}
-/* カード説明文スタイル調整 */
 .card-description { font-size: 0.9em; color: #e8e8e8; line-height: 1.5; text-align: left; margin-bottom: 10px; flex-grow: 1; position: relative; z-index: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9), 1px -1px 2px rgba(0,0,0,0.9), -1px 1px 2px rgba(0,0,0,0.9); background-color: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 5px; box-sizing: border-box; }
-/* カードフッター (金額とボタン) の位置調整 */
 .card-footer { position: absolute; bottom: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; padding-top: 0; border-top: none; }
-/* 金額表示のボタン風スタイル */
 .card-cost { font-size: 1.0em; font-weight: bold; color: #ffcc70; background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-.card-cost::after { display: none; } /* " G"削除 */
+.card-cost::after { display: none; }
 .card.upgradeable.max-level .card-cost { color: #aaa; font-style: italic; font-weight: normal; background-color: rgba(50, 50, 50, 0.4); border-color: rgba(150, 150, 150, 0.4); }
 .card.upgradeable.max-level .card-cost::after { display: none; }
 
@@ -265,6 +269,8 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #close-shop-button:hover { background: linear-gradient(180deg, #f3bc70, #f0a540); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4); }
 /* ショップ売却確認ボタン用コンテナ */
 #shop-confirmation-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+/* ★ 確認ボタンのスタイル */
+#shop-confirmation-buttons button { padding: 10px 25px; font-size: 1.1em; }
 
 /* カード破棄モーダル */
 .discard-modal-content { max-width: 500px; text-align: center; }
@@ -282,6 +288,15 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 .overlay p { color: #eee; margin-bottom: 20px; }
 .dice-choice-buttons { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .dice-choice-button { font-size: 2em; padding: 10px 20px; font-family: monospace; min-width: 60px; background: linear-gradient(180deg, #ffeb3b, #ffc107); color: #333; }
+
+/* ★ サイコロロールモーダル */
+.dice-roll-modal { z-index: 1050; /* 他のモーダルより手前に */ backdrop-filter: none; /* 背景のぼかしは不要 */ background-color: rgba(0, 0, 0, 0.6); /* 少し暗く */ animation: modalFadeIn 0.2s ease-out; }
+.dice-roll-modal-content { background-color: rgba(40, 40, 60, 0.85); border: 2px solid rgba(255, 255, 255, 0.2); max-width: 400px; padding: 40px 20px 20px 20px; animation: rollModalAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes rollModalAppear { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+#dice-roll-modal-display { font-size: 6em; /* モーダル内は大きく */ font-weight: 800; color: #ffffff; min-height: 1.2em; letter-spacing: 0.15em; font-family: 'M PLUS Rounded 1c', sans-serif; text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6); white-space: nowrap; transition: transform 0.1s ease-out; margin: 20px 0; text-align: center; }
+#dice-roll-modal-display .dice-num { display: inline-block; margin: 0 0.05em; }
+#dice-roll-modal-display.rolling .dice-num { color: #bbb; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4); }
+#dice-roll-modal-display.settled .dice-num { animation: diceSettle 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
 /* レスポンシブ対応 */
 @media (max-width: 1100px) { #game-screen { flex-direction: column; align-items: center; padding: 15px; } .sidebar { width: 95%; max-width: 700px; margin-bottom: 20px; align-self: auto; height: auto; } #game-container { width: 95%; margin: 0; min-height: auto; } .shop-content { max-width: 90%; } .card { width: calc(33.33% - 15px); } }
@@ -307,7 +322,6 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .center-role.role-normal-eye { font-size: 4em; }
     .center-role.role-hifumi { font-size: 4.5em; }
     .center-role.role-shonben { font-size: 3.5em; }
-    /* ★ 勝敗演出フォントサイズ調整 */
     .center-role.result-win { font-size: 5em; }
     .center-role.result-lose { font-size: 4.5em; }
     .center-role.result-wave-clear { font-size: 6em; }
@@ -350,9 +364,12 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .card-footer { bottom: 15px; }
     .shop-actions { flex-direction: column; gap: 15px; align-items: stretch; }
     .shop-actions button { width: 100%; }
-    /* ★ ショップ確認ボタンも縦積み */
+    /* ショップ確認ボタンも縦積み */
     #shop-confirmation-buttons { flex-direction: column; gap: 10px; align-items: stretch; }
     #shop-confirmation-buttons button { width: 100%; }
+    /* サイコロロールモーダル調整 */
+    .dice-roll-modal-content { max-width: 90%; padding: 30px 15px 15px 15px; }
+    #dice-roll-modal-display { font-size: 5em; }
 }
 @media (max-width: 480px) {
     .game-title { font-size: 2.5em; }
@@ -373,7 +390,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .center-role.role-normal-eye { font-size: 3em; }
     .center-role.role-hifumi { font-size: 3.1em; }
     .center-role.role-shonben { font-size: 2.8em; }
-    /* ★ 勝敗演出フォントサイズ調整 */
+    /* 勝敗演出フォントサイズ調整 */
     .center-role.result-win { font-size: 4em; }
     .center-role.result-lose { font-size: 3.5em; }
     .center-role.result-wave-clear { font-size: 5em; }
@@ -399,6 +416,8 @@ button:disabled { background-color: #555 !important; background-image: none !imp
      /* スマホ履歴モーダルスクロール対応 (さらに調整) */
     .modal-content { max-height: 90vh; }
     #history-log { max-height: 70vh; }
+    /* サイコロロールモーダル調整 */
+    #dice-roll-modal-display { font-size: 4em; }
 }
 
 /* ===== カード強化関連スタイル ===== */
