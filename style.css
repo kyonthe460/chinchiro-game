@@ -1,6 +1,3 @@
-/* フォント読み込み */
-@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap');
-
 /* ★ 修正: overflow: hidden; を削除 */
 body { font-family: 'M PLUS Rounded 1c', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4158D0, #C850C0, #FFCC70); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #f0f0f0; margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; /* overflow: hidden; */ position: relative;}
 @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
@@ -41,8 +38,13 @@ body { font-family: 'M PLUS Rounded 1c', 'Segoe UI', Tahoma, Geneva, Verdana, sa
 
 #right-sidebar dl { margin: 0; font-size: 0.88em; } #right-sidebar dt { font-weight: bold; color: #ffeb3b; margin-top: 12px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); } #right-sidebar dd { margin-left: 15px; margin-bottom: 8px; line-height: 1.4; color: #ccc; } #right-sidebar strong { font-weight: bold; } .payout-win { color: #ff9800; } .payout-lose { color: #e91e63; }
 #game-container { background-color: rgba(45, 45, 70, 0.8); padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); text-align: center; width: 100%; max-width: 720px; margin: 0 15px; display: flex; flex-direction: column; min-height: 620px; border: 1px solid rgba(255, 255, 255, 0.1); }
-#wave-info { margin-bottom: 5px; font-size: 1.1em; color: #ccc; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); } #difficulty-display { font-weight: bold; color: #ffcc70; }
-#consecutive-wins-display { color: #ffeb3b; font-weight: bold; margin-left: 10px; font-size: 0.9em; animation: pulseYellow 1.5s infinite ease-in-out; }
+#wave-info { margin-bottom: 5px; font-size: 1.1em; color: #ccc; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+/* ★ WAVE/ROUND 色指定用クラス */
+.wave-highlight, #wave-number { color: #ffcc70; font-weight: bold; }
+.round-normal, #round-number { color: #ccc; font-weight: normal; /* 必要に応じて調整 */ }
+#difficulty-display { font-weight: bold; color: #ffcc70; } /* 難易度は黄色維持 */
+#consecutive-wins-display { font-weight: bold; margin-left: 10px; font-size: 0.9em; } /* color は JS で設定 */
+#consecutive-wins-display:not(.npc-losing-streak) { color: #ffeb3b; animation: pulseYellow 1.5s infinite ease-in-out; }
 /* ★ NPC連敗表示用スタイル */
 #consecutive-wins-display.npc-losing-streak { color: #add8e6; animation: pulseBlue 1.8s infinite ease-in-out; font-style: italic; }
 @keyframes pulseYellow { 0%, 100% { opacity: 1; text-shadow: 0 0 5px #ffeb3b; } 50% { opacity: 0.7; text-shadow: none; } }
@@ -165,6 +167,9 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #history-log li:hover { background-color: rgba(85, 85, 115, 0.7); }
 #history-log li.win { border-left-color: #90ee90; } #history-log li.lose { border-left-color: #ff7b7b; } #history-log li.draw { border-left-color: #aaa; }
 #history-log .wave-num { font-weight: bold; color: #ffcc70; display: block; margin-bottom: 6px; }
+/* ★ 履歴のWAVE/ROUND色指定用クラス */
+#history-log .wave-highlight { color: #ffcc70; font-weight: bold; }
+#history-log .round-normal { color: #ccc; font-weight: normal; }
 #history-log .details { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;} #history-log .player, #history-log .npc { font-family: monospace; color: #eee; } #history-log .vs { margin: 0 10px; font-weight: bold; color: #ccc; } #history-log .hand { font-size: 0.9em; color: #bbb; margin-left: 5px; font-style: italic;}
 #history-log .score-change-history { font-size: 0.9em; text-align: right; margin-top: 4px; }
 #history-log .score-change-history .gain { color: #90ee90; font-weight: bold; }
@@ -247,8 +252,105 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 /* レスポンシブ対応 */
 @media (max-width: 1100px) { #game-screen { flex-direction: column; align-items: center; padding: 15px; } .sidebar { width: 95%; max-width: 700px; margin-bottom: 20px; align-self: auto; height: auto; } #game-container { width: 95%; margin: 0; min-height: auto; } .shop-content { max-width: 90%; } .card { width: calc(33.33% - 15px); } }
 @media (max-width: 880px) { .shop-content { max-width: 95%; } .card { width: calc(50% - 15px); min-height: 260px; } }
-@media (max-width: 768px) { .title-content, .result-content { padding: 30px 20px; width: 90%; } .game-title { font-size: 3em; } .difficulty-button { padding: 10px 15px; font-size: 1em; margin: 5px 3px; } #start-game-button { padding: 12px 30px; font-size: 1.2em; } #game-container { padding: 15px; } #wave-info { font-size: 1em; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 10px;} #current-bet-info { font-size: 1em; margin-bottom: 10px; } #game-area { flex-direction: column; gap: 15px; } #dice-area { width: auto; max-width: none; } .player-box { width: 100%; } .player-box h2 { display: flex; align-items: center; justify-content: center; } .parent-marker { font-size: 0.7em; } #dice-display { font-size: 4em; letter-spacing: 0.1em;} .center-role { font-size: 4.5em; padding: 0.1em 0.3em; } .center-role.role-pinzoro { font-size: 5.5em; } .center-role.role-arashi { font-size: 5em; } .center-role.role-shigoro { font-size: 5em; } .center-role.role-normal-eye { font-size: 4em; } .center-role.role-hifumi { font-size: 4.5em; } .center-role.role-shonben { font-size: 3.5em; } #control-area { gap: 10px; } #bet-controls { flex-direction: column; align-items: stretch; gap: 8px; padding: 8px; } .bet-input-container { order: 1; flex-direction: row; justify-content: space-between; gap: 5px; align-items: center;} .bet-input-container label { margin-bottom: 0; } #bet-input { flex-grow: 1; min-width: 60px; width: auto; } .bet-adjust-container { order: 2; display: flex; justify-content: space-around; } .bet-action-container { order: 3; justify-content: space-around; } #game-screen.npc-parent #bet-controls .bet-action-container, #game-screen.npc-parent #bet-controls .bet-adjust-container { display: none; } #game-screen.npc-parent #bet-controls .bet-input-container { justify-content: center; } #game-screen.npc-parent #bet-controls input[type="number"] { flex-grow: 0; width: 80px; background-color: rgba(50, 50, 70, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: none; } #action-controls { gap: 10px; flex-direction: column; align-items: stretch;} #action-controls button { width: 100%; } .result-actions { flex-direction: column; gap: 15px; } .result-actions button { width: 100%; } .sidebar { width: 95%; padding: 15px; } .sidebar h2 { font-size: 1.3em; } #left-sidebar ul, #right-sidebar dl { font-size: 0.85em; } .modal-content { width: 90%; padding: 20px; } #history-log li { font-size: 0.9em; } #history-log .details { flex-direction: column; align-items: flex-start; } #history-log .vs { display: none; } #history-log .score-change-history { text-align: left; } #history-log .parent-info { display: block; margin-left: 0; margin-top: 3px; } .roll-counter-top-right { top: 8px; right: 10px; font-size: 0.8em; } #player-hand-area { gap: 8px; margin-bottom: 10px; min-height: 30px; padding: 8px; } .hand-card-display { padding: 5px 8px; font-size: 0.8em; } .shop-content { padding: 20px; max-width: 90%; } .shop-title { font-size: 1.8em; } #player-status { flex-direction: column; align-items: stretch; gap: 10px; } #coin-display { font-size: 1.1em; text-align: center; } #shop-player-hand { text-align: center; max-width: 100%; font-size: 0.8em; } #hand-cards { justify-content: center; } .card { width: calc(50% - 15px); min-height: 260px; padding-bottom: 60px; } .card-footer { bottom: 15px; } .shop-actions { flex-direction: column; gap: 15px; align-items: stretch; } .shop-actions button { width: 100%; } }
-@media (max-width: 480px) { .game-title { font-size: 2.5em; } #wave-info { font-size: 0.9em; } #dice-display { font-size: 3em; } .player-box p { font-size: 0.9em; } #bet-controls label { font-size: 0.8em; } #min-bet-display { font-size: 0.8em; } .bet-adjust-button { padding: 6px 12px; font-size: 1em; min-width: 45px;} #max-bet-button, #set-bet-button { padding: 8px 16px; font-size: 1em; } #bet-input { padding: 8px; font-size: 1em; } button { padding: 8px 15px; font-size: 0.9em; } #start-game-button { padding: 10px 25px; font-size: 1.1em; } .center-role { font-size: 3em; padding: 0.1em 0.2em; } .center-role.role-pinzoro { font-size: 3.5em; } .center-role.role-arashi { font-size: 3.3em; } .center-role.role-shigoro { font-size: 3.2em; } .center-role.role-normal-eye { font-size: 3em; } .center-role.role-hifumi { font-size: 3.1em; } .center-role.role-shonben { font-size: 2.8em; } .parent-marker { font-size: 0.6em; } .shop-content { padding: 15px; } .card { width: 100%; min-height: auto; padding-bottom: 65px; } .card-footer { bottom: 15px; } .card-name { font-size: 1.1em; } .card-description { font-size: 0.85em; } .card-cost { font-size: 1em; } .buy-button { font-size: 0.8em; padding: 5px 10px; } #close-shop-button, #reroll-button { font-size: 1em; padding: 8px 20px; } #discard-options { gap: 8px; } .discard-choice-button { font-size: 0.8em; padding: 6px 12px; } #player-hand-area { gap: 5px; min-height: auto; padding: 8px; } .hand-card-display { padding: 4px 8px; font-size: 0.75em; } .dice-choice-button { font-size: 1.5em; padding: 8px 15px; min-width: 50px;} #hand-cards { justify-content: center; } .hand-card-item { font-size: 0.8em; padding: 2px 6px; gap: 5px; } .sell-card-button { font-size: 0.7em; padding: 1px 4px; } }
+@media (max-width: 768px) {
+    .title-content, .result-content { padding: 30px 20px; width: 90%; }
+    .game-title { font-size: 3em; }
+    .difficulty-button { padding: 10px 15px; font-size: 1em; margin: 5px 3px; }
+    #start-game-button { padding: 12px 30px; font-size: 1.2em; }
+    #game-container { padding: 15px; }
+    #wave-info { font-size: 1em; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 10px; margin-bottom: 10px;}
+    #current-bet-info { font-size: 1em; margin-bottom: 10px; }
+    #game-area { flex-direction: column; gap: 15px; }
+    #dice-area { width: auto; max-width: none; }
+    .player-box { width: 100%; }
+    .player-box h2 { display: flex; align-items: center; justify-content: center; }
+    .parent-marker { font-size: 0.7em; }
+    #dice-display { font-size: 4em; letter-spacing: 0.1em;}
+    .center-role { font-size: 4.5em; padding: 0.1em 0.3em; }
+    .center-role.role-pinzoro { font-size: 5.5em; }
+    .center-role.role-arashi { font-size: 5em; }
+    .center-role.role-shigoro { font-size: 5em; }
+    .center-role.role-normal-eye { font-size: 4em; }
+    .center-role.role-hifumi { font-size: 4.5em; }
+    .center-role.role-shonben { font-size: 3.5em; }
+    #control-area { gap: 10px; }
+    #bet-controls { flex-direction: column; align-items: stretch; gap: 8px; padding: 8px; }
+    .bet-input-container { order: 1; flex-direction: row; justify-content: space-between; gap: 5px; align-items: center;}
+    .bet-input-container label { margin-bottom: 0; }
+    #bet-input { flex-grow: 1; min-width: 60px; width: auto; }
+    .bet-adjust-container { order: 2; display: flex; justify-content: space-around; }
+    .bet-action-container { order: 3; justify-content: space-around; }
+    #game-screen.npc-parent #bet-controls .bet-action-container, #game-screen.npc-parent #bet-controls .bet-adjust-container { display: none; }
+    #game-screen.npc-parent #bet-controls .bet-input-container { justify-content: center; }
+    #game-screen.npc-parent #bet-controls input[type="number"] { flex-grow: 0; width: 80px; background-color: rgba(50, 50, 70, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: none; }
+    #action-controls { gap: 10px; flex-direction: column; align-items: stretch;}
+    #action-controls button { width: 100%; }
+    .result-actions { flex-direction: column; gap: 15px; }
+    .result-actions button { width: 100%; }
+    .sidebar { width: 95%; padding: 15px; }
+    .sidebar h2 { font-size: 1.3em; }
+    #left-sidebar ul, #right-sidebar dl { font-size: 0.85em; }
+    /* ★ スマホ履歴モーダルスクロール対応 */
+    .modal-content { width: 90%; padding: 20px; max-height: 85vh; /* 高さを制限 */ display: flex; flex-direction: column; /* 縦積みレイアウト */ }
+    #history-log { font-size: 0.9em; max-height: 60vh; /* モーダル内の履歴リストの高さを制限 */ flex-grow: 1; /* 残りの高さを埋める */ }
+    #history-log .details { flex-direction: column; align-items: flex-start; }
+    #history-log .vs { display: none; }
+    #history-log .score-change-history { text-align: left; }
+    #history-log .parent-info { display: block; margin-left: 0; margin-top: 3px; }
+    .roll-counter-top-right { top: 8px; right: 10px; font-size: 0.8em; }
+    #player-hand-area { gap: 8px; margin-bottom: 10px; min-height: 30px; padding: 8px; }
+    .hand-card-display { padding: 5px 8px; font-size: 0.8em; }
+    .shop-content { padding: 20px; max-width: 90%; }
+    .shop-title { font-size: 1.8em; }
+    #player-status { flex-direction: column; align-items: stretch; gap: 10px; }
+    #coin-display { font-size: 1.1em; text-align: center; }
+    #shop-player-hand { text-align: center; max-width: 100%; font-size: 0.8em; }
+    #hand-cards { justify-content: center; }
+    .card { width: calc(50% - 15px); min-height: 260px; padding-bottom: 60px; }
+    .card-footer { bottom: 15px; }
+    .shop-actions { flex-direction: column; gap: 15px; align-items: stretch; }
+    .shop-actions button { width: 100%; }
+}
+@media (max-width: 480px) {
+    .game-title { font-size: 2.5em; }
+    #wave-info { font-size: 0.9em; }
+    #dice-display { font-size: 3em; }
+    .player-box p { font-size: 0.9em; }
+    #bet-controls label { font-size: 0.8em; }
+    #min-bet-display { font-size: 0.8em; }
+    .bet-adjust-button { padding: 6px 12px; font-size: 1em; min-width: 45px;}
+    #max-bet-button, #set-bet-button { padding: 8px 16px; font-size: 1em; }
+    #bet-input { padding: 8px; font-size: 1em; }
+    button { padding: 8px 15px; font-size: 0.9em; }
+    #start-game-button { padding: 10px 25px; font-size: 1.1em; }
+    .center-role { font-size: 3em; padding: 0.1em 0.2em; }
+    .center-role.role-pinzoro { font-size: 3.5em; }
+    .center-role.role-arashi { font-size: 3.3em; }
+    .center-role.role-shigoro { font-size: 3.2em; }
+    .center-role.role-normal-eye { font-size: 3em; }
+    .center-role.role-hifumi { font-size: 3.1em; }
+    .center-role.role-shonben { font-size: 2.8em; }
+    .parent-marker { font-size: 0.6em; }
+    .shop-content { padding: 15px; }
+    .card { width: 100%; min-height: auto; padding-bottom: 65px; }
+    .card-footer { bottom: 15px; }
+    .card-name { font-size: 1.1em; }
+    .card-description { font-size: 0.85em; }
+    .card-cost { font-size: 1em; }
+    .buy-button { font-size: 0.8em; padding: 5px 10px; }
+    #close-shop-button, #reroll-button { font-size: 1em; padding: 8px 20px; }
+    #discard-options { gap: 8px; }
+    .discard-choice-button { font-size: 0.8em; padding: 6px 12px; }
+    #player-hand-area { gap: 5px; min-height: auto; padding: 8px; }
+    .hand-card-display { padding: 4px 8px; font-size: 0.75em; }
+    .dice-choice-button { font-size: 1.5em; padding: 8px 15px; min-width: 50px;}
+    #hand-cards { justify-content: center; }
+    .hand-card-item { font-size: 0.8em; padding: 2px 6px; gap: 5px; }
+    .sell-card-button { font-size: 0.7em; padding: 1px 4px; }
+     /* ★ スマホ履歴モーダルスクロール対応 (さらに調整) */
+    .modal-content { max-height: 90vh; /* さらに高さを許容 */ }
+    #history-log { max-height: 70vh; /* 履歴リストの高さも調整 */ }
+}
 
 /* ===== カード強化関連スタイル ===== */
 .card.upgradeable { border-color: #ffeb3b; position: relative; animation: upgradePulse 1.8s infinite ease-in-out; }
