@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チンチロりん♪</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ===== タイトル画面 ===== -->
+    <div id="title-screen" class="screen active">
+        <div class="title-content">
+            <h1 class="game-title">チンチロりん♪</h1>
+            <div class="difficulty-selector">
+                <p>難易度選択:</p>
+                <button class="difficulty-button button-pop" data-difficulty="easy">簡単</button>
+                <button class="difficulty-button button-pop selected" data-difficulty="normal">普通</button>
+                <button class="difficulty-button button-pop" data-difficulty="hard">難しい</button>
+            </div>
+            <button id="start-game-button" class="button-pop">ゲーム開始</button>
+            <div class="title-extra-buttons" style="margin-top: 25px; display: flex; justify-content: center; gap: 10px;">
+                <!-- 未来のボタン -->
+            </div>
+        </div>
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+    </div>
+
+    <!-- ===== ゲーム画面 ===== -->
+    <div id="game-screen" class="screen">
+        <!-- 左サイドバー -->
+        <div id="left-sidebar" class="sidebar">
+            <h2>ゲームルール</h2>
+            <ul>
+                <li>NPCを相手にチンチロで勝負！</li>
+                <li>親は子が振る前にサイコロを振ります。</li>
+                <li>親が負けた場合、親と子が交代します。</li>
+                <li>毎勝負、親が賭け金を設定します。</li>
+                <li>NPCを倒すとショップでカードを購入できます。</li>
+                <li>手札は最大5枚まで。</li>
+                <li>連勝すると獲得点数にボーナス！(引き分け継続)</li>
+                <li>手に入れたカードはゲーム画面下に表示され、使えるものはクリックできます。</li>
+            </ul>
+            <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
+        </div>
+
+        <!-- メインゲームコンテナ -->
+        <div id="game-container">
+            <!-- ★ WAVE情報にラウンド数表示を追加 -->
+            <div id="wave-info">
+                WAVE: <span id="wave-number">1</span> | ROUND: <span id="round-number">1</span> | 倒した数: <span id="defeated-count">0</span> | 難易度: <span id="difficulty-display">普通</span>
+                <span id="consecutive-wins-display" style="display: none;"></span>
+            </div>
+            <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
+                <!-- JSで内容が表示される -->
+            </div>
+            <div id="game-area">
+                <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">1000</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
+                <div id="dice-area">
+                    <div id="dice-display">- - -</div>
+                    <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
+                    <div id="center-role-announcement" class="center-role"></div>
+                    <div id="dice-choice-overlay" class="overlay"></div>
+                </div>
+                <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
+            </div>
+            <div id="message-area"><p id="message">ゲーム開始！</p></div>
+
+            <div id="player-hand-area" style="display: none;"></div>
+
+            <div id="control-area">
+                <div id="bet-controls">
+                     <div class="bet-adjust-container">
+                        <button class="bet-adjust-button minus" data-amount="-100">-100</button>
+                        <button class="bet-adjust-button minus" data-amount="-10">-10</button>
+                    </div>
+                    <div class="bet-input-container">
+                        <label for="bet-input">賭け金:</label>
+                        <input type="number" id="bet-input" min="1" value="10">
+                        <span id="min-bet-display">最低: 10</span>
+                    </div>
+                    <div class="bet-adjust-container">
+                        <button class="bet-adjust-button plus" data-amount="10">+10</button>
+                        <button class="bet-adjust-button plus" data-amount="100">+100</button>
+                    </div>
+                     <div class="bet-action-container">
+                        <button id="max-bet-button" class="button-pop max-bet">MAX</button>
+                        <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
+                    </div>
+                </div>
+                <div id="action-controls"><button id="roll-button" class="button-pop" disabled>サイコロを振る</button><button id="history-button" class="button-subtle">履歴</button></div>
+                <!-- 追加: カード効果選択ボタンエリア -->
+                <div id="choice-button-area" style="display: none; justify-content: center; gap: 15px; margin-top: 10px;">
+                    <button id="yes-button" class="button-pop choice-yes">はい</button>
+                    <button id="no-button" class="button-subtle choice-no">いいえ</button>
+                </div>
+                <div id="next-wave-area" style="display: none;"><button id="next-wave-button" class="button-pop">ショップへ</button></div>
+            </div>
+        </div>
+
+        <!-- 右サイドバー -->
+        <div id="right-sidebar" class="sidebar"><h2>役と点数</h2><dl><dt>ピンゾロ (1,1,1)</dt><dd>賭け金の <strong class="payout-win">5倍</strong> 勝ち</dd><dt>アラシ (ゾロ目 2-6)</dt><dd>賭け金の <strong class="payout-win">3倍</strong> 勝ち</dd><dt>シゴロ (4,5,6)</dt><dd>賭け金の <strong class="payout-win">2倍</strong> 勝ち</dd><dt>通常の目 (例: 2,2,5)</dt><dd>出た目(5)の強さで勝負。<br>勝ち/負け: 賭け金と同額</dd><dt>ヒフミ (1,2,3)</dt><dd>賭け金の <strong class="payout-lose">2倍</strong> 負け</dd><dt>ションベン</dt><dd>賭け金と同額 負け</dd><dt>目なし</dt><dd>振り直し (最大3回)</dd><dt>引き分け</dt><dd>点数移動なし</dd><dt>★連勝ボーナス</dt><dd>連勝数 x 10% 獲得点数UP!</dd><dt>★親交代</dt><dd>親が負けた場合に交代</dd></dl></div>
+    </div>
+
+    <!-- ===== ショップ画面 ===== -->
+    <div id="shop-screen" class="screen">
+        <div class="shop-content">
+            <h2 class="shop-title">カードショップ</h2>
+            <div id="player-status">
+                <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
+                <div id="shop-player-hand" class="player-hand-display">
+                     手札 (<span id="hand-count">0</span>/5):
+                     <ul id="hand-cards"></ul>
+                </div>
+            </div>
+            <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
+            <div id="card-offers"></div>
+            <div class="shop-actions">
+                <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
+                <button id="close-shop-button" class="button-subtle">お店を出る</button>
+            </div>
+        </div>
+        <div id="discard-modal" class="modal" style="display: none;">
+            <div class="modal-content discard-modal-content">
+                <h3>手札がいっぱいです！</h3>
+                <p>新しいカードを追加するために、売却するカードを選んでください。(売却額: (初期コスト+強化コスト合計)の半額)</p>
+                <div id="discard-options"></div>
+                <button id="cancel-discard-button" class="button-subtle">キャンセル</button>
+            </div>
+        </div>
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+    </div>
+
+    <!-- ===== リザルト画面 ===== -->
+    <div id="result-screen" class="screen">
+        <div class="result-content">
+            <h2 id="result-title">ゲームオーバー</h2>
+            <p id="result-message">残念！</p>
+            <p id="final-score">最終スコア: 0</p>
+            <div class="result-actions">
+                <button id="restart-same-difficulty-button" class="button-pop">もう一度遊ぶ</button>
+                <button id="change-difficulty-button" class="button-subtle">難易度を変更</button>
+            </div>
+        </div>
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+    </div>
+
+    <!-- 履歴モーダル -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-history-modal" class="close-button">×</span>
+            <h2>ゲーム履歴</h2>
+            <ul id="history-log"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
