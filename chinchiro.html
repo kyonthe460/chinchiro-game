@@ -44,6 +44,7 @@
                 <li>手札は最大5枚まで。</li>
                 <li>連勝すると獲得点数にボーナス！(引き分け継続)</li>
                 <li>手に入れたカードはゲーム画面下に表示され、使えるものはクリックできます。</li>
+                 <li>WAVE開始時、持ち点は2500点にリセットされます。</li>
             </ul>
             <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
         </div>
@@ -59,7 +60,7 @@
                 <!-- JSで内容が表示される -->
             </div>
             <div id="game-area">
-                <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">1000</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
+                <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
                 <div id="dice-area">
                     <div id="dice-display">- - -</div>
                     <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
@@ -68,7 +69,10 @@
                 </div>
                 <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
             </div>
-            <div id="message-area"><p id="message">ゲーム開始！</p></div>
+            <div id="message-area">
+                <p id="message">ゲーム開始！</p>
+                <div id="message-button-container"></div> <!-- ボタン用のコンテナ -->
+            </div>
 
             <div id="player-hand-area" style="display: none;"></div>
 
@@ -93,11 +97,6 @@
                     </div>
                 </div>
                 <div id="action-controls"><button id="roll-button" class="button-pop" disabled>サイコロを振る</button><button id="history-button" class="button-subtle">履歴</button></div>
-                <!-- 追加: カード効果選択ボタンエリア -->
-                <div id="choice-button-area" style="display: none; justify-content: center; gap: 15px; margin-top: 10px;">
-                    <button id="yes-button" class="button-pop choice-yes">はい</button>
-                    <button id="no-button" class="button-subtle choice-no">いいえ</button>
-                </div>
                 <div id="next-wave-area" style="display: none;"><button id="next-wave-button" class="button-pop">ショップへ</button></div>
             </div>
         </div>
