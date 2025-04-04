@@ -47,59 +47,68 @@
                  <li>WAVE開始時、持ち点は2500点にリセットされます。</li>
             </ul>
             <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
+            <!-- ★ カード一覧ボタン追加 -->
+            <button id="card-list-button" class="button-subtle" style="margin-top: 15px;">カード一覧</button>
         </div>
 
-        <!-- メインゲームコンテナ -->
-        <div id="game-container">
-            <!-- WAVE情報 -->
-            <div id="wave-info">
-                <!-- JSで内容が表示される -->
-            </div>
-            <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
-                <!-- JSで内容が表示される -->
-            </div>
-            <div id="game-area">
-                <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
-                <div id="dice-area">
-                    <!-- 通常時のダイス表示（モーダル表示時は隠すか、そのまま表示） -->
-                    <div id="dice-display">- - -</div>
-                    <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
-                    <!-- 中央アナウンス -->
-                    <div id="center-role-announcement" class="center-role"></div>
-                    <div id="dice-choice-overlay" class="overlay"></div>
-                </div>
-                <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
-            </div>
-            <div id="message-area">
-                <p id="message">ゲーム開始！</p>
-                <div id="message-button-container"></div> <!-- ボタン用のコンテナ -->
-            </div>
-
-            <div id="player-hand-area" style="display: none;"></div>
-
-            <div id="control-area">
-                <div id="bet-controls">
-                     <div class="bet-adjust-container">
-                        <button class="bet-adjust-button minus" data-amount="-100">-100</button>
-                        <button class="bet-adjust-button minus" data-amount="-10">-10</button>
+        <!-- ★ メインコンテナ構造変更 -->
+        <div id="game-main-area">
+            <!-- スクロール可能エリア -->
+            <div id="game-scrollable-area">
+                <div id="game-container">
+                    <!-- WAVE情報 -->
+                    <div id="wave-info">
+                        <!-- JSで内容が表示される -->
                     </div>
-                    <div class="bet-input-container">
-                        <label for="bet-input">賭け金:</label>
-                        <input type="number" id="bet-input" min="1" value="10">
-                        <span id="min-bet-display">最低: 10</span>
+                    <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
+                        <!-- JSで内容が表示される -->
                     </div>
-                    <div class="bet-adjust-container">
-                        <button class="bet-adjust-button plus" data-amount="10">+10</button>
-                        <button class="bet-adjust-button plus" data-amount="100">+100</button>
+                    <div id="game-area">
+                        <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
+                        <div id="dice-area">
+                            <!-- 通常時のダイス表示（モーダル表示時は隠すか、そのまま表示） -->
+                            <div id="dice-display">- - -</div>
+                            <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
+                            <!-- 中央アナウンス -->
+                            <div id="center-role-announcement" class="center-role"></div>
+                            <div id="dice-choice-overlay" class="overlay"></div>
+                        </div>
+                        <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
                     </div>
-                     <div class="bet-action-container">
-                        <button id="max-bet-button" class="button-pop max-bet">MAX</button>
-                        <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
+                    <div id="message-area">
+                        <p id="message">ゲーム開始！</p>
+                        <div id="message-button-container"></div> <!-- ボタン用のコンテナ -->
                     </div>
                 </div>
-                <div id="action-controls"><button id="roll-button" class="button-pop" disabled>サイコロを振る</button><button id="history-button" class="button-subtle">履歴</button></div>
-                <div id="next-wave-area" style="display: none;"><button id="next-wave-button" class="button-pop">ショップへ</button></div>
             </div>
+
+             <!-- ★ 下部固定操作エリア -->
+             <div id="bottom-control-bar">
+                 <div id="player-hand-area" style="display: none;"></div>
+                 <div id="control-area">
+                     <div id="bet-controls">
+                          <div class="bet-adjust-container">
+                             <button class="bet-adjust-button minus" data-amount="-100">-100</button>
+                             <button class="bet-adjust-button minus" data-amount="-10">-10</button>
+                         </div>
+                         <div class="bet-input-container">
+                             <label for="bet-input">賭け金:</label>
+                             <input type="number" id="bet-input" min="1" value="10">
+                             <span id="min-bet-display">最低: 10</span>
+                         </div>
+                         <div class="bet-adjust-container">
+                             <button class="bet-adjust-button plus" data-amount="10">+10</button>
+                             <button class="bet-adjust-button plus" data-amount="100">+100</button>
+                         </div>
+                          <div class="bet-action-container">
+                             <button id="max-bet-button" class="button-pop max-bet">MAX</button>
+                             <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
+                         </div>
+                     </div>
+                     <div id="action-controls"><button id="roll-button" class="button-pop" disabled>サイコロを振る</button><button id="history-button" class="button-subtle">履歴</button></div>
+                     <div id="next-wave-area" style="display: none;"><button id="next-wave-button" class="button-pop">ショップへ</button></div>
+                 </div>
+             </div>
         </div>
 
         <!-- 右サイドバー -->
@@ -164,7 +173,18 @@
         </div>
     </div>
 
-    <!-- ★ サイコロロールモーダル -->
+    <!-- カード一覧モーダル -->
+    <div id="card-list-modal" class="modal">
+        <div class="modal-content card-list-modal-content">
+            <span id="close-card-list-modal" class="close-button">×</span>
+            <h2>カード一覧</h2>
+            <div id="card-list-content">
+                <!-- JSでカードリストが生成される -->
+            </div>
+        </div>
+    </div>
+
+    <!-- サイコロロールモーダル -->
     <div id="dice-roll-modal" class="modal dice-roll-modal">
         <div class="modal-content dice-roll-modal-content">
             <span id="close-dice-roll-modal" class="close-button">×</span>
