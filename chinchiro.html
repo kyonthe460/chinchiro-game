@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap" rel="stylesheet">
+    <!-- ★ three.js ライブラリを追加 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
@@ -47,11 +49,10 @@
                  <li>WAVE開始時、持ち点は2500点にリセットされます。</li>
             </ul>
             <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
-            <!-- ★ カード一覧ボタン追加 -->
             <button id="card-list-button" class="button-subtle" style="margin-top: 15px;">カード一覧</button>
         </div>
 
-        <!-- ★ メインコンテナ構造変更 -->
+        <!-- メインコンテナ構造 -->
         <div id="game-main-area">
             <!-- スクロール可能エリア -->
             <div id="game-scrollable-area">
@@ -66,7 +67,7 @@
                     <div id="game-area">
                         <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
                         <div id="dice-area">
-                            <!-- 通常時のダイス表示（モーダル表示時は隠すか、そのまま表示） -->
+                            <!-- 通常時のダイス表示（モーダル表示時は隠す） -->
                             <div id="dice-display">- - -</div>
                             <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
                             <!-- 中央アナウンス -->
@@ -82,7 +83,7 @@
                 </div>
             </div>
 
-             <!-- ★ 下部固定操作エリア -->
+             <!-- 下部固定操作エリア -->
              <div id="bottom-control-bar">
                  <div id="player-hand-area" style="display: none;"></div>
                  <div id="control-area">
@@ -128,7 +129,6 @@
             </div>
             <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
             <div id="card-offers"></div>
-             <!-- ★ ショップアクションと確認ボタンを分ける -->
             <div id="shop-actions" class="shop-actions">
                 <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
                 <button id="close-shop-button" class="button-subtle">お店を出る</button>
@@ -184,11 +184,13 @@
         </div>
     </div>
 
-    <!-- サイコロロールモーダル -->
+    <!-- サイコロロールモーダル (修正) -->
     <div id="dice-roll-modal" class="modal dice-roll-modal">
-        <div class="modal-content dice-roll-modal-content">
+        <!-- ★ modal-content から dice-roll-modal-content へクラス名変更 & 内部構造変更 -->
+        <div class="dice-roll-modal-content">
             <span id="close-dice-roll-modal" class="close-button">×</span>
-            <div id="dice-roll-modal-display">- - -</div>
+            <!-- ★ three.js描画用のコンテナに変更 -->
+            <div id="dice-roll-modal-display"></div>
             <!-- 必要であればここにメッセージなどを追加 -->
         </div>
     </div>
