@@ -87,7 +87,7 @@ body { font-family: 'M PLUS Rounded 1c', 'Segoe UI', Tahoma, Geneva, Verdana, sa
 @keyframes handHighlightLegendary { 0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px gold); } 15% { transform: scale(1.8) rotate(-7deg); filter: brightness(2.5) drop-shadow(0 0 20px gold); color: gold; } 30% { transform: scale(1.7) rotate(7deg); filter: brightness(1.8) drop-shadow(0 0 30px gold); } 45% { transform: scale(1.75) rotate(-5deg); filter: brightness(2.2) drop-shadow(0 0 25px gold); } 60% { transform: scale(1.7) rotate(5deg); filter: brightness(2.0) drop-shadow(0 0 22px gold); } 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px gold); } }
 
 #dice-area { flex-grow: 1; text-align: center; padding: 25px; background-color: rgba(70, 70, 100, 0.85); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 3px solid rgba(255, 255, 255, 0.2); overflow: visible; box-shadow: inset 0 0 15px rgba(0,0,0,0.4); position: relative; width: calc(100% - 480px); max-width: 320px; margin: 0 auto; }
-#dice-display { font-size: 5em; font-weight: 800; margin: 15px 0; color: #ffffff; min-height: 1.2em; letter-spacing: 0.15em; font-family: 'M PLUS Rounded 1c', sans-serif; text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6); white-space: nowrap; transition: transform 0.1s ease-out, display 0s; /* displayも遷移対象に */ display: block; }
+#dice-display { font-size: 5em; font-weight: 800; margin: 15px 0; color: #ffffff; min-height: 1.2em; letter-spacing: 0.15em; font-family: 'M PLUS Rounded 1c', sans-serif; text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6); white-space: nowrap; transition: transform 0.1s ease-out, display 0s; display: block; }
 #dice-display .dice-num { display: inline-block; margin: 0 0.05em; }
 #dice-display.rolling .dice-num { color: #bbb; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4); }
 #dice-display.settled .dice-num { animation: diceSettle 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -192,7 +192,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.8);
-    display: flex; /* ★ JSで block にするのではなく flex で中央揃え */
+    display: flex; /* ★ JSで display: flex; で表示 */
     justify-content: center;
     align-items: center;
     backdrop-filter: blur(5px);
@@ -328,7 +328,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 
 /* サイコロロールモーダル */
 .dice-roll-modal {
-    /* ★ display: flex !important; 削除 */
+    /* display: flex !important; は削除 */
 }
 .dice-roll-modal-content {
     background-color: transparent;
@@ -344,7 +344,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     animation: rollModalAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
-    margin: auto; /* ★ 中央揃え */
+    margin: auto;
 }
 @keyframes rollModalAppear { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 #dice-roll-modal-display {
@@ -417,7 +417,6 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .center-role.result-wave-clear { font-size: 6em; }
     .center-role.result-game-over { font-size: 5.5em; }
 
-    /* ★ スマホ用下部固定バー */
     #bottom-control-bar {
         position: sticky;
         bottom: 0;
@@ -448,10 +447,8 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .sidebar { width: 95%; padding: 15px; margin-bottom: 10px; }
     .sidebar h2 { font-size: 1.3em; }
     #left-sidebar ul, #right-sidebar dl { font-size: 0.85em; }
-    /* スマホ履歴モーダルスクロール対応 */
     .modal-content { width: 90%; padding: 20px; max-height: 85vh; display: flex; flex-direction: column; }
     #history-log { font-size: 0.9em; max-height: 60vh; flex-grow: 1; }
-    /* ★ カード一覧モーダル スマホ対応 */
     .card-list-modal-content { max-height: 85vh; }
     #card-list-content { max-height: 70vh; font-size: 0.9em; }
     .card-list-item h3 { font-size: 1.1em; }

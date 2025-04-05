@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const DICE_DOT_COLOR = '#333333';
     const DICE_FACE_COLOR = '#FFFFFF';
     const DICE_EDGE_RADIUS = 0.05;
-    const ROTATION_SPEED = 30;
+    const ROTATION_SPEED = 40; // ★ 回転速度を少し上げる
 
     // --- 基本関数 ---
     function showScreen(screenId) { console.log("Showing screen:", screenId); document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(screenId)?.classList.add('active'); }
@@ -528,11 +528,10 @@ document.addEventListener('DOMContentLoaded', () => {
         betInput.max = maxBet;
         betInput.min = currentMinBet;
 
-        // ★ parseInt NaN チェック追加
         let cv = parseInt(betInput.value);
-        if (isNaN(cv)) { // NaN または空文字列などの場合
-            cv = currentMinBet; // 最低賭け金にフォールバック
-            betInput.value = cv; // inputの値も修正
+        if (isNaN(cv)) {
+            cv = currentMinBet;
+            betInput.value = cv;
         }
 
         const canPlayerControlBet = isPlayerParent && !isGameActive;
@@ -548,8 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         betAdjustButtons.forEach(b => {
             const a = parseInt(b.dataset.amount);
-             // ★ 再度 parseInt する前に現在の値を取得
-            const v = parseInt(betInput.value) || currentMinBet; // NaNなら最低賭け金で計算
+            const v = parseInt(betInput.value) || currentMinBet; // ★ NaNなら最低値で計算
             b.disabled = betInput.disabled ||
                          (a > 0 && (v >= maxBet || v + a > maxBet)) ||
                          (a < 0 && (v <= currentMinBet || v + a < currentMinBet));
@@ -581,9 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
              currentMinBet = baseMinBet;
         }
-         // ★ betInput の値を最低賭け金にリセット（NaNエラー回避）
-         betInput.value = currentMinBet;
-        updateUI(); // UIを更新 (updateBetLimits含む)
+         betInput.value = currentMinBet; // ★ 初期値を確実に設定
+        updateUI();
 
         // --- 最低賭け金支払いチェック ---
         if (playerScore < currentMinBet) {
@@ -614,17 +611,8 @@ document.addEventListener('DOMContentLoaded', () => {
             betArea.style.display = 'flex';
             actionArea.style.display = 'flex';
             setMessage(`あなた(親)が賭け金を設定 (最低 ${currentMinBet}点)。`);
-             // updateBetLimits が呼ばれる前に input 値を保証
-            let lastBet = parseInt(betInput.value);
-            if (isNaN(lastBet)) lastBet = currentMinBet;
-            betInput.value = lastBet; // 正しい値で上書き
-            updateBetLimits(); // ここで input の min/max が設定される
-            // updateBetLimits後に再度値をチェック＆調整
-            const maxBetPossible = parseInt(betInput.max);
-            if (lastBet < currentMinBet || lastBet > maxBetPossible) {
-                betInput.value = currentMinBet;
-            }
-            updateBetLimits(); // ボタンのdisabled状態を更新
+            updateBetLimits(); // ★ updateUIの後に再度実行してボタン状態を確定
+            // 値の調整は updateBetLimits に任せる
             displayPlayerHandOnGameScreen();
         } else { // NPCが親の場合
             betArea.style.display = 'flex';
@@ -632,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); maxBetButton.disabled = true;
             setMessage(`相手(親)が賭け金を決定中... (最低 ${currentMinBet}点)`);
             playerHandArea.innerHTML = ''; playerHandArea.style.display = 'none';
-            updateBetLimits(); // NPCターンでも呼んでおく
+            updateBetLimits(); // ★ NPCターンでも呼んでおく
             setTimeout(() => {
                 const npcBet = determineNpcBet(currentWave);
                 if (npcScore < npcBet || npcBet < currentMinBet) {
@@ -650,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 currentBet = npcBet;
-                betInput.value = currentBet; // NPCのベット額を表示
+                betInput.value = currentBet;
                 console.log(`NPC (Parent) decided bet: ${currentBet} in Wave ${currentWave}`);
                 currentBetInfoEl.innerHTML = `現在の賭け金: ${currentBet} 点 <span class="parent-name">(親: 相手)</span>`;
                 setMessage(`相手(親)が ${currentBet} 点で勝負！ 相手がサイコロを振ります...`);
@@ -839,12 +827,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function createDiceMesh(initialValue = 1) {
         const geometry = new THREE.BoxGeometry(DICE_SIZE, DICE_SIZE, DICE_SIZE);
         const textures = [
-            new THREE.CanvasTexture(drawDiceFace(5)), // +X (5)
-            new THREE.CanvasTexture(drawDiceFace(2)), // -X (2)
+            new THREE.CanvasTexture(drawDiceFace(2)), // +X (2)
+            new THREE.CanvasTexture(drawDiceFace(5)), // -X (5)
             new THREE.CanvasTexture(drawDiceFace(1)), // +Y (1 - 上)
             new THREE.CanvasTexture(drawDiceFace(6)), // -Y (6 - 下)
-            new THREE.CanvasTexture(drawDiceFace(4)), // +Z (4)
-            new THREE.CanvasTexture(drawDiceFace(3)), // -Z (3)
+            new THREE.CanvasTexture(drawDiceFace(3)), // +Z (3)
+            new THREE.CanvasTexture(drawDiceFace(4)), // -Z (4 - 手前)
         ];
         const materials = textures.map(texture => new THREE.MeshStandardMaterial({ map: texture, roughness: 0.6, metalness: 0.1 }));
 
@@ -877,13 +865,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             diceMeshes.forEach((dice) => {
                 if (dice.userData.isRolling) {
-                    dice.rotation.x += dice.userData.rotationSpeed.x * delta;
-                    dice.rotation.y += dice.userData.rotationSpeed.y * delta;
-                    dice.rotation.z += dice.userData.rotationSpeed.z * delta;
+                    // ★ 回転速度を少し上げる
+                    dice.rotation.x += dice.userData.rotationSpeed.x * delta * 1.5;
+                    dice.rotation.y += dice.userData.rotationSpeed.y * delta * 1.5;
+                    dice.rotation.z += dice.userData.rotationSpeed.z * delta * 1.5;
                 } else {
                     const t = Math.min(1, (elapsedTime - dice.userData.settleStartTime) / dice.userData.settleDuration);
-                    const easedT = 1 - Math.pow(1 - t, 3);
-                    dice.quaternion.slerp(dice.userData.targetQuaternion, easedT * 0.15);
+                    const easedT = 1 - Math.pow(1 - t, 3); // EaseOutCubic
+                    // ★ Slerp係数を調整して停止を少し速く、滑らかに
+                    dice.quaternion.slerp(dice.userData.targetQuaternion, easedT * 0.2);
                 }
             });
 
@@ -899,17 +889,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === 目標の向き (Quaternion) を計算 (修正) ===
-    function getTargetQuaternionForValue(value) {
+    // === 目標の向き (Quaternion) を計算 (修正 - 結果が手前(-Z)を向くように) ===
+    function getTargetQuaternionForValue(resultValue) {
         const targetQuaternion = new THREE.Quaternion();
-        switch (value) {
-            case 1: targetQuaternion.set(0, 0, 0, 1); break;
-            case 6: targetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI); break;
-            case 2: targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2); break;
-            case 5: targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2); break;
-            case 3: targetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); break;
-            case 4: targetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2); break;
-            default: targetQuaternion.set(0, 0, 0, 1); break;
+        // -Z 面に resultValue が来るように回転させる
+        // createDiceMesh のマッピング: +X=5, -X=2, +Y=1, -Y=6, +Z=4, -Z=3
+
+        switch (resultValue) {
+            case 3: // -Z 面に 3 (-Z面) が来るように -> 回転なし
+                targetQuaternion.set(0, 0, 0, 1);
+                break;
+            case 4: // -Z 面に 4 (+Z面) が来るように -> Y軸 180度
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                break;
+            case 1: // -Z 面に 1 (+Y面) が来るように -> X軸 +90度
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+                break;
+            case 6: // -Z 面に 6 (-Y面) が来るように -> X軸 -90度
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                break;
+            case 2: // -Z 面に 2 (-X面) が来るように -> Y軸 -90度
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+                break;
+            case 5: // -Z 面に 5 (+X面) が来るように -> Y軸 +90度
+                targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+                break;
+            default:
+                targetQuaternion.set(0, 0, 0, 1); // Default: 3 facing front
+                break;
         }
         return targetQuaternion;
     }
@@ -924,17 +931,17 @@ document.addEventListener('DOMContentLoaded', () => {
              return;
         }
 
-        const settleDelayBase = 1200;
-        const settleDelayOffset = 500;
+        const settleDelayBase = 1000; // ★ 少し短縮
+        const settleDelayOffset = 400; // ★ 少し短縮
 
         // アニメーション開始
         diceMeshes.forEach((dice, i) => {
             dice.userData.isRolling = true;
             dice.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
             dice.userData.rotationSpeed.set(
-                 (Math.random() - 0.5) * ROTATION_SPEED * 0.8,
-                 (Math.random() - 0.5) * ROTATION_SPEED * 0.8 + ROTATION_SPEED,
-                 (Math.random() - 0.5) * ROTATION_SPEED * 0.8
+                 (Math.random() - 0.5) * ROTATION_SPEED, // ★ 回転速度を全体的に上げる
+                 (Math.random() - 0.5) * ROTATION_SPEED + ROTATION_SPEED * 1.2, // ★ Y軸はさらに速く
+                 (Math.random() - 0.5) * ROTATION_SPEED
             );
             dice.userData.targetQuaternion.copy(dice.quaternion);
         });
@@ -948,16 +955,16 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (dice) {
                     dice.userData.isRolling = false;
-                    dice.userData.targetQuaternion = getTargetQuaternionForValue(value);
+                    dice.userData.targetQuaternion = getTargetQuaternionForValue(value); // ★ 修正された関数を使用
                     dice.userData.settleStartTime = performance.now();
-                    dice.userData.settleDuration = 1000 + Math.random() * 500;
-                    console.log(`Dice ${index} settling to ${value}`);
+                    dice.userData.settleDuration = 900 + Math.random() * 400; // ★ 停止時間を少し調整
+                    console.log(`Dice ${index} settling to show ${value} on front`); // ログ修正
                 }
             }, settleDelay);
         });
 
         // 全てのアニメーションが完了するであろう時間を見計らってコールバックを実行
-        const totalDuration = settleDelayBase + (finalDice.length - 1) * settleDelayOffset + 1800;
+        const totalDuration = settleDelayBase + (finalDice.length - 1) * settleDelayOffset + 1500; // ★ 余裕時間を少し調整
         setTimeout(() => {
              diceMeshes.forEach(d => {
                  d.userData.isRolling = false;
@@ -1111,9 +1118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function changeBet(amount) {
         if (betInput.disabled) return;
         let cv = parseInt(betInput.value);
-        // ★ NaN チェック
         if (isNaN(cv)) {
-            cv = currentMinBet; // NaNなら最低ベット額にする
+            cv = currentMinBet;
         }
         const max = parseInt(betInput.max);
         let nv = cv + amount;
@@ -1121,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (nv < currentMinBet) nv = currentMinBet;
         if (nv !== cv) {
             betInput.value = nv;
-            updateBetLimits(); // ボタンの状態を更新
+            updateBetLimits();
         }
     }
     function startBetHold(amount) {
@@ -1138,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 賭け金決定ボタン
     setBetButton.addEventListener('click', () => {
         if (!isPlayerParent || betInput.disabled || isGameActive) return;
-        updateBetLimits();
+        updateBetLimits(); // 最新の状態に更新
 
         if (playerScore < currentMinBet) { setMessage(`持ち点が最低賭け金(${currentMinBet}点)未満のため、賭けられません。`); return; }
         if (npcScore < currentMinBet) {
@@ -1155,11 +1161,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const bv = parseInt(betInput.value);
-        // ★ NaN チェック追加
-        if (isNaN(bv)) {
+        let bv = parseInt(betInput.value);
+        if (isNaN(bv)) { // ★ NaN チェック
             setMessage(`無効な賭け金です。`);
-            betInput.value = currentMinBet; // 無効な場合は最低値に戻す
+            betInput.value = currentMinBet;
             updateBetLimits();
             return;
         }
@@ -1879,7 +1884,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardListContent.appendChild(item);
         });
 
-        cardListModal.style.display = 'block';
+        cardListModal.style.display = 'block'; // ★ display: block を flex に変更
     }
 
 
@@ -2205,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 discardOptionsEl.appendChild(button);
             }
         });
-        discardModal.style.display = 'block';
+        discardModal.style.display = 'block'; // ★ flex ではなく block
     }
     // 破棄カード選択
     function handleDiscardChoice(event) {
@@ -2520,7 +2525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ターンを進める
         if (turnProceed) {
               console.log("Card use finished, potentially proceeding turn.");
-              if (isGameActive && !isPlayerTurn) { // ★ !isPlayerTurn チェック追加
+              if (isGameActive && isPlayerTurn) {
                    const handName = getHandDisplayName(playerHand);
                    if (playerHand?.type === '役' || playerHand?.type === '目') {
                         const blindingCardCheck = playerCards.find(c => c.id === 'blindingDice');
@@ -2529,15 +2534,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                        if (canUseBlindingNowCheck && isPlayerParent) {
                             setMessage(`あなた(親): ${handName}！ 相手(子)の番です。(「目くらまし」使用可能)`);
-                            isPlayerTurn = true; // 目くらまし待ち
-                            displayPlayerHandOnGameScreen(); // 手札再表示
                        } else if (isPlayerParent) {
                             setMessage(`あなた(親): ${handName}！ 相手(子)の番です。`);
-                              // isPlayerTurn は false のまま
+                              isPlayerTurn = false;
                               setTimeout(npcTurn, 1400);
                        } else { // 子の場合
                             setMessage(`あなた(子): ${handName}！ 勝負！`);
-                            // isPlayerTurn は false のまま
+                            isPlayerTurn = false;
                             setTimeout(handleRoundEnd, 1000);
                        }
                    }
@@ -2629,7 +2632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'dice-choice-buttons';
 
-        if (originalValue + adjustAmount <= 6) { // 上限チェック
+        if (originalValue + adjustAmount <= 6) {
             const plusButton = document.createElement('button');
             plusButton.className = 'dice-choice-button button-pop';
             plusButton.textContent = `+${adjustAmount} (→ ${originalValue + adjustAmount})`;
@@ -2638,7 +2641,7 @@ document.addEventListener('DOMContentLoaded', () => {
             plusButton.onclick = handleDiceChoice;
             buttonContainer.appendChild(plusButton);
         }
-        if (originalValue - adjustAmount >= 1) { // 下限チェック
+        if (originalValue - adjustAmount >= 1) {
              const minusButton = document.createElement('button');
              minusButton.className = 'dice-choice-button button-pop';
              minusButton.textContent = `-${adjustAmount} (→ ${originalValue - adjustAmount})`;
@@ -2926,7 +2929,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  if (canRerollAfterCard || hasStormWarningRerollAfterCard) {
                      setMessage(`あなた(${isPlayerParent ? '親' : '子'}): カード使用後も目なし！ 再度振ってください。(${playerRollCount}/${currentMaxRolls})${hasStormWarningRerollAfterCard ? ` (嵐の予感 無料振り直し ${stormWarningRerollsLeft} 回)`:''}`);
-                     rollButton.disabled = false; // 振り直し可能
+                     rollButton.disabled = false;
                      displayPlayerHandOnGameScreen();
                  } else { // 振り切り後目なし -> ションベン
                      playerHand = { ...ROLES.SHONBEN, type: 'ションベン' };
@@ -2935,11 +2938,11 @@ document.addEventListener('DOMContentLoaded', () => {
                      highlightHand(playerHandEl, playerHand);
                      playerHandArea.style.display = 'none';
                      rollButton.disabled = true;
-                     isPlayerTurn = false; // ターン終了
+                     isPlayerTurn = false;
                      setTimeout(handleRoundEnd, 800);
                  }
             }
-            updateUI(); // UI更新
+            updateUI();
         }
         // turnEnd が false の場合は何もしない
     } // handleDiceChoice end
@@ -2962,8 +2965,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // カード一覧ボタン イベントリスナー
     cardListButton.addEventListener('click', showCardListModal);
-    closeCardListModalButton.addEventListener('click', () => cardListModal.style.display = 'none'); // カード一覧閉じる
-    closeDiceRollModalButton.addEventListener('click', hideDiceRollModal); // モーダル閉じるボタン
+    closeCardListModalButton.addEventListener('click', () => cardListModal.style.display = 'none');
+    closeDiceRollModalButton.addEventListener('click', hideDiceRollModal);
     window.addEventListener('click', (event) => {
         if (event.target === historyModal) historyModal.style.display = 'none';
         if (event.target === cardListModal) cardListModal.style.display = 'none';
@@ -2974,7 +2977,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // カード一覧モーダル表示関数
     function showCardListModal() {
-        cardListContent.innerHTML = ''; // コンテンツをクリア
+        cardListContent.innerHTML = '';
         const sortedCards = [...allCards].sort((a, b) => {
             if (a.rarity !== b.rarity) return b.rarity - a.rarity;
             if (a.type !== b.type) return a.type.localeCompare(b.type);
@@ -3006,7 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             cardListContent.appendChild(item);
         });
-        cardListModal.style.display = 'block';
+        cardListModal.style.display = 'block'; // ★ JSで flex ではなく block で表示
     }
 
     // --- 初期状態 ---
