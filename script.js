@@ -832,7 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
             new THREE.CanvasTexture(drawDiceFace(1)), // +Y (1 - 上)
             new THREE.CanvasTexture(drawDiceFace(6)), // -Y (6 - 下)
             new THREE.CanvasTexture(drawDiceFace(3)), // +Z (3)
-            new THREE.CanvasTexture(drawDiceFace(4)), // -Z (4 - 手前)
+            new THREE.CanvasTexture(drawDiceFace(4)), // -Z (4- 手前)
         ];
         const materials = textures.map(texture => new THREE.MeshStandardMaterial({ map: texture, roughness: 0.6, metalness: 0.1 }));
 
@@ -1202,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else { setMessage(`持ち点が最低賭け金(${currentMinBet}点)未満です。`); }
     });
 
-    // サイコロを振るボタン (three.js版)
+    // サイコロを振るボタン (three.js版 - 結果表示追加)
     rollButton.addEventListener('click', async () => {
         if (playerScore <= 0) { checkGameEnd(); return; }
         if (!isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice) return;
@@ -1239,6 +1239,9 @@ document.addEventListener('DOMContentLoaded', () => {
             playerDice = finalDice;
             if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' ');
             hideDiceRollModal();
+            // ★★★ 結果を中央の dice-display に表示 ★★★
+            diceDisplayEl.textContent = finalDice.join(' ');
+            // ★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
             console.log(`Before getHandResult: avoidActive=${avoid123_456Active}`);
             const result = getHandResult(playerDice, false, 0, soulRollLvFor判定);
@@ -1418,8 +1421,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // if (event.target === diceRollModal) hideDiceRollModal(); // 背景クリックで閉じない
     });
 
-    // === NPCターン (three.js版) ===
-    function npcTurn() {
+     // === NPCターン (three.js版 - 結果表示追加) ===
+     function npcTurn() {
         if (!isGameActive || isPlayerTurn || diceAnimationId || waitingForUserChoice) return;
 
         npcRollCount++;
@@ -1435,6 +1438,9 @@ document.addEventListener('DOMContentLoaded', () => {
             npcDice = finalDice;
             if(npcDiceEl) npcDiceEl.textContent = npcDice.join(' ');
             hideDiceRollModal();
+            // ★★★ 結果を中央の dice-display に表示 ★★★
+            diceDisplayEl.textContent = finalDice.join(' ');
+            // ★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
             const result = getHandResult(npcDice, true, blindingLevel, 0);
             const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目'));
