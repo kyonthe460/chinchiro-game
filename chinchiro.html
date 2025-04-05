@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>チンチロりん♪</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> <!-- ★ パスが正しいか確認 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap" rel="stylesheet">
-    <!-- ★ three.js ライブラリを追加 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
     <!-- ===== タイトル画面 ===== -->
-    <div id="title-screen" class="screen active">
+    <div id="title-screen" class="screen active"> <!-- ★ 初期は active だが JS で制御される -->
         <div class="title-content">
             <h1 class="game-title">チンチロりん♪</h1>
             <div class="difficulty-selector">
@@ -33,7 +32,7 @@
     </div>
 
     <!-- ===== ゲーム画面 ===== -->
-    <div id="game-screen" class="screen">
+    <div id="game-screen" class="screen"> <!-- ★ 初期は active ではない -->
         <!-- 左サイドバー -->
         <div id="left-sidebar" class="sidebar">
             <h2>ゲームルール</h2>
@@ -117,7 +116,7 @@
     </div>
 
     <!-- ===== ショップ画面 ===== -->
-    <div id="shop-screen" class="screen">
+    <div id="shop-screen" class="screen"> <!-- ★ 初期は active ではない -->
         <div class="shop-content">
             <h2 class="shop-title">カードショップ</h2>
             <div id="player-status">
@@ -150,7 +149,7 @@
     </div>
 
     <!-- ===== リザルト画面 ===== -->
-    <div id="result-screen" class="screen">
+    <div id="result-screen" class="screen"> <!-- ★ 初期は active ではない -->
         <div class="result-content">
             <h2 id="result-title">ゲームオーバー</h2>
             <p id="result-message">残念！</p>
@@ -184,14 +183,11 @@
         </div>
     </div>
 
-    <!-- サイコロロールモーダル (修正) -->
+    <!-- サイコロロールモーダル -->
     <div id="dice-roll-modal" class="modal dice-roll-modal">
-        <!-- ★ modal-content から dice-roll-modal-content へクラス名変更 & 内部構造変更 -->
         <div class="dice-roll-modal-content">
             <span id="close-dice-roll-modal" class="close-button">×</span>
-            <!-- ★ three.js描画用のコンテナに変更 -->
             <div id="dice-roll-modal-display"></div>
-            <!-- 必要であればここにメッセージなどを追加 -->
         </div>
     </div>
 
