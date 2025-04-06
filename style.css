@@ -73,6 +73,23 @@ body {
     transition: filter 0.3s ease-out;
 }
 
+/* --- 上部固定ヘッダー --- */
+#game-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(30, 30, 50, 0.9); /* ヘッダー背景色 */
+    padding: 8px 15px; /* ヘッダー内余白 */
+    display: flex;
+    justify-content: space-between; /* 左右端に配置 */
+    align-items: center; /* 垂直中央揃え */
+    box-sizing: border-box;
+    z-index: 200; /* 下部バーより手前、モーダルより奥 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 下線 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* 影 */
+}
+
 /* メインエリア構造 */
 #game-main-area {
     display: flex;
@@ -80,6 +97,8 @@ body {
     flex-grow: 1;
     width: 100%; /* 横幅いっぱい */
     overflow: hidden; /* このレベルで overflow hidden */
+    padding-top: 50px; /* ヘッダー分の高さを確保 (ヘッダーの高さに応じて調整) */
+    box-sizing: border-box;
 }
 
 /* スクロール可能エリア */
@@ -102,58 +121,44 @@ body {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
     text-align: center;
     width: 100%;
-    max-width: 800px; /* 最大幅を拡大 */
+    max-width: 80%; /* 横幅調整 (左右10%余白) */
     margin: 0 auto; /* 水平中央揃え */
     display: flex;
     flex-direction: column;
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative; /* 子要素の絶対配置基準 */
+    flex-grow: 1; /* 縦に伸ばす */
 }
 
-/* 所持コイン表示 */
+/* 所持コイン表示 (ヘッダー内) */
 #game-coin-info {
-    position: absolute; /* または他の方法で左上に配置 */
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2)); /* ゴールド風 */
-    border: 1px solid rgba(255, 215, 0, 0.5);
-    border-radius: 8px;
-    padding: 5px 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), inset 0 0 3px rgba(255, 255, 255, 0.1);
-    text-align: center;
-    z-index: 5; /* 他の要素より手前に */
+    position: static; /* ヘッダー内の配置に従う */
+    background: none; /* 背景削除 */
+    border: none; /* 枠線削除 */
+    box-shadow: none; /* 影削除 */
+    padding: 0; /* パディング削除 */
+    text-align: left; /* 左寄せ */
+    z-index: auto;
 }
-#game-coin-info h3 { display: none; /* h3は非表示にするか、デザインに合わせる */ }
+#game-coin-info h3 { display: none; /* h3は非表示 */ }
 #game-coin-display {
     font-size: 1.2em;
     font-weight: bold;
     color: gold; /* ゴールド色 */
     text-shadow: 0 0 5px orange, 0 0 8px gold, 1px 1px 2px rgba(0,0,0,0.7);
     animation: coinShine 2.5s infinite linear;
+    margin: 0; /* 不要なマージン削除 */
 }
 @keyframes coinShine {
     0%, 100% { opacity: 0.8; text-shadow: 0 0 5px orange, 0 0 8px gold, 1px 1px 2px rgba(0,0,0,0.7); }
     50% { opacity: 1; text-shadow: 0 0 8px orange, 0 0 15px gold, 1px 1px 2px rgba(0,0,0,0.7); }
 }
 
-
-/* WAVE情報 と 設定ボタンコンテナ */
-/* HTML側で #wave-info の隣に #settings-button-container を配置した場合 */
-#wave-info {
-    font-size: 1.1em;
-    color: #ccc;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    text-align: center; /* 中央寄せに戻す */
-    margin-top: 50px; /* コイン情報と被らないように */
-    margin-bottom: 10px; /* 下の current-bet-info との間隔 */
-}
-/* 設定ボタン */
+/* 設定ボタンコンテナ (ヘッダー内) */
 #settings-button-container {
-    position: absolute; /* 右上に絶対配置 */
-    top: 15px;
-    right: 15px;
-    z-index: 5;
+    position: static; /* ヘッダー内の配置に従う */
 }
+/* 設定ボタン スタイル調整 */
 #settings-button {
     padding: 5px 10px;
     font-size: 1.5em; /* アイコンサイズ調整 */
@@ -175,6 +180,19 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+/* WAVE情報 コンテナ（マージン調整） */
+#game-container > div:nth-child(1) { /* HTML構造に依存するが、WAVE情報コンテナを指す想定 */
+     margin-bottom: 5px;
+}
+/* WAVE情報 テキスト（マージン調整） */
+#wave-info {
+    font-size: 1.1em;
+    color: #ccc;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    text-align: center; /* 中央寄せ */
+    margin-top: 0; /* ヘッダーができたので上マージン不要 */
+    margin-bottom: 10px; /* 下の current-bet-info との間隔 */
+}
 
 /* WAVE/ROUND 色指定用クラス */
 .wave-highlight { color: #ffcc70; font-weight: bold; } /* WAVE: と数字 */
@@ -190,7 +208,7 @@ body {
 #current-bet-info { background-color: rgba(0, 0, 0, 0.3); padding: 5px 10px; border-radius: 5px; font-size: 1.1em; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); border: 1px solid rgba(255, 235, 59, 0.3); box-shadow: inset 0 0 5px rgba(0,0,0,0.2); min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b; }
 #current-bet-info .parent-name { font-weight: normal; color: #eee; }
 
-#game-area { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 25px; gap: 20px; flex-grow: 1; }
+#game-area { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 25px; gap: 20px; flex-grow: 1; /* 縦に伸ばす */ }
 .player-box { background-color: rgba(60, 60, 90, 0.85); padding: 18px; border-radius: 10px; width: 280px; /* 幅を広げる */ box-sizing: border-box; display: flex; flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); position: relative; }
 .player-box h2 { margin-top: 0; margin-bottom: 12px; color: #eee; font-size: 1.3em; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
 .parent-marker { color: #ffeb3b; font-size: 0.8em; margin-left: 5px; vertical-align: middle; font-weight: bold; display: none; text-shadow: 0 0 3px #ffc107; }
@@ -255,17 +273,15 @@ body {
 @keyframes centerRoleHifumi { 0% { transform: translate(-50%, -50%) translateY(30px) rotate(-15deg); opacity: 0; } 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); opacity: 1; } }
 .center-role.role-shonben { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 4.8em; color: #bbb; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); --center-role-duration: 1.5s; /* 背景削除 */ }
 /* 勝敗演出 */
-.center-role.result-win { font-family: 'RocknRoll One', sans-serif; font-size: 7em; color: #ffeb3b; text-shadow: 0 0 8px white, 0 0 15px #ffc107, 3px 3px 6px rgba(0,0,0,0.6); animation-name: resultWinAppear, centerRoleFadeOut; animation-duration: 0.7s, 0.5s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.2em 0.6em; /* background: radial-gradient(circle, rgba(255,235,59,0.3) 0%, rgba(255,193,7,0) 70%); */ }
+.center-role.result-win { font-family: 'RocknRoll One', sans-serif; font-size: 7em; color: #ffeb3b; text-shadow: 0 0 8px white, 0 0 15px #ffc107, 3px 3px 6px rgba(0,0,0,0.6); animation-name: resultWinAppear, centerRoleFadeOut; animation-duration: 0.7s, 0.5s; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.2em 0.6em; }
 @keyframes resultWinAppear { 0% { transform: translate(-50%, -50%) scale(0.2) rotate(-30deg); opacity: 0; filter: blur(5px); } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; filter: blur(0px); } }
-.center-role.result-lose { font-family: 'Yuji Syuku', serif; font-size: 6.5em; color: #add8e6; text-shadow: 0 0 6px #4682B4, 2px 2px 4px rgba(0,0,0,0.7); animation-name: resultLoseAppear, centerRoleFadeOut; animation-duration: 0.9s, 0.5s; animation-timing-function: ease-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.15em 0.5em; /* background-color: rgba(30, 40, 70, 0.8); */ }
+.center-role.result-lose { font-family: 'Yuji Syuku', serif; font-size: 6.5em; color: #add8e6; text-shadow: 0 0 6px #4682B4, 2px 2px 4px rgba(0,0,0,0.7); animation-name: resultLoseAppear, centerRoleFadeOut; animation-duration: 0.9s, 0.5s; animation-timing-function: ease-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 1.8s); padding: 0.15em 0.5em; }
 @keyframes resultLoseAppear { 0% { transform: translate(-50%, -80%) scale(1.1); opacity: 0; } 50% { transform: translate(-50%, -45%); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 /* WAVEクリア/ゲームオーバー */
 .center-role.result-wave-clear { font-family: 'Shippori Mincho', serif; font-size: 8em; color: #90ee90; background: linear-gradient(45deg, #90ee90, #32cd32); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 15px white, 0 0 25px #90ee90, 4px 4px 8px rgba(0,0,0,0.6); filter: drop-shadow(0 0 15px #90ee90); animation-name: waveClearAppear, centerRoleFadeOut; animation-duration: 1.2s, 0.5s; animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275), ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 2.5s); padding: 0.3em 0.7em; /* 背景削除 */ }
 @keyframes waveClearAppear { 0% { transform: translate(-50%, -50%) scale(0.5) rotateY(-180deg); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1) rotateY(0deg); opacity: 1; } }
 .center-role.result-game-over { font-family: 'Yuji Syuku', serif; font-size: 7.5em; color: #ff7b7b; text-shadow: 0 0 10px #dc143c, 3px 3px 6px rgba(0,0,0,0.8); animation-name: gameOverAppear, centerRoleFadeOut; animation-duration: 1.5s, 0.5s; animation-timing-function: ease-in-out, ease-out; animation-fill-mode: forwards, forwards; animation-delay: 0s, var(--center-role-duration, 2.5s); padding: 0.2em 0.6em; /* 背景削除 */ }
 @keyframes gameOverAppear { 0% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; filter: grayscale(100%); } 50% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; filter: grayscale(50%); } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: grayscale(0); } }
-
-/* ゲーム画面手札表示エリア (削除された) */
 
 /* --- 下部コントロールバー内のスタイル修正 --- */
 #control-area {
@@ -332,24 +348,22 @@ body {
     margin-top: 3px; /* 入力欄との間隔 */
 }
 
-/* 二段目: MAX/決定ボタンコンテナ */
+/* 二段目: MIN/決定/MAXボタンコンテナ */
 .bet-action-container {
     display: flex;
-    gap: 10px;
-    align-items: center; /* ボタンの高さを揃える */
+    gap: 10px; /* ボタン間の隙間 */
+    align-items: stretch; /* ボタンの高さを揃える */
     justify-content: center; /* 中央配置 */
-    /* margin-top は削除 (親のgapで管理) */
-    background-color: rgba(0,0,0,0.25); /* 背景色を二段目に適用 */
-    padding: 8px; /* 少しパディング */
+    background-color: rgba(0,0,0,0.25);
+    padding: 8px;
     border-radius: 10px;
-    transition: opacity 0.3s ease, display 0.3s ease; /* NPCターン用 */
+    transition: opacity 0.3s ease, display 0.3s ease;
 }
-#max-bet-button,
-#set-bet-button {
-    flex-basis: 45%; /* 基本幅を均等に近く */
-    flex-grow: 0; /* 伸ばさない */
-    max-width: 180px; /* ボタンの最大幅（任意） */
-    padding: 10px 15px; /* パディング調整 */
+/* 二段目のボタン共通スタイル */
+.bet-action-container button {
+    flex-grow: 1; /* 幅を均等にする */
+    padding: 10px 15px;
+    /* flex-basis, max-width は削除 */
 }
 
 /* アクションボタン (サイコロ/履歴) コンテナ */
@@ -363,22 +377,35 @@ body {
     flex-grow: 1; /* ボタン幅を均等に */
 }
 
-/* 調整ボタン 個別スタイル (変更なし) */
+/* 調整ボタン 個別スタイル */
 .bet-adjust-button { padding: 8px 14px; font-size: 1.1em; min-width: 55px; border-radius: 18px; color: white; font-weight: bold; transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
 .bet-adjust-button.plus { background: linear-gradient(180deg, #5cb85c, #4cae4c); }
 .bet-adjust-button.plus:hover:not(:disabled) { background: linear-gradient(180deg, #6cd96c, #5bc85b); }
 .bet-adjust-button.minus { background: linear-gradient(180deg, #d9534f, #c9302c); }
 .bet-adjust-button.minus:hover:not(:disabled) { background: linear-gradient(180deg, #e06b67, #d6403b); }
-#max-bet-button { background: linear-gradient(180deg, #f0ad4e, #ec971f); color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
-#max-bet-button:hover:not(:disabled) { background: linear-gradient(180deg, #f3bc70, #f0a540); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4); }
+
+/* MIN/決定/MAX ボタン個別スタイル */
+#min-bet-button {
+    background: linear-gradient(180deg, #8a94a8, #6c757d);
+    color: white;
+    text-shadow: 0px -1px 1px rgba(0,0,0,0.4);
+}
+#min-bet-button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #9fa8b8, #7c858d);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(108, 117, 125, 0.4);
+}
 #set-bet-button { background: linear-gradient(180deg, #ffeb3b, #ffc107); color: #333; font-weight: bold; }
 #set-bet-button:hover:not(:disabled) { background: linear-gradient(180deg, #fff06b, #ffd24d); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
+#max-bet-button { background: linear-gradient(180deg, #f0ad4e, #ec971f); color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
+#max-bet-button:hover:not(:disabled) { background: linear-gradient(180deg, #f3bc70, #f0a540); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4); }
+
 
 #bet-input:focus { background-color: rgba(255, 255, 255, 0.2); outline: 2px solid #ffeb3b; }
 #bet-input:disabled { background-color: rgba(80, 80, 80, 0.5); color: #aaa; cursor: not-allowed; }
 
 /* NPC親ターンのスタイル調整 */
-#game-screen.npc-parent .bet-main-controls { /* bet-controls ではなく main-controls */
+#game-screen.npc-parent .bet-main-controls {
     opacity: 0.5;
     pointer-events: none;
 }
@@ -389,12 +416,10 @@ body {
 #game-screen.npc-parent .bet-input-container span {
     opacity: 0.7;
 }
-#game-screen.npc-parent #bet-input { /* inputへの指定に修正 */
+#game-screen.npc-parent #bet-input {
      background-color: rgba(50, 50, 70, 0.7);
      border: 1px solid rgba(255, 255, 255, 0.1);
      pointer-events: none;
-     /* width: 100%; */ /* 幅は通常時と同じでOK */
-     /* max-width: 100px; */
 }
 
 /* 次WAVEボタンエリア */
@@ -466,7 +491,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #history-log .score-change-history { font-size: 0.9em; text-align: right; margin-top: 4px; }
 #history-log .score-change-history .gain { color: #90ee90; font-weight: bold; }
 #history-log .score-change-history .loss { color: #ff7b7b; font-weight: bold; }
-#history-log .win-streak { color: #ffeb3b; font-weight: bold; font-style: italic; margin-left: 5px; }
+#history-log .win-streak { color: #add8e6; font-style: italic; margin-left: 5px; animation: pulseBlue 1.8s infinite ease-in-out;} /* 連勝/連敗スタイル統一 */
 #history-log .npc-losing-streak { color: #add8e6; font-style: italic; margin-left: 5px; animation: pulseBlue 1.8s infinite ease-in-out;} /* NPC連敗用クラス */
 #history-log .parent-info { font-size: 0.85em; color: #ccc; margin-left: 8px; font-weight: normal; }
 
@@ -571,9 +596,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 .dice-choice-button { font-size: 2em; padding: 10px 20px; font-family: monospace; min-width: 60px; background: linear-gradient(180deg, #ffeb3b, #ffc107); color: #333; }
 
 /* サイコロロールモーダル */
-.dice-roll-modal {
-    /* display: flex !important; は削除 */
-}
+.dice-roll-modal {}
 .dice-roll-modal-content {
     background-color: transparent;
     border: none;
@@ -735,14 +758,14 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 
 /* レスポンシブ対応 */
 @media (max-width: 1100px) {
-    /* サイドバー関連削除 */
-    #game-main-area { width: 100%; /* 幅いっぱい */ padding: 0; }
-    #game-container { max-width: 95%; } /* 少し内側に */
+    #game-main-area { width: 100%; padding: 0; padding-top: 50px; /* ヘッダー分 */ }
+    #game-container { max-width: 90%; } /* PC幅でも少し広げる */
     .shop-content { max-width: 90%; }
     .card { width: calc(33.33% - 15px); }
     .dice-roll-modal-content { max-width: 70vw; width: 70vw; }
 }
 @media (max-width: 880px) {
+    #game-container { max-width: 90%; } /* 880pxでも調整 */
     .shop-content { max-width: 95%; }
     .card { width: calc(50% - 15px); min-height: 260px; }
     .dice-roll-modal-content { max-width: 80vw; width: 80vw; }
@@ -750,28 +773,24 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #dice-area { max-width: none; /* 最大幅解除 */ flex-grow: 1; }
 }
 @media (max-width: 768px) {
+    #game-header { padding: 6px 10px; }
+    #game-coin-display { font-size: 1.1em; }
+    #settings-button { width: 35px; height: 35px; font-size: 1.2em; }
+    #game-main-area { padding-top: 45px; }
+    #game-container { max-width: 95%; } /* スマホ幅 */
+
     .title-content, .result-content { padding: 30px 20px; width: 90%; }
     .game-title { font-size: 3em; }
     .difficulty-button { padding: 10px 15px; font-size: 1em; margin: 5px 3px; }
     #start-game-button { padding: 12px 30px; font-size: 1.2em; }
     #game-screen { padding: 0; }
-    #game-main-area { width: 100%; padding: 0; box-sizing: border-box;}
-    #game-scrollable-area { padding: 10px; padding-bottom: 180px; /* 下部バー高さを多めに確保 */ }
-    #game-container { padding: 15px; margin-bottom: 0; border-radius: 15px; } /* 下の角丸は不要かも */
-    /* WAVE情報と設定ボタンのコンテナ（スマホ用調整） */
-    #game-container > div:nth-child(2) { /* HTML構造に依存するが、WAVE情報と設定ボタンの親要素を指す */
-        position: relative;
-        padding-top: 60px; /* コイン情報のため */
-        margin-bottom: 10px;
-        display: block; /* flex解除 */
-    }
+    #game-scrollable-area { padding: 10px; padding-bottom: 180px; }
+    #game-container { padding: 15px; margin-bottom: 0; border-radius: 15px; }
     #wave-info { text-align: center; width: 100%; margin-top: 0; margin-bottom: 5px; }
-    #settings-button-container { position: absolute; top: 10px; right: 10px; } /* 右上に絶対配置 */
-    #game-coin-info { top: 10px; left: 10px; } /* 左上に絶対配置 */
 
     #current-bet-info { font-size: 1em; margin-bottom: 10px; }
     #game-area { flex-direction: column; gap: 15px; }
-    .player-box { width: 100%; /* 横幅いっぱい */ }
+    .player-box { width: 100%; }
     .player-box h2 { display: flex; align-items: center; justify-content: center; }
     .parent-marker { font-size: 0.7em; }
     #dice-area { width: auto; max-width: none; }
@@ -817,32 +836,31 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .bet-action-container {
         order: 3; /* アクションボタンを最後に */
         width: 100%;
-        justify-content: space-around; /* 均等配置 */
+        justify-content: space-around; /* ボタン均等配置 */
         margin-top: 8px; /* 上との間隔 */
         padding: 8px; /* パディング調整 */
     }
-    #max-bet-button, #set-bet-button {
-        max-width: none; /* 最大幅解除 */
-        flex-basis: 48%; /* 幅をほぼ半分に */
+    /* スマホではMIN/決定/MAXボタン幅自動 */
+    .bet-action-container button {
+        flex-grow: 1; /* 幅を均等に */
+        flex-basis: auto;
+        max-width: none;
     }
 
     /* NPC親ターンのスマホ表示 */
-    #game-screen.npc-parent .bet-main-controls {
-        /* 縦積みになるので、opacity/pointer-eventsだけで良い */
-    }
     #game-screen.npc-parent .bet-input-container {
          justify-content: center; /* 中央寄せ */
     }
-     #game-screen.npc-parent #bet-input { /* inputへの指定 */
+     #game-screen.npc-parent #bet-input {
         flex-grow: 0; /* 幅自動 */
         width: 80px; /* 固定幅 */
     }
 
     #action-controls { gap: 10px; flex-direction: row; align-items: center;}
-    #action-controls button { width: auto; flex-grow: 1; padding: 10px 5px; /* スマホでのボタンパディング調整 */ }
+    #action-controls button { width: auto; flex-grow: 1; padding: 10px 5px; }
     .result-actions { flex-direction: column; gap: 15px; }
     .result-actions button { width: 100%; }
-    /* サイドバー関連削除 */
+
     .modal-content { width: 90%; padding: 20px; max-height: 85vh; display: flex; flex-direction: column; }
     #history-log { font-size: 0.9em; max-height: 60vh; flex-grow: 1; }
     .card-list-modal-content { max-height: 85vh; }
@@ -855,7 +873,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #history-log .score-change-history { text-align: left; }
     #history-log .parent-info { display: block; margin-left: 0; margin-top: 3px; }
     .roll-counter-top-right { top: 8px; right: 10px; font-size: 0.8em; }
-    /* .hand-card-display は削除された */
+
     .shop-content { padding: 20px; max-width: 90%; }
     .shop-title { font-size: 1.8em; }
     #player-status { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -864,30 +882,36 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #hand-cards { justify-content: center; }
     .card { width: calc(50% - 10px); /* ギャップ調整 */ min-height: 260px; padding-bottom: 60px; }
     .card-footer { bottom: 15px; }
-    .shop-actions { flex-direction: column; gap: 15px; align-items: stretch; }
-    .shop-actions button { width: 100%; }
-    #shop-confirmation-buttons { flex-direction: column; gap: 10px; align-items: stretch; }
-    #shop-confirmation-buttons button { width: 100%; }
-    /* サイコロロールモーダル調整 (スマホ) */
-    .dice-roll-modal-content { max-width: 80vw; width: 80vw; }
-    /* カード一覧モーダル スマホ調整 */
+    .card-name { font-size: 1.1em; }
+    .card-description { font-size: 0.85em; }
+    .card-cost { font-size: 1em; }
+    .buy-button { font-size: 0.8em; padding: 5px 10px; }
+    #close-shop-button, #reroll-button { font-size: 1em; padding: 8px 20px; }
+    #discard-options { gap: 8px; }
+    .discard-choice-button { font-size: 0.8em; padding: 6px 12px; }
+    .dice-choice-button { font-size: 1.5em; padding: 8px 15px; min-width: 50px;}
+    #hand-cards { justify-content: center; }
+    .hand-card-item { font-size: 0.8em; padding: 2px 6px; gap: 5px; }
+    .sell-card-button { font-size: 0.7em; padding: 1px 4px; }
+
+    .modal-content { max-height: 90vh; }
+    #history-log { max-height: 70vh; }
+
     .card-list-modal-content { padding: 20px 15px; }
     #card-list-content { max-height: 75vh; font-size: 0.85em;}
     .card-list-item h3 { font-size: 1.05em; }
     .card-list-item .card-meta { font-size: 0.7em; }
 
+    .dice-roll-modal-content { max-width: 80vw; width: 80vw; } /* 再調整 */
 }
 @media (max-width: 480px) {
-    #game-scrollable-area { padding: 5px; padding-bottom: 160px; /* スマホでのバー高さ再調整 */ }
-    #game-container { padding: 10px; }
-    /* WAVE情報と設定ボタンのコンテナ（さらに小さい画面） */
-     #game-container > div:nth-child(2) {
-        padding-top: 55px;
-     }
-    #game-coin-info { padding: 4px 8px; }
+    #game-header { padding: 5px 10px; }
     #game-coin-display { font-size: 1em; }
-    #settings-button { width: 35px; height: 35px; font-size: 1.2em; }
-    .game-title { font-size: 2.5em; }
+    #settings-button { width: 32px; height: 32px; font-size: 1.1em; }
+    #game-main-area { padding-top: 42px; }
+
+    #game-scrollable-area { padding: 5px; padding-bottom: 160px; /* スマホでのバー高さ再調整 */ }
+    #game-container { padding: 10px; max-width: 95%; } /* 極小画面幅 */
     #wave-info { font-size: 0.9em; }
     #dice-display { font-size: 3em; }
     .player-box { padding: 12px; }
@@ -912,7 +936,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .bet-adjust-button { padding: 6px 10px; font-size: 0.9em; min-width: 40px; }
     #bet-input { padding: 8px; font-size: 1em; }
     #min-bet-display { font-size: 0.8em; }
-    #max-bet-button, #set-bet-button { padding: 8px 14px; font-size: 1em; }
+    .bet-action-container button { padding: 8px 14px; font-size: 1em; }
     .bet-action-container { gap: 8px; }
     button { padding: 8px 15px; font-size: 0.9em; }
     #start-game-button { padding: 10px 25px; font-size: 1.1em; }
@@ -932,16 +956,15 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #hand-cards { justify-content: center; }
     .hand-card-item { font-size: 0.8em; padding: 2px 6px; gap: 5px; }
     .sell-card-button { font-size: 0.7em; padding: 1px 4px; }
-     /* スマホ履歴モーダルスクロール対応 (さらに調整) */
+
     .modal-content { max-height: 90vh; }
     #history-log { max-height: 70vh; }
-    /* カード一覧モーダル スマホ調整 */
+
     .card-list-modal-content { padding: 20px 15px; }
     #card-list-content { max-height: 75vh; font-size: 0.85em;}
     .card-list-item h3 { font-size: 1.05em; }
     .card-list-item .card-meta { font-size: 0.7em; }
 
-    /* サイコロロールモーダル調整 (小画面) */
     .dice-roll-modal-content { max-width: 95vw; width: 95vw; }
 }
 
@@ -969,7 +992,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 
 /* ===== コイン獲得アニメーション ===== */
 .coin-animation {
-    position: absolute;
+    position: fixed; /* ★ fixedに変更してヘッダー基準にする */
     width: 20px; /* コインのサイズ */
     height: 20px;
     background-color: gold;
@@ -1001,7 +1024,6 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 
 /* --- カードボタン スタイル --- */
 #card-action-button {
-    /* 他のサブトルボタンと同じスタイルを基本とする */
     background: linear-gradient(180deg, #6fa8dc, #4a90e2); /* 少し青寄りに */
     color: white;
     text-shadow: 0px -1px 1px rgba(0,0,0,0.4);
@@ -1052,38 +1074,36 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 
 /* ===== カード画面モーダル ===== */
 .card-action-modal-content {
-    max-width: 900px; /* ショップより少し狭くても良いかも */
-    max-height: 85vh; /* 高さを制限 */
-    display: flex; /* 内部要素をflexで管理 */
+    max-width: 900px;
+    max-height: 85vh;
+    display: flex;
     flex-direction: column;
 }
 
-#card-action-message { /* メッセージ表示エリア */
+#card-action-message {
     font-style: italic;
-    color: #a0ffa0; /* メッセージの色 */
+    color: #a0ffa0;
 }
 
 #card-action-display {
     display: flex;
-    flex-wrap: wrap; /* カードを折り返し表示 */
-    gap: 15px; /* カード間の隙間 */
-    justify-content: center; /* 中央揃え */
-    overflow-y: auto; /* カードが多い場合にスクロール */
-    padding: 10px; /* 内側のパディング */
-    flex-grow: 1; /* 残りの高さを埋める */
-    background-color: rgba(0, 0, 0, 0.1); /* 背景を少し暗く */
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 10px;
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: 8px;
 }
 
 /* カード画面モーダル内のカードスタイル */
 .card-action-item {
-    /* 基本的なカードスタイルを流用 */
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
-    padding: 15px; /* 全方向パディング */
-    /* padding-bottom: 50px; は削除 or 調整 */
-    width: 200px; /* 固定幅 (ショップと同じ) */
-    min-height: 260px; /* 高さも合わせる */
+    padding: 15px;
+    width: 200px;
+    min-height: 260px;
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
@@ -1094,42 +1114,37 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     background-position: center center;
     background-repeat: no-repeat;
     background-color: rgba(60, 60, 90, 0.8);
-    cursor: default; /* 基本はクリック不可 */
-    text-align: center; /* テキスト中央揃え */
+    cursor: default;
+    text-align: center;
 }
-.card-action-item:hover {
-    /* ホバーエフェクトは usability で制御 */
-}
+.card-action-item:hover {}
 
-/* カード名などのスタイルはショップカード (.card) のものを流用 */
 .card-action-item .card-type-badge,
 .card-action-item .card-rarity-badge,
 .card-action-item .card-name {
-    font-size: 1em; /* ← カード画面のカード名サイズ */
+    font-size: 1em;
     margin-top: 5px;
 }
 .card-action-item .card-description {
-    font-size: 0.8em; /* ← カード画面の効果説明サイズ */
+    font-size: 0.8em;
 }
-.card-action-item .card-name { margin-top: 25px; /* バッジ用スペース */ }
+.card-action-item .card-name { margin-top: 25px; }
 
-/* 使用回数表示 */
 .card-action-uses {
     font-size: 0.9em;
     color: #ccc;
-    margin-top: auto; /* 下に押し出す */
+    margin-top: auto;
     padding-top: 10px;
     border-top: 1px dashed rgba(255, 255, 255, 0.15);
 }
 
-/* 使用ボタン */
 .use-card-button {
     margin-top: 10px;
     padding: 8px 20px;
     font-size: 1em;
-    width: 100%; /* 幅いっぱい */
+    width: 100%;
     box-sizing: border-box;
-    background: linear-gradient(180deg, #5bc0de, #31b0d5); /* 青系のグラデーション */
+    background: linear-gradient(180deg, #5bc0de, #31b0d5);
     color: white;
 }
 .use-card-button:hover:not(:disabled) {
@@ -1138,13 +1153,12 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     box-shadow: 0 4px 8px rgba(49, 176, 213, 0.4);
 }
 
-/* 使用不可・使用済みカードのスタイル */
 .card-action-item.not-usable {
     filter: grayscale(70%) brightness(0.8);
     cursor: not-allowed;
 }
 .card-action-item.not-usable .use-card-button {
-    display: none; /* 使用不可ならボタン非表示 */
+    display: none;
 }
 .card-action-item.used-up {
     opacity: 0.6;
@@ -1158,7 +1172,6 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     display: none;
 }
 
-/* カード使用可能時のスタイル */
 .card-action-item.usable {
     cursor: pointer;
     border-color: cyan;
@@ -1174,7 +1187,6 @@ button:disabled { background-color: #555 !important; background-image: none !imp
   50% { border-color: #3fffff; box-shadow: 0 0 22px rgba(0, 255, 255, 0.7), 3px 3px 8px rgba(0, 0, 0, 0.4); }
 }
 
-/* モーダルスクロールバー */
 #card-action-display::-webkit-scrollbar { width: 8px; }
 #card-action-display::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
 #card-action-display::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }

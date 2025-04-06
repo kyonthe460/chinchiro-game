@@ -33,20 +33,23 @@
 
     <!-- ===== ゲーム画面 ===== -->
     <div id="game-screen" class="screen"> <!-- ★ 初期は active ではない -->
+        <!-- NEW: 上部固定ヘッダー -->
+        <header id="game-header">
+            <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
+            <div id="settings-button-container">
+                 <button id="settings-button" class="button-subtle" style="padding: 5px 10px; font-size: 1.2em;">⚙️</button>
+            </div>
+        </header>
+
         <!-- メインコンテナ構造 -->
         <div id="game-main-area">
             <!-- スクロール可能エリア -->
             <div id="game-scrollable-area">
                 <div id="game-container">
-                    <!-- 所持コイン情報 -->
-                    <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
-                    <!-- WAVE情報 と 設定ボタン -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; padding-top: 50px;"> <!-- コンテナ化して相対配置の基準に -->
+                    <!-- WAVE情報 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative;">
                         <div id="wave-info">
                             <!-- JSで内容が表示される -->
-                        </div>
-                        <div id="settings-button-container" style="position: absolute; top: 10px; right: 0;"> <!-- 絶対配置で右上へ -->
-                             <button id="settings-button" class="button-subtle" style="padding: 5px 10px; font-size: 1.2em;">⚙️</button>
                         </div>
                     </div>
                     <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
@@ -92,14 +95,15 @@
                             <button class="bet-adjust-button plus" data-amount="100">+100</button>
                          </div>
                      </div>
-                     <!-- 二段目: MAXボタンと決定ボタン -->
+                     <!-- 二段目: MIN/決定/MAXボタン (順序変更＆MIN追加) -->
                      <div class="bet-action-container">
-                        <button id="max-bet-button" class="button-pop max-bet">MAX</button>
+                        <button id="min-bet-button" class="button-pop min-bet">MIN</button> <!-- MINボタン追加 -->
                         <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
+                        <button id="max-bet-button" class="button-pop max-bet">MAX</button> <!-- MAXボタンを最後に -->
                      </div>
                      <!-- アクションボタン -->
                      <div id="action-controls">
-                        <button id="card-action-button" class="button-subtle">カード</button> <!-- ★ カードボタン追加 -->
+                        <button id="card-action-button" class="button-subtle">カード</button>
                         <button id="roll-button" class="button-pop" disabled>サイコロを振る</button>
                         <button id="history-button" class="button-subtle">履歴</button>
                     </div>
