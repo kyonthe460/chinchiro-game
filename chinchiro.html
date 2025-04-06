@@ -33,32 +33,21 @@
 
     <!-- ===== ゲーム画面 ===== -->
     <div id="game-screen" class="screen"> <!-- ★ 初期は active ではない -->
-        <!-- 左サイドバー -->
-        <div id="left-sidebar" class="sidebar">
-            <h2>ゲームルール</h2>
-            <ul>
-                <li>NPCを相手にチンチロで勝負！</li>
-                <li>親は子が振る前にサイコロを振ります。</li>
-                <li>親が負けた場合、親と子が交代します。</li>
-                <li>毎勝負、親が賭け金を設定します。</li>
-                <li>NPCを倒すとショップでカードを購入できます。</li>
-                <li>手札は最大5枚まで。</li>
-                <li>連勝すると獲得点数にボーナス！(引き分け継続)</li>
-                <li>手に入れたカードはゲーム画面下に表示され、使えるものはクリックできます。</li>
-                 <li>WAVE開始時、持ち点は2500点にリセットされます。</li>
-            </ul>
-            <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
-            <button id="card-list-button" class="button-subtle" style="margin-top: 15px;">カード一覧</button>
-        </div>
-
         <!-- メインコンテナ構造 -->
         <div id="game-main-area">
             <!-- スクロール可能エリア -->
             <div id="game-scrollable-area">
                 <div id="game-container">
-                    <!-- WAVE情報 -->
-                    <div id="wave-info">
-                        <!-- JSで内容が表示される -->
+                    <!-- 所持コイン情報 -->
+                    <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
+                    <!-- WAVE情報 と 設定ボタン -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; padding-top: 50px;"> <!-- コンテナ化して相対配置の基準に -->
+                        <div id="wave-info">
+                            <!-- JSで内容が表示される -->
+                        </div>
+                        <div id="settings-button-container" style="position: absolute; top: 10px; right: 0;"> <!-- 絶対配置で右上へ -->
+                             <button id="settings-button" class="button-subtle" style="padding: 5px 10px; font-size: 1.2em;">⚙️</button>
+                        </div>
                     </div>
                     <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
                         <!-- JSで内容が表示される -->
@@ -80,39 +69,47 @@
                         <div id="message-button-container"></div> <!-- ボタン用のコンテナ -->
                     </div>
                 </div>
+                 <!-- 下部コントロールバーのための余白 (CSSで調整) -->
+                 <div id="bottom-spacer"></div>
             </div>
 
              <!-- 下部固定操作エリア -->
              <div id="bottom-control-bar">
-                 <div id="player-hand-area" style="display: none;"></div>
                  <div id="control-area">
-                     <div id="bet-controls">
-                          <div class="bet-adjust-container">
-                             <button class="bet-adjust-button minus" data-amount="-100">-100</button>
-                             <button class="bet-adjust-button minus" data-amount="-10">-10</button>
+                     <!-- 一段目: 入力欄と調整ボタン -->
+                     <div class="bet-main-controls">
+                         <div class="bet-adjust-container">
+                            <button class="bet-adjust-button minus" data-amount="-100">-100</button>
+                            <button class="bet-adjust-button minus" data-amount="-10">-10</button>
                          </div>
                          <div class="bet-input-container">
-                             <label for="bet-input">賭け金:</label>
-                             <input type="number" id="bet-input" min="1" value="10">
-                             <span id="min-bet-display">最低: 10</span>
+                            <label for="bet-input">賭け金:</label>
+                            <input type="number" id="bet-input" min="1" value="10">
+                            <span id="min-bet-display">最低: 10</span>
                          </div>
                          <div class="bet-adjust-container">
-                             <button class="bet-adjust-button plus" data-amount="10">+10</button>
-                             <button class="bet-adjust-button plus" data-amount="100">+100</button>
-                         </div>
-                          <div class="bet-action-container">
-                             <button id="max-bet-button" class="button-pop max-bet">MAX</button>
-                             <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
+                            <button class="bet-adjust-button plus" data-amount="10">+10</button>
+                            <button class="bet-adjust-button plus" data-amount="100">+100</button>
                          </div>
                      </div>
-                     <div id="action-controls"><button id="roll-button" class="button-pop" disabled>サイコロを振る</button><button id="history-button" class="button-subtle">履歴</button></div>
-                     <div id="next-wave-area" style="display: none;"><button id="next-wave-button" class="button-pop">ショップへ</button></div>
+                     <!-- 二段目: MAXボタンと決定ボタン -->
+                     <div class="bet-action-container">
+                        <button id="max-bet-button" class="button-pop max-bet">MAX</button>
+                        <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
+                     </div>
+                     <!-- アクションボタン -->
+                     <div id="action-controls">
+                        <button id="card-action-button" class="button-subtle">カード</button> <!-- ★ カードボタン追加 -->
+                        <button id="roll-button" class="button-pop" disabled>サイコロを振る</button>
+                        <button id="history-button" class="button-subtle">履歴</button>
+                    </div>
+                     <!-- 次WAVEボタン -->
+                     <div id="next-wave-area" style="display: none;">
+                         <button id="next-wave-button" class="button-pop">ショップへ</button>
+                     </div>
                  </div>
              </div>
         </div>
-
-        <!-- 右サイドバー -->
-        <div id="right-sidebar" class="sidebar"><h2>役と点数</h2><dl><dt>ピンゾロ (1,1,1)</dt><dd>賭け金の <strong class="payout-win">5倍</strong> 勝ち</dd><dt>アラシ (ゾロ目 2-6)</dt><dd>賭け金の <strong class="payout-win">3倍</strong> 勝ち</dd><dt>シゴロ (4,5,6)</dt><dd>賭け金の <strong class="payout-win">2倍</strong> 勝ち</dd><dt>通常の目 (例: 2,2,5)</dt><dd>出た目(5)の強さで勝負。<br>勝ち/負け: 賭け金と同額</dd><dt>ヒフミ (1,2,3)</dt><dd>賭け金の <strong class="payout-lose">2倍</strong> 負け</dd><dt>ションベン</dt><dd>賭け金と同額 負け</dd><dt>目なし</dt><dd>振り直し (最大3回)</dd><dt>引き分け</dt><dd>点数移動なし</dd><dt>★連勝ボーナス</dt><dd>連勝数 x 10% 獲得点数UP!</dd><dt>★親交代</dt><dd>親が負けた場合に交代</dd></dl></div>
     </div>
 
     <!-- ===== ショップ画面 ===== -->
@@ -188,6 +185,75 @@
         <div class="dice-roll-modal-content">
             <span id="close-dice-roll-modal" class="close-button">×</span>
             <div id="dice-roll-modal-display"></div>
+        </div>
+    </div>
+
+    <!-- ===== 設定モーダル ===== -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content settings-modal-content"> <!-- 新しいクラスを追加 -->
+            <span id="close-settings-modal" class="close-button">×</span>
+            <h2>設定・情報</h2>
+            <div class="settings-navigation">
+                <button class="settings-nav-button active" data-target="rules">ゲームルール</button>
+                <button class="settings-nav-button" data-target="roles">役と点数</button>
+                <button id="settings-card-list-button" class="settings-nav-button">カード一覧</button>
+                <!-- 他の設定項目ボタンをここに追加可能 -->
+            </div>
+            <div id="settings-content">
+                <!-- ゲームルール -->
+                <div id="settings-rules-content" class="settings-tab-content active">
+                    <h3>ゲームルール</h3>
+                    <ul>
+                        <li>NPCを相手にチンチロで勝負！</li>
+                        <li>親は子が振る前にサイコロを振ります。(一部役を除く)</li>
+                        <li>親が負けた場合、親と子が交代します。(カード効果で維持可能)</li>
+                        <li>毎勝負、親が賭け金を設定します。(最低賭け金あり)</li>
+                        <li>NPCを倒すとWAVEクリアとなり、ショップでカードを購入できます。</li>
+                        <li>手札は最大5枚まで。</li>
+                        <li>連勝すると獲得点数にボーナス！(引き分け継続)</li>
+                        <li>WAVE開始時、持ち点は初期値(2500点)にリセットされます。</li>
+                        <li>カードの効果はカード一覧で確認できます。</li>
+                    </ul>
+                </div>
+                <!-- 役と点数 -->
+                <div id="settings-roles-content" class="settings-tab-content">
+                    <h3>役と点数</h3>
+                    <dl>
+                        <dt>ピンゾロ (1,1,1)</dt><dd>賭け金の <strong class="payout-win">5倍</strong> 勝ち</dd>
+                        <dt>アラシ (ゾロ目 2-6)</dt><dd>賭け金の <strong class="payout-win">3倍</strong> 勝ち</dd>
+                        <dt>シゴロ (4,5,6)</dt><dd>賭け金の <strong class="payout-win">2倍</strong> 勝ち</dd>
+                        <dt>通常の目 (例: 2,2,5)</dt><dd>出た目(5)の強さで勝負。<br>勝ち/負け: 賭け金と同額</dd>
+                        <dt>ヒフミ (1,2,3)</dt><dd>賭け金の <strong class="payout-lose">2倍</strong> 負け (カード効果で軽減可能)</dd>
+                        <dt>ションベン</dt><dd>賭け金と同額 負け (カード効果で軽減可能)</dd>
+                        <dt>目なし</dt><dd>振り直し (最大ロール数まで)</dd>
+                        <dt>引き分け</dt><dd>点数移動なし (カード効果でボーナスあり)</dd>
+                        <dt>★連勝ボーナス</dt><dd>親の連勝数 x 10% 獲得点数UP!</dd>
+                        <dt>★親交代</dt><dd>親が負けた場合に交代 (カード効果で維持可能)</dd>
+                    </dl>
+                </div>
+                <!-- ★ カード一覧表示エリアを追加 -->
+                <div id="settings-card-list-content" class="settings-tab-content">
+                    <h3>カード一覧</h3>
+                    <div id="settings-card-list-inner">
+                        <!-- JSでカードリストがここに挿入される -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== カード画面モーダル ===== -->
+    <div id="card-action-modal" class="modal">
+        <div class="modal-content card-action-modal-content"> <!-- 新しいクラス -->
+            <span id="close-card-action-modal" class="close-button">×</span>
+            <h2>手札のカード</h2>
+            <div id="card-action-message" style="min-height: 1.2em; margin-bottom: 15px; color: #eee;">
+                <!-- JSで使用メッセージなどを表示 -->
+                使用したいカードを選択してください。
+            </div>
+            <div id="card-action-display">
+                <!-- JSでカード要素がここに挿入される -->
+            </div>
         </div>
     </div>
 
