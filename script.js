@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     consWinsDisplay.textContent = ` (${consecutiveWins}連勝中!)`;
                     consWinsDisplay.style.display = 'inline';
                 } else if (!isPlayerParent && npcConsecutiveWins > 1) {
-                    consWinsDisplay.textContent = ` (相手${npcConsecutiveWins}連勝中...)`; // ★ NPC連勝時の表示変更
+                    consWinsDisplay.textContent = ` (相手${npcConsecutiveWins}連勝中...)`;
                     consWinsDisplay.classList.add('npc-losing-streak');
                     consWinsDisplay.style.display = 'inline';
                 } else {
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playerParentMarker.style.display = isPlayerParent ? 'inline' : 'none';
         npcParentMarker.style.display = !isPlayerParent ? 'inline' : 'none';
 
-        // 所持コイン表示 (gameCoinDisplayEl が存在する場合のみ更新)
+        // 所持コイン表示 (ヘッダー内)
         if (gameCoinDisplayEl) {
             gameCoinDisplayEl.textContent = `${playerCoins} G`;
         }
@@ -603,7 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
         playerDice = [0, 0, 0]; npcDice = [0, 0, 0];
         playerHand = null; npcHand = null;
         playerRollCount = 0; npcRollCount = 0;
-        rollButton.disabled = true; historyButton.disabled = false; // 履歴ボタンは常に有効に
+        rollButton.disabled = true;
+        historyButton.disabled = false; // ★ 基本的に有効にする
         currentBet = 0;
         // === ラウンド開始時フラグリセット ===
         activeCardBeingUsed = null; ignoreMinBetActive = false;
@@ -635,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
              if (betMainControls) betMainControls.style.display = 'none';
              if (betActionContainer) betActionContainer.style.display = 'none';
              if (actionArea) actionArea.style.display = 'none';
-             historyButton.disabled = true;
+             historyButton.disabled = true; // ★ ゲームオーバー時は無効
              setTimeout(() => showResultScreen(false, playerScore, currentWave, "最低賭け金不足"), 1000);
              return;
         }
@@ -654,6 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
              if (nextWaveArea) nextWaveArea.style.display = 'flex'; // ショップへボタン表示
             currentBetInfoEl.textContent = ''; currentRoundInWave = 0;
             activeCardUses = {}; keepParentRightUsedThisWave = 0;
+            historyButton.disabled = true; // ★ WAVEクリア時も一旦無効化（ショップへ移行するため）
             return;
         }
         // --- チェックここまで ---
@@ -663,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isPlayerParent) {
             setMessage(`あなた(親)が賭け金を設定 (最低 ${currentMinBet}点)。`);
             updateBetLimits();
-            updateCardButtonHighlight(); // ★ カードボタン更新
+            updateCardButtonHighlight();
         } else { // NPCが親の場合
             betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); maxBetButton.disabled = true; minBetButton.disabled = true; // MINボタンも無効化
             setMessage(`相手(親)が賭け金を決定中... (最低 ${currentMinBet}点)`);
@@ -684,6 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
                      if (nextWaveArea) nextWaveArea.style.display = 'flex';
                      currentBetInfoEl.textContent = ''; currentRoundInWave = 0;
                      activeCardUses = {}; keepParentRightUsedThisWave = 0;
+                     historyButton.disabled = true; // ★ WAVEクリア時
                      return;
                 }
 
@@ -694,13 +697,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 setMessage(`相手(親)が ${currentBet} 点で勝負！ 相手がサイコロを振ります...`);
                 isGameActive = true;
                 isPlayerTurn = false;
-                updateUI(); // isPlayerTurn が false になった後のUI更新 (NPCコントロール非表示など)
+                updateUI();
                 const blindingCard = playerCards.find(c => c.id === 'blindingDice');
-                const canUseBlinding = blindingCard && (getRemainingUses('blindingDice') > 0); // 使用回数チェック
-                if (canUseBlinding && !isPlayerParent) { // ★ 子プレイヤーが目くらましを使える場合 (NPCが親の時)
+                const canUseBlinding = blindingCard && (getRemainingUses('blindingDice') > 0);
+                if (canUseBlinding && !isPlayerParent) {
                     setMessage(`相手(親)が ${currentBet} 点で勝負！ 相手がサイコロを振ります...(「目くらまし」使用可能)`);
-                    isPlayerTurn = true; // ★ 目くらまし使用のためにプレイヤー操作に戻す
-                    updateCardButtonHighlight(); // ★ カードボタン更新
+                    isPlayerTurn = true;
+                    updateCardButtonHighlight();
                 } else {
                     setTimeout(npcTurn, NPC_BET_DELAY / 2);
                 }
@@ -1169,18 +1172,18 @@ document.addEventListener('DOMContentLoaded', () => {
             setMessage(`相手の持ち点(${npcScore}点)が最低賭け金(${currentMinBet}点)未満のため、WAVEクリア！ コイン ${earnedCoins} G獲得！`);
             announceRoundResult(true, true);
             updateUI();
-            // ★ コントロール要素非表示
             if (betMainControls) betMainControls.style.display = 'none';
             if (betActionContainer) betActionContainer.style.display = 'none';
             if (actionArea) actionArea.style.display = 'none';
             if (nextWaveArea) nextWaveArea.style.display = 'flex';
             currentBetInfoEl.textContent = ''; currentRoundInWave = 0;
             activeCardUses = {}; keepParentRightUsedThisWave = 0;
+            historyButton.disabled = true; // ショップ移行時は無効
             return;
         }
 
         let bv = parseInt(betInput.value);
-        if (isNaN(bv)) { // ★ NaN チェック
+        if (isNaN(bv)) {
             setMessage(`無効な賭け金です。`);
             betInput.value = currentMinBet;
             updateBetLimits();
@@ -1205,8 +1208,9 @@ document.addEventListener('DOMContentLoaded', () => {
             isGameActive = true; isPlayerTurn = true;
             currentBetInfoEl.innerHTML = `現在の賭け金: ${currentBet} 点 <span class="parent-name">(親: あなた)</span>`;
             setMessage(`賭け金 ${currentBet} で勝負！ あなた(親)がサイコロを振ってください。`);
-            betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); maxBetButton.disabled = true; minBetButton.disabled = true; // MINボタンも無効化
-            rollButton.disabled = false; historyButton.disabled = false; // 履歴ボタン有効化
+            betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); maxBetButton.disabled = true; minBetButton.disabled = true;
+            rollButton.disabled = false;
+            historyButton.disabled = false; // ★ 賭け金決定後も有効
             updateUI();
         } else {
             setMessage(`賭け金を正しく設定 (${currentMinBet}～${maxBet})。`);
@@ -1221,12 +1225,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // MINベットボタン
     minBetButton.addEventListener('click', () => {
-        if (betInput.disabled) return; // 入力不可なら何もしない
-        betInput.value = currentMinBet; // 入力値を最低賭け金に設定
-        updateBetLimits(); // ボタンの状態等を更新
+        if (betInput.disabled) return;
+        betInput.value = currentMinBet;
+        updateBetLimits();
     });
 
-    // サイコロを振るボタン (three.js版 - 結果表示追加)
+    // サイコロを振るボタン
     rollButton.addEventListener('click', async () => {
         if (playerScore <= 0) { checkGameEnd(); return; }
         if (!isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice) return;
@@ -1237,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (canUseSoulRoll) {
              setMessage("振り残り回数がありません。「魂の一振り」を使用しますか？");
-             updateCardButtonHighlight(); // カードボタン更新
+             updateCardButtonHighlight();
              return;
         }
 
@@ -1250,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else { playerRollCount++; }
 
         rollButton.disabled = true;
-        historyButton.disabled = true; // ロール中は履歴非表示
+        historyButton.disabled = true; // ★ ロール中は履歴非表示
         setMessage(`あなた(${isPlayerParent ? '親' : '子'}): 振っています...`);
         showDiceRollModal();
         updateUI();
@@ -1307,59 +1311,37 @@ document.addEventListener('DOMContentLoaded', () => {
                  const maxRewardUses = rewardAmplifierCard ? (rewardAmplifierCard.level >= 3 ? 2 : 1) : 0;
                  const canUseReward = playerHand.type === '役' && rewardAmplifierCard && !rewardAmplifierActive && (activeCardUses['rewardAmplifier'] || 0) < maxRewardUses;
 
-
                 let proceedToNextTurn = true;
 
-                // --- カード使用選択肢 (優先度: 調整 > ネクストチャンス > ダブルアップ > 報酬増幅) ---
                 if (canUseAdjust) {
                     setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！「出目調整」を使用しますか？`, true);
                     proceedToNextTurn = false;
                     const useAdjust = await waitForUserChoice();
-                    if (useAdjust) {
-                        showDiceChoiceOverlay('adjustEye');
-                        return;
-                    } else {
-                         setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！ 出目調整を使用しませんでした。`);
-                         proceedToNextTurn = true;
-                    }
+                    if (useAdjust) { showDiceChoiceOverlay('adjustEye'); return; }
+                    else { setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！ 出目調整を使用しませんでした。`); proceedToNextTurn = true; }
                 }
                 if (proceedToNextTurn && canUseNextChance) {
                     setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！「ネクストチャンス」を使用しますか？`, true);
                     proceedToNextTurn = false;
                     const useNextChance = await waitForUserChoice();
-                    if (useNextChance) {
-                        showDiceChoiceOverlay('nextChance');
-                        return;
-                    } else {
-                        setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！ ネクストチャンスを使用しませんでした。`);
-                        proceedToNextTurn = true;
-                    }
+                    if (useNextChance) { showDiceChoiceOverlay('nextChance'); return; }
+                    else { setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！ ネクストチャンスを使用しませんでした。`); proceedToNextTurn = true; }
                 }
                 if (proceedToNextTurn && canUseDoubleUp) {
                     setMessage(`あなた(子): ${handName}！「ダブルアップ」を使用しますか？`, true);
                     proceedToNextTurn = false;
                     const useDoubleUp = await waitForUserChoice();
-                    if (useDoubleUp) {
-                        await handleActiveCardUse('doubleUpBet'); // IDで呼び出し
-                        return; // handleActiveCardUse内でターン進行管理
-                    } else {
-                        setMessage(`あなた(子): ${handName}！ ダブルアップを使用しませんでした。勝負！`);
-                        proceedToNextTurn = true;
-                    }
+                    if (useDoubleUp) { await handleActiveCardUse('doubleUpBet'); return; }
+                    else { setMessage(`あなた(子): ${handName}！ ダブルアップを使用しませんでした。勝負！`); proceedToNextTurn = true; }
                 }
                  if (proceedToNextTurn && canUseReward) {
                      setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！「報酬増幅」を使用しますか？`, true);
                      proceedToNextTurn = false;
                      const useReward = await waitForUserChoice();
-                     if (useReward) {
-                          await handleActiveCardUse('rewardAmplifier'); // IDで呼び出し
-                     } else {
-                         setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！ 報酬増幅を使用しませんでした。`);
-                     }
+                     if (useReward) { await handleActiveCardUse('rewardAmplifier'); }
+                     else { setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！ 報酬増幅を使用しませんでした。`); }
                      proceedToNextTurn = true;
                  }
-
-                // --- 選択肢ここまで ---
 
                 if (proceedToNextTurn) {
                     isPlayerTurn = false;
@@ -1395,16 +1377,10 @@ document.addEventListener('DOMContentLoaded', () => {
                          msg = `あなた(${isPlayerParent ? '親' : '子'}): 目なし！ 再度振りますか？(${playerRollCount}/${currentMaxRolls})${messageSuffix} それとも「見切り」を使用しますか？`;
                          setMessage(msg, true, '振り直す', '見切り使用');
                          const choice = await waitForUserChoice();
-                         if (choice) {
-                             setMessage(`あなた(${isPlayerParent ? '親' : '子'}): 目なし！ 再度振ってください。(${playerRollCount}/${currentMaxRolls})${messageSuffix}`);
-                         } else {
-                             await handleActiveCardUse('giveUpEye'); // IDで呼び出し
-                             return; // handleActiveCardUse内でターン進行管理
-                         }
-                     } else {
-                         setMessage(msg);
-                     }
-                 } else { // 振り切り＆目なし
+                         if (choice) { setMessage(`あなた(${isPlayerParent ? '親' : '子'}): 目なし！ 再度振ってください。(${playerRollCount}/${currentMaxRolls})${messageSuffix}`); }
+                         else { await handleActiveCardUse('giveUpEye'); return; }
+                     } else { setMessage(msg); }
+                 } else {
                       const soulRollCardCheck = playerCards.find(c => c.id === 'soulRoll');
                       const maxSoulRollUses = soulRollCardCheck ? 1 : 0;
                       const canUseSoulRollFinal = soulRollCardCheck && !soulRollUsedThisTurn && (activeCardUses['soulRoll'] || 0) < maxSoulRollUses;
@@ -1422,10 +1398,10 @@ document.addEventListener('DOMContentLoaded', () => {
                      }
                  }
             }
-            historyButton.disabled = false; // ロール終了時に履歴ボタン有効化
-            updateCardButtonHighlight(); // ★ ロール後のカード使用状況を反映
-        }); // animateDiceRoll callback end
-    }); // rollButton listener end
+            historyButton.disabled = false; // ★ ロール終了時に履歴ボタン有効化
+            updateCardButtonHighlight();
+        });
+    });
 
     nextWaveButton.addEventListener('click', openShop);
     restartSameDifficultyButton.addEventListener('click', () => { initGame(true); showScreen('game-screen'); });
@@ -1435,13 +1411,12 @@ document.addEventListener('DOMContentLoaded', () => {
     closeCardListModalButton.addEventListener('click', () => cardListModal.style.display = 'none');
     closeDiceRollModalButton.addEventListener('click', hideDiceRollModal);
 
-
      // === NPCターン ===
      function npcTurn() {
         if (!isGameActive || isPlayerTurn || diceAnimationId || waitingForUserChoice) return;
 
         npcRollCount++;
-        historyButton.disabled = true; // NPCターン中も履歴非表示
+        historyButton.disabled = true; // ★ NPCターン中も履歴非表示
         setMessage(`相手(${!isPlayerParent ? '親' : '子'}): 振っています...`);
         showDiceRollModal();
         updateUI();
@@ -1481,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (npcHand.type === '役' || npcHand.type === '目' || npcHand.type === 'ションベン') {
                 const handName = getHandDisplayName(npcHand);
                 isPlayerTurn = true; // プレイヤーのターンへ
-                historyButton.disabled = false; // プレイヤー操作可能になったら履歴ボタン有効化
+                historyButton.disabled = false; // ★ プレイヤー操作可能になったら履歴ボタン有効化
 
                 if (!isPlayerParent && npcHand.type !== 'ションベン') { // NPCが親で、ションベン以外
                     setMessage(`相手(親): ${handName}！ あなた(子)の番です。`);
@@ -1503,7 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     highlightHand(npcHandEl, npcHand);
                     isPlayerTurn = true; // プレイヤーのターンへ
                     rollButton.disabled = true; // 勝負が決まったのでロールボタン無効化
-                    historyButton.disabled = false; // 結果が出たので履歴ボタン有効化
+                    historyButton.disabled = false; // ★ 結果が出たので履歴ボタン有効化
                     setTimeout(handleRoundEnd, 800);
                 }
             }
@@ -1520,12 +1495,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return useCard;
     }
 
-    // === ラウンド終了処理 (勝敗演出追加, ★NPC連勝ボーナス修正) ===
+    // === ラウンド終了処理 ===
     async function handleRoundEnd() {
         if (waitingForUserChoice) return;
 
         isGameActive = false; rollButton.disabled = true;
-        historyButton.disabled = false; // ラウンド終了時に履歴ボタンを有効化
+        historyButton.disabled = false; // ★ ラウンド終了時に履歴ボタンを有効化
 
         let pWin = false, nWin = false, draw = false, msg = "", sc = 0, rClass = 'draw';
         let parentChanged = false; let preventParentChange = false; let parentKeptByCard = false;
@@ -1560,15 +1535,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // ★ 連勝カウント修正
+        // 連勝カウント
         if (pWin && isPlayerParent) { consecutiveWins++; npcConsecutiveWins = 0; }
-        else if (nWin && !isPlayerParent) { npcConsecutiveWins++; consecutiveWins = 0; } // NPCが親で勝った場合
+        else if (nWin && !isPlayerParent) { npcConsecutiveWins++; consecutiveWins = 0; }
         else if (pWin && !isPlayerParent) { consecutiveWins = 0; npcConsecutiveWins = 0; parentChanged = true; isPlayerParent = true; }
         else if (nWin && isPlayerParent && !preventParentChange) { consecutiveWins = 0; npcConsecutiveWins = 0; parentChanged = true; isPlayerParent = false; }
-        else if (nWin && isPlayerParent && preventParentChange) { consecutiveWins = 0; } // 親維持してもプレイヤー連勝は途切れる
-        else if (nWin && !isPlayerParent) { consecutiveWins = 0;} // NPC親勝利時、プレイヤー連勝はリセット
-        else { consecutiveWins = isPlayerParent ? consecutiveWins : 0; npcConsecutiveWins = !isPlayerParent ? npcConsecutiveWins : 0; } // 引き分けの場合
-
+        else if (nWin && isPlayerParent && preventParentChange) { consecutiveWins = 0; }
+        else if (nWin && !isPlayerParent) { consecutiveWins = 0;}
+        else { consecutiveWins = isPlayerParent ? consecutiveWins : 0; npcConsecutiveWins = !isPlayerParent ? npcConsecutiveWins : 0; }
 
         let baseScoreChange = 0; let playerPayoutMultiplier = 1; let npcPayoutMultiplier = 1;
 
@@ -1616,12 +1590,12 @@ document.addEventListener('DOMContentLoaded', () => {
              const insuranceCard = playerCards.find(card => card.id === 'lossInsurance');
              if (insuranceCard) {
                  const lossMultiplier = [1.5, 1.3, 1.1][insuranceCard.level - 1];
-                 baseScoreChange = - (currentBet * lossMultiplier); // ★ 支払い額の計算なのでマイナスをつける
+                 baseScoreChange = - (currentBet * lossMultiplier);
                  console.log(`Card Effect: 一撃保険 Lv.${insuranceCard.level}適用！ Loss Multiplier: ${lossMultiplier}`);
              } else {
                  npcPayoutMultiplier = npcHand?.payoutMultiplier || 1;
                  if (playerHand?.name === ROLES.HIFUMI.name) { npcPayoutMultiplier = Math.abs(ROLES.HIFUMI.payoutMultiplier); }
-                 else if (npcHand?.name === ROLES.HIFUMI.name) { npcPayoutMultiplier = 1; } // NPCヒフミ負けは等倍
+                 else if (npcHand?.name === ROLES.HIFUMI.name) { npcPayoutMultiplier = 1; }
                  else if (playerHand?.type === 'ションベン') { npcPayoutMultiplier = Math.abs(ROLES.SHONBEN.payoutMultiplier); }
                  baseScoreChange = - (currentBet * npcPayoutMultiplier);
 
@@ -1654,7 +1628,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
              msg = playerHand?.type === 'ションベン' ? "ションベンで敗北..." : `敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
              if (insuranceCard) msg += ` (一撃保険適用)`;
-             if (!isPlayerParent && npcConsecutiveWins > 1) msg += ` (相手${npcConsecutiveWins}連勝中...)`; // ★ メッセージ追加
+             if (!isPlayerParent && npcConsecutiveWins > 1) msg += ` (相手${npcConsecutiveWins}連勝中...)`;
              rClass = 'lose';
         } else { // 引き分け
              sc = 0;
@@ -1700,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? 'あなた' : '相手'}が親です。`; }
             else if (parentKeptByCard) { finalMsg += " (親権維持発動！)"; }
             setMessage(finalMsg); updateUI(); checkGameEnd();
-        }, SCORE_ANIMATION_DURATION + 300 + (draw ? 0 : CENTER_RESULT_DURATION)); // 勝敗演出分待つ
+        }, SCORE_ANIMATION_DURATION + 300 + (draw ? 0 : CENTER_RESULT_DURATION));
 
         // === ラウンド終了時フラグリセット ===
         rewardAmplifierActive = false;
@@ -1711,7 +1685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         doubleUpBetActive = false;
     } // handleRoundEnd 関数の終わり
 
-    // === ゲーム終了チェック (勝敗演出追加) ===
+    // === ゲーム終了チェック ===
     function checkGameEnd() {
         let isGO = false, isC = false, gameOverReason = "";
         console.log(`Checking game end: Player Score=${playerScore}, NPC Score=${npcScore}, Wave=${currentWave}, CurrentMinBet=${currentMinBet}`);
@@ -1729,13 +1703,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 announceRoundResult(true, true);
                 setMessage(`NPC撃破！ コイン ${earnedCoins} G獲得！ ショップへどうぞ！`);
                 updateUI();
-                // ★ コントロール要素非表示
                 if (betMainControls) betMainControls.style.display = 'none';
                 if (betActionContainer) betActionContainer.style.display = 'none';
                 if (actionArea) actionArea.style.display = 'none';
                 if (nextWaveArea) nextWaveArea.style.display = 'flex';
                 currentBetInfoEl.textContent = ''; currentRoundInWave = 0;
                 activeCardUses = {}; keepParentRightUsedThisWave = 0;
+                historyButton.disabled = true; // ★ ショップ移行時は無効化
                 return;
             }
         }
@@ -1743,25 +1717,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isGO || isC) {
             console.log(`Game End Triggered: Clear=${isC}, GameOver=${isGO}, Reason=${gameOverReason}`);
             isGameActive = false;
-            betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); rollButton.disabled = true; historyButton.disabled = false; maxBetButton.disabled = true; minBetButton.disabled = true; // MINも無効化
+            betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); rollButton.disabled = true; maxBetButton.disabled = true; minBetButton.disabled = true;
+            historyButton.disabled = false; // ★ ゲーム終了時は履歴を見れるように有効化
             currentBetInfoEl.textContent = '';
             announceRoundResult(isC, true);
             if(isC) calculateAndAwardCoins();
-             // ★ コントロール要素非表示
              if (betMainControls) betMainControls.style.display = 'none';
              if (betActionContainer) betActionContainer.style.display = 'none';
              if (actionArea) actionArea.style.display = 'none';
-             if (nextWaveArea) nextWaveArea.style.display = 'none'; // ゲーム終了時は非表示
+             if (nextWaveArea) nextWaveArea.style.display = 'none';
             setTimeout(() => {
                 showResultScreen(isC, playerScore, currentWave, gameOverReason);
             }, 2500);
         } else {
             console.log("Round end, continuing game.");
-            startBettingPhase();
+            startBettingPhase(); // 賭けフェーズ開始時に historyButton.disabled = false になる
         }
     } // checkGameEnd 関数の終わり
 
-    // === コイン計算 (バランス調整) ===
+    // === コイン計算 ===
     function calculateEarnedCoins() {
         const waveBonus = currentWave * 20;
         const defeatBonus = 80;
@@ -1793,7 +1767,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // === コイン獲得アニメーション再生 ===
     function playCoinAnimation(amount) {
-        // gameCoinDisplayEl が存在しない場合は何もしない
         if (!gameCoinDisplayEl || amount <= 0) return;
 
         const numCoins = Math.min(20, Math.max(5, Math.floor(amount / 10)));
@@ -1845,7 +1818,7 @@ document.addEventListener('DOMContentLoaded', () => {
         finalScoreEl.textContent = `最終スコア: ${finalCalcScore}`;
         showScreen('result-screen');
     }
-    // === 履歴追加・表示 (親表示、賭け金表示、勝敗テキスト修正) ===
+    // === 履歴追加・表示 ===
     function addHistoryEntry(entry) { gameHistory.push(entry); }
     function displayHistory() {
         historyLogEl.innerHTML = '';
@@ -1854,7 +1827,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.className = e.result;
 
-            // 勝敗テキストとクラス
             let resultText = '';
             let resultClass = '';
             if (e.result === 'win') { resultText = '勝ち'; resultClass = 'history-win'; }
@@ -1862,15 +1834,12 @@ document.addEventListener('DOMContentLoaded', () => {
             else { resultText = '引き分け'; resultClass = 'history-draw'; }
 
             const scoreStr = e.scoreChange !== 0 ? ` (<span class="${e.scoreChange > 0 ? 'gain' : 'loss'}">${e.scoreChange > 0 ? '+' : ''}${e.scoreChange}</span>)` : '';
-            const winStreakStr = e.consecutiveWins > 1 ? ` <span class="win-streak">(${e.consecutiveWins}連勝)</span>` : ''; // スタイルはCSSで統一
+            const winStreakStr = e.consecutiveWins > 1 ? ` <span class="win-streak">(${e.consecutiveWins}連勝)</span>` : '';
             const npcWinStreakStr = e.npcConsecutiveWins > 1 ? ` <span class="npc-losing-streak">(${e.npcConsecutiveWins}連敗...)</span>` : '';
 
-            // 親表示
             const parentStr = e.parentBefore ? `<span class="parent-info">(親: ${e.parentBefore === 'Player' ? 'あなた' : '相手'})</span>` : '';
-            // 賭け金表示
             const betStr = e.betAmount > 0 ? `<span class="bet-amount">賭け金: ${e.betAmount}</span>` : '';
 
-            // WAVE/ROUND 色分け
             li.innerHTML = `
                 <span class="wave-num">
                     <span class="wave-highlight">WAVE ${e.wave}</span> -
@@ -1925,11 +1894,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- カード一覧モーダル表示関数 (古いモーダル用、呼び出し箇所は削除済) ---
+    // --- カード一覧モーダル表示関数 (旧) ---
     function showCardListModal() {
         console.warn("showCardListModal is deprecated. Use settings modal instead.");
     }
-
 
     // --- ショップ関連 ---
     function openShop() {
@@ -1945,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Hand Exchange Card Lv.${exchangeCard?.level}, Free rerolls for this visit: ${freeRerollsAvailableThisShopVisit}`);
         applyPlayerCardEffects();
         displayShopOffers();
-        shopChoicePlus1Active = false; // ショップ選択肢増加は表示後にリセット
+        shopChoicePlus1Active = false; // 表示後にリセット
         updateShopUI();
         const existingConfirmation = document.getElementById('shop-confirmation-buttons');
         if (existingConfirmation) existingConfirmation.remove();
@@ -1966,14 +1934,14 @@ document.addEventListener('DOMContentLoaded', () => {
         npcScore = NPC_START_SCORE_BASE + defeatedCount * npcScoreIncrement;
         isPlayerParent = true;
         playerHand = null; npcHand = null; playerRollCount = 0; npcRollCount = 0; isGameActive = false;
-        // ★ コントロール要素表示
+
         if (betMainControls) betMainControls.style.display = 'flex';
         if (betActionContainer) betActionContainer.style.display = 'flex';
         if (actionArea) actionArea.style.display = 'flex';
 
         rollButton.disabled = true; historyButton.disabled = false;
         activeCardUses = {}; keepParentRightUsedThisWave = 0; keepParentDiscountNextRound = false;
-        applyPlayerCardEffects(); // 次のWAVEに向けてカード効果を再適用
+        applyPlayerCardEffects();
         updateUI();
         showScreen('game-screen');
         startBettingPhase();
@@ -2625,13 +2593,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 await new Promise(resolve => setTimeout(resolve, 800));
             }
              activeCardBeingUsed = null;
-             updateCardButtonHighlight(); // ★ カードボタンのハイライト更新処理を追加
+             updateCardButtonHighlight();
         }
 
         // ターンを進める (ダイス選択系以外、かつ turnProceed が true)
         if (turnProceed && !['changeToOne', 'changeToSix', 'adjustEye', 'nextChance'].includes(cardId)) {
               console.log("Card use finished, potentially proceeding turn.");
-              if (isGameActive && isPlayerTurn) { // プレイヤーのターンである場合のみ進行
+              if (isGameActive && isPlayerTurn) {
                    const handName = getHandDisplayName(playerHand);
                    if (playerHand?.type === '役' || playerHand?.type === '目') {
                         const blindingCardCheck = playerCards.find(c => c.id === 'blindingDice');
@@ -2640,13 +2608,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                        if (canUseBlindingNowCheck && isPlayerParent) {
                             setMessage(`あなた(親): ${handName}！ 相手(子)の番です。(「目くらまし」使用可能)`);
-                            isPlayerTurn = true; // 目くらまし使用待機
-                            updateCardButtonHighlight(); // ★ カードボタン更新
+                            isPlayerTurn = true;
+                            updateCardButtonHighlight();
                        } else if (isPlayerParent) {
                             setMessage(`あなた(親): ${handName}！ 相手(子)の番です。`);
                               isPlayerTurn = false;
                               setTimeout(npcTurn, 1400);
-                       } else { // 子の場合
+                       } else {
                             setMessage(`あなた(子): ${handName}！ 勝負！`);
                             isPlayerTurn = false;
                             setTimeout(handleRoundEnd, 1000);
@@ -2835,13 +2803,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ダイス選択オーバーレイ非表示
     function hideDiceChoiceOverlay() {
         if (diceChoiceOverlay) diceChoiceOverlay.style.display = 'none';
-        const cancelledCardId = activeCardBeingUsed; // キャンセルされたカードIDを保持
-        activeCardBeingUsed = null; // ロック解除
+        const cancelledCardId = activeCardBeingUsed;
+        activeCardBeingUsed = null;
 
         if (cancelledCardId && ['changeToOne', 'changeToSix', 'adjustEye', 'nextChance'].includes(cancelledCardId)) {
              setMessage("カードの使用をキャンセルしました。");
         }
-
 
         // ロールボタンの状態を適切に戻す
         if (isGameActive && isPlayerTurn) {
@@ -2874,13 +2841,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (playerRollCount >= currentMaxRolls && canUseSoulRollFinalCheck) {
                         enableRollButton = false;
                         setMessage(`あなた(${isPlayerParent ? '親' : '子'}): 目なし！ 振り直し回数がありません。「魂の一振り」を使用しますか？`);
-                        updateCardButtonHighlight(); // ★ カードボタン更新
+                        updateCardButtonHighlight();
                     } else {
                         enableRollButton = false;
                          // ションベン確定のメッセージは handleRoundEnd で表示される
                     }
                 } else if (playerHand.type === '目' || playerHand.type === '役') {
-                    enableRollButton = false; // 基本的に役/目が出たらロールボタンは無効
+                    enableRollButton = false;
                     const handName = getHandDisplayName(playerHand);
                     const canUseAdjustAgain = checkCardUsability('adjustEye');
                     const canUseNextChanceAgain = checkCardUsability('nextChance');
@@ -2899,23 +2866,23 @@ document.addEventListener('DOMContentLoaded', () => {
                          setMessage(`あなた(${isPlayerParent?'親':'子'}): ${handName}！ ${playerHand.type === 'ションベン' ? '負けです。' : '勝負！'}`);
                     }
 
-                } else { // ションベンの場合など
+                } else {
                      enableRollButton = false;
                      setMessage(`あなた(${isPlayerParent?'親':'子'}): ${playerHand.type === 'ションベン' ? 'ションベン！ 負けです。' : getHandDisplayName(playerHand)}`);
                 }
-            } else { // playerHand が null (まだ振っていない)
+            } else {
                  enableRollButton = playerRollCount === 0;
                  if(enableRollButton) setMessage(`賭け金 ${currentBet} で勝負！ あなた(${isPlayerParent?'親':'子'})がサイコロを振ってください。`);
             }
             rollButton.disabled = !enableRollButton;
 
-        } else { // 相手ターン中 or ゲーム非アクティブ
+        } else {
             rollButton.disabled = true;
         }
-        historyButton.disabled = false; // オーバーレイが閉じたら履歴は有効
-        updateCardButtonHighlight(); // ★ カードボタン更新
+        historyButton.disabled = false; // ★ オーバーレイが閉じたら履歴は有効
+        updateCardButtonHighlight();
     }
-    // ダイス選択処理 (ネクストチャンス対応修正)
+    // ダイス選択処理
     async function handleDiceChoice(event) {
         const button = event.target;
         const diceIndex = parseInt(button.dataset.diceIndex);
@@ -2935,7 +2902,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let newDice = [...playerDice];
         let message = "";
         let turnEnd = true;
-        let useConsumed = true; // ダイス選択が実行されたら消費
+        let useConsumed = true;
 
         if (['changeToOne', 'changeToSix'].includes(cardId)) {
              const newValue = cardId === 'changeToOne' ? 1 : 6;
@@ -2955,7 +2922,7 @@ document.addEventListener('DOMContentLoaded', () => {
               } else {
                    message = "調整しても値が変わりませんでした。";
                    turnEnd = false;
-                   useConsumed = false; // 消費しない
+                   useConsumed = false;
                    hideDiceChoiceOverlay();
                    return;
               }
@@ -2968,7 +2935,6 @@ document.addEventListener('DOMContentLoaded', () => {
              hideDiceChoiceOverlay(); return;
         }
 
-        // ダイスと役を再評価
         playerDice = newDice;
         if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' ');
         diceDisplayEl.textContent = playerDice.join(' ');
@@ -2977,32 +2943,28 @@ document.addEventListener('DOMContentLoaded', () => {
         playerHand = rk ? { ...ROLES[rk], ...result } : result;
         console.log("Re-evaluated hand:", playerHand);
 
-        // ゲーム画面の表示更新
         playerHandEl.textContent = getHandDisplayName(playerHand);
-        highlightHand(playerHandEl, playerHand); // 役のアナウンスもここ
+        highlightHand(playerHandEl, playerHand);
 
-        hideDiceChoiceOverlay(); // オーバーレイを閉じる
+        hideDiceChoiceOverlay();
 
-        // 使用回数をカウント (ここで消費確定)
         if (card.usesPerWave && useConsumed) {
              activeCardUses[cardId] = (activeCardUses[cardId] || 0) + 1;
              const remainingUses = getRemainingUses(cardId);
-             message += ` (残${remainingUses}/${getTotalUses(cardId)})`; // 残り回数を表示
+             message += ` (残${remainingUses}/${getTotalUses(cardId)})`;
              console.log(`Used card ${cardId}. Remaining uses: ${remainingUses}`);
         }
         setMessage(message);
-        updateUI(); // UI全体を更新（ロールカウンター、カードボタンハイライトなど）
+        updateUI();
 
-        // ターンを進めるかどうかの処理
         if (turnEnd) {
-            await new Promise(resolve => setTimeout(resolve, 1200)); // メッセージ表示と役演出待ち (少し長めに)
+            await new Promise(resolve => setTimeout(resolve, 1200));
 
             const handName = getHandDisplayName(playerHand);
             if (playerHand.type === '役' || playerHand.type === '目' || playerHand.type === 'ションベン') {
-                 isPlayerTurn = false; // 相手ターンへ移る準備
-                 rollButton.disabled = true; // ロールボタン無効
+                 isPlayerTurn = false;
+                 rollButton.disabled = true;
 
-                 // カード使用後の状況で再度カード使用選択肢があるかチェック
                  const blindingCardCheck = playerCards.find(c => c.id === 'blindingDice');
                  const maxBlindingUsesCheck = blindingCardCheck ? 1 : 0;
                  const canUseBlindingNowCheck = isPlayerParent && playerHand.type !== 'ションベン' && blindingCardCheck && (activeCardUses['blindingDice'] || 0) < maxBlindingUsesCheck;
@@ -3016,36 +2978,24 @@ document.addEventListener('DOMContentLoaded', () => {
                   const canUseRewardCheck = playerHand.type === '役' && rewardAmplifierCheck && !rewardAmplifierActive && (activeCardUses['rewardAmplifier'] || 0) < maxRewardUsesCheck;
 
 
-                 // 優先順位: Blinding > DoubleUp > RewardAmplifier
                  if (canUseBlindingNowCheck && isPlayerParent) {
                      setMessage(`あなた(親): ${handName}！ 相手(子)の番です。(「目くらまし」使用可能)`);
-                     isPlayerTurn = true; // 目くらまし使用待機
-                     updateCardButtonHighlight(); // ★ カードボタン更新
+                     isPlayerTurn = true;
+                     updateCardButtonHighlight();
                  } else if (canUseDoubleUpCheck && !isPlayerParent) {
                      setMessage(`あなた(子): ${handName}！「ダブルアップ」を使用しますか？`, true);
-                     isPlayerTurn = true; // ダブルアップ使用待機
+                     isPlayerTurn = true;
                      const useDoubleUp = await waitForUserChoice();
-                     if (useDoubleUp) {
-                         await handleActiveCardUse('doubleUpBet'); // ID直接指定
-                         return; // handleActiveCardUse内でターン進行管理
-                     } else {
-                         setMessage(`あなた(子): ${handName}！ ダブルアップを使用しませんでした。勝負！`);
-                         isPlayerTurn = false;
-                     }
+                     if (useDoubleUp) { await handleActiveCardUse('doubleUpBet'); return; }
+                     else { setMessage(`あなた(子): ${handName}！ ダブルアップを使用しませんでした。勝負！`); isPlayerTurn = false; }
                  } else if (canUseRewardCheck) {
                      setMessage(`あなた(${isPlayerParent ? '親' : '子'}): ${handName}！「報酬増幅」を使用しますか？`, true);
-                     isPlayerTurn = true; // 報酬増幅使用待機
+                     isPlayerTurn = true;
                      const useReward = await waitForUserChoice();
-                     if (useReward) {
-                         await handleActiveCardUse('rewardAmplifier'); // ID直接指定
-                         isPlayerTurn = false; // ターン進行を確定
-                     } else {
-                         setMessage(`報酬増幅を使用しませんでした。勝負！`);
-                         isPlayerTurn = false;
-                     }
+                     if (useReward) { await handleActiveCardUse('rewardAmplifier'); isPlayerTurn = false; }
+                     else { setMessage(`報酬増幅を使用しませんでした。勝負！`); isPlayerTurn = false; }
                  }
 
-                 // ターン終了処理 (プレイヤー操作に戻らなかった場合)
                  if (!isPlayerTurn) {
                       if (isPlayerParent && playerHand.type !== 'ションベン') {
                           setMessage(`あなた(親): ${handName}！ 相手(子)の番です。`);
@@ -3056,7 +3006,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       }
                  }
 
-            } else if (playerHand.type === '目なし') { // カード使用後も目なしの場合
+            } else if (playerHand.type === '目なし') {
                  let canRerollAfterCard = playerRollCount < currentMaxRolls;
                  let hasStormWarningRerollAfterCard = false;
                  const stormCardCheckAfter = playerCards.find(c => c.id === 'stormWarning');
@@ -3066,16 +3016,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  if (canRerollAfterCard || hasStormWarningRerollAfterCard) {
                      setMessage(`あなた(${isPlayerParent ? '親' : '子'}): カード使用後も目なし！ 再度振ってください。(${playerRollCount}/${currentMaxRolls})${hasStormWarningRerollAfterCard ? ` (嵐の予感 無料振り直し ${stormWarningRerollsLeft} 回)`:''}`);
-                     rollButton.disabled = false; // 再度ロール可能に
-                     updateCardButtonHighlight(); // ★ カードボタン更新
-                 } else { // 振り切り後目なし -> ションベン確定? Soul Roll確認
+                     rollButton.disabled = false;
+                     updateCardButtonHighlight();
+                 } else {
                       const soulRollCardCheck = playerCards.find(c => c.id === 'soulRoll');
                       const maxSoulRollUsesCheck = soulRollCardCheck ? 1 : 0;
                       const canUseSoulRollFinalCheck = soulRollCardCheck && !soulRollUsedThisTurn && (activeCardUses['soulRoll'] || 0) < maxSoulRollUsesCheck;
                       if (canUseSoulRollFinalCheck) {
                          setMessage(`あなた(${isPlayerParent ? '親' : '子'}): 目なし！ 振り直し回数がありません。「魂の一振り」を使用しますか？`);
-                         rollButton.disabled = true; // Soul Roll待ち
-                         updateCardButtonHighlight(); // ★ カードボタン更新
+                         rollButton.disabled = true;
+                         updateCardButtonHighlight();
                       } else {
                          playerHand = { ...ROLES.SHONBEN, type: 'ションベン' };
                          updateUI();
@@ -3088,7 +3038,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  }
             }
         }
-        updateCardButtonHighlight(); // ★ ターン終了時にも更新
+        updateCardButtonHighlight();
     } // handleDiceChoice end
 
 
@@ -3128,37 +3078,29 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelDiscardButton.addEventListener('click', cancelDiscard);
 
     // --- 設定モーダル関連 ---
-    // (要素取得は冒頭で実施済み)
-    // 設定ボタンクリック処理
     if (settingsButton && settingsModal) {
         settingsButton.addEventListener('click', () => {
             settingsModal.style.display = 'flex';
             switchSettingsTab('rules');
         });
     }
-
-    // 設定モーダル閉じるボタン処理
     if (closeSettingsModalButton && settingsModal) {
         closeSettingsModalButton.addEventListener('click', () => {
             settingsModal.style.display = 'none';
         });
     }
-
-    // 設定モーダル外クリック処理 (windowイベントリスナーに統合済)
     window.addEventListener('click', (event) => {
         if (settingsModal && event.target === settingsModal) {
             settingsModal.style.display = 'none';
         }
         if (historyModal && event.target === historyModal) historyModal.style.display = 'none';
-        if (cardListModal && event.target === cardListModal) cardListModal.style.display = 'none'; // 古いモーダルも閉じる
+        if (cardListModal && event.target === cardListModal) cardListModal.style.display = 'none';
         if (discardModal && event.target === discardModal) cancelDiscard();
         if (diceChoiceOverlay && event.target === diceChoiceOverlay) hideDiceChoiceOverlay();
         if (cardActionModal && event.target === cardActionModal) {
              cardActionModal.style.display = 'none';
         }
     });
-
-    // 設定モーダル ナビゲーションボタン処理
     settingsNavButtons.forEach(button => {
         if (button.dataset.target) {
              button.addEventListener('click', () => {
@@ -3167,15 +3109,11 @@ document.addEventListener('DOMContentLoaded', () => {
              });
         }
     });
-
-    // 設定モーダル内のカード一覧ボタン処理
     if (settingsCardListButton) {
         settingsCardListButton.addEventListener('click', () => {
             switchSettingsTab('card-list');
         });
     }
-
-    // 設定タブ切り替え関数
     function switchSettingsTab(targetId) {
         if (!settingsContent) return;
         settingsNavButtons.forEach(btn => btn.classList.remove('active'));
@@ -3196,23 +3134,18 @@ document.addEventListener('DOMContentLoaded', () => {
             activeContent.classList.add('active');
         }
     }
-    // --- 設定モーダル関連 ここまで ---
 
     // --- カード画面モーダル関連 ---
-    // (要素取得は冒頭で実施済み)
-    // 「カード」ボタンクリック処理
     function openCardActionModal() {
         if (!cardActionModal) return;
         console.log("Opening Card Action Modal");
-        displayCardsInModal(); // ★ カード表示関数を呼び出す
+        displayCardsInModal();
         cardActionModal.style.display = 'flex';
     }
-
-    // ★ カード表示関数
     function displayCardsInModal() {
         if (!cardActionDisplay || !cardActionMessage) return;
 
-        cardActionDisplay.innerHTML = ''; // 表示エリアをクリア
+        cardActionDisplay.innerHTML = '';
         let usableCardFound = false;
 
         if (playerCards.length === 0) {
@@ -3226,8 +3159,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const cardElement = document.createElement('div');
             const rarityClass = ['normal', 'rare', 'epic', 'legendary'][card.rarity - 1] || 'normal';
-            cardElement.className = `card-action-item type-${card.type} rarity-${rarityClass}`; // 新しいクラス名
-            cardElement.dataset.cardId = cardData.id; // カードIDをdata属性に
+            cardElement.className = `card-action-item type-${card.type} rarity-${rarityClass}`;
+            cardElement.dataset.cardId = cardData.id;
 
             const isUsable = checkCardUsability(cardData.id);
             const remainingUses = getRemainingUses(cardData.id);
@@ -3242,28 +3175,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             let buttonHtml = '';
-            if (card.usesPerWave) { // 使用回数があるカードのみ使用ボタンを表示
+            if (card.usesPerWave) {
                 buttonHtml = `<button class="use-card-button button-pop" data-card-id="${cardData.id}" ${!isUsable ? 'disabled' : ''}>使用</button>`;
             }
 
-            // スタイルクラスの適用
-            if (isPassive) {
-                cardElement.classList.add('passive'); // パッシブカードのスタイル（任意）
-            } else if (!card.usesPerWave) {
-                // 使用効果のないサポートカードなど (例:手札交換) - 何もしないか、別のスタイル
-            } else if (isUsable) {
-                cardElement.classList.add('usable');
-                usableCardFound = true;
-            } else if (remainingUses <= 0) {
-                cardElement.classList.add('used-up');
-            } else {
-                cardElement.classList.add('not-usable');
-            }
-
+            if (isPassive) { cardElement.classList.add('passive'); }
+            else if (!card.usesPerWave) {}
+            else if (isUsable) { cardElement.classList.add('usable'); usableCardFound = true; }
+            else if (remainingUses <= 0) { cardElement.classList.add('used-up'); }
+            else { cardElement.classList.add('not-usable'); }
 
             const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N';
             const rarityBadgeHtml = `<span class="card-rarity-badge">${rarityText}</span>`;
-            const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`; // レベル表示を少し変更
+            const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`;
             const cardNameHtml = `${card.name} ${levelSpan}`;
             const cardInnerHtml = `
                 <span class="card-type-badge">${getCardTypeName(card.type)}</span>
@@ -3281,52 +3205,37 @@ document.addEventListener('DOMContentLoaded', () => {
                  cardElement.style.backgroundPosition = 'center';
             }
 
-
             cardActionDisplay.appendChild(cardElement);
         });
 
-        // メッセージ更新
-        if (usableCardFound) {
-            cardActionMessage.textContent = "使用したいカードを選択してください。";
-        } else if (playerCards.length > 0) {
-            cardActionMessage.textContent = "現在使用できるカードはありません。";
-        }
+        if (usableCardFound) { cardActionMessage.textContent = "使用したいカードを選択してください。"; }
+        else if (playerCards.length > 0) { cardActionMessage.textContent = "現在使用できるカードはありません。"; }
     }
-
-    // カード画面モーダル閉じるボタン処理
     if (closeCardActionModalButton && cardActionModal) {
         closeCardActionModalButton.addEventListener('click', () => {
             cardActionModal.style.display = 'none';
         });
     }
-
-    // カード画面モーダル外クリック処理 (windowイベントリスナーに統合済)
-
-    // ★ カード画面の使用ボタンクリック処理 (イベントデリゲーション)
     if(cardActionDisplay) {
         cardActionDisplay.addEventListener('click', async (event) => {
             if (event.target.matches('.use-card-button:not(:disabled)')) {
                 const cardId = event.target.dataset.cardId;
                 if (cardId) {
-                    cardActionModal.style.display = 'none'; // 先にモーダルを閉じる
-                    await handleActiveCardUse(cardId); // IDを渡してカード使用処理を呼び出す
-                    updateCardButtonHighlight(); // カード使用後にボタンのハイライト状態を更新
+                    cardActionModal.style.display = 'none';
+                    await handleActiveCardUse(cardId);
+                    updateCardButtonHighlight();
                 }
             }
         });
     }
-
-
-    // ★ 「カード」ボタンのイベントリスナーを追加
     if (cardActionButton) {
         cardActionButton.addEventListener('click', openCardActionModal);
     }
-    // --- カード画面モーダル関連 ここまで ---
 
     // --- 初期状態 ---
     setDifficulty(difficulty);
     if(historyModal) historyModal.style.display = 'none';
-    if(cardListModal) cardListModal.style.display = 'none'; // 古いモーダルも非表示
+    if(cardListModal) cardListModal.style.display = 'none';
     if(discardModal) discardModal.style.display = 'none';
     if(diceRollModal) diceRollModal.style.display = 'none';
     if(diceChoiceOverlay) diceChoiceOverlay.style.display = 'none';

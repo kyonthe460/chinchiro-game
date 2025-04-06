@@ -491,7 +491,13 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #history-log .score-change-history { font-size: 0.9em; text-align: right; margin-top: 4px; }
 #history-log .score-change-history .gain { color: #90ee90; font-weight: bold; }
 #history-log .score-change-history .loss { color: #ff7b7b; font-weight: bold; }
-#history-log .win-streak { color: #add8e6; font-style: italic; margin-left: 5px; animation: pulseBlue 1.8s infinite ease-in-out;} /* 連勝/連敗スタイル統一 */
+#history-log .win-streak #history-log .win-streak {
+    color: #ffeb3b; /* 元の黄色系の色 */
+    font-weight: bold;
+    font-style: italic; /* 連敗表示に合わせてイタリック体を追加 */
+    margin-left: 5px;
+    animation: pulseYellow 1.5s infinite ease-in-out; /* 黄色系のパルスアニメーション */
+}
 #history-log .npc-losing-streak { color: #add8e6; font-style: italic; margin-left: 5px; animation: pulseBlue 1.8s infinite ease-in-out;} /* NPC連敗用クラス */
 #history-log .parent-info { font-size: 0.85em; color: #ccc; margin-left: 8px; font-weight: normal; }
 
