@@ -167,17 +167,18 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'lossInsurance', name: '一撃保険', type: 'score', cost: 190, rarity: 3, flavor: '備えあれば憂いなし…？', effectTag: 'lossInsurance', image: null },
     ];
 
-    // --- three.js 関連変数 ---
-    let scene, camera, renderer, diceMeshes = [], diceAnimationId = null;
-    let isThreeJSInitialized = false;
-    const DICE_SIZE = 1;
-    const DICE_SPACING = DICE_SIZE * 1.8;
-    const DICE_CANVAS_SIZE = 128;
-    const DICE_DOT_RADIUS = DICE_CANVAS_SIZE * 0.08;
-    const DICE_DOT_COLOR = '#333333';
-    const DICE_FACE_COLOR = '#FFFFFF';
-    const DICE_EDGE_RADIUS = 0.05;
-    const ROTATION_SPEED = 40;
+     // --- three.js 関連変数 ---
+     let scene, camera, renderer, diceMeshes = [], diceAnimationId = null;
+     let isThreeJSInitialized = false;
+     const DICE_SIZE = 1;
+     const DICE_SPACING = DICE_SIZE * 1.8;
+     const DICE_CANVAS_SIZE = 128;
+     const DICE_DOT_RADIUS = DICE_CANVAS_SIZE * 0.08;
+     const DICE_DOT_COLOR = '#333333';
+     // ★ サイコロのベース色を薄い水色に変更 (例: ライトシアン)
+     const DICE_FACE_COLOR = '#E0FFFF'; // '#FFFFFF' から変更
+     const DICE_EDGE_RADIUS = 0.05; // ← この変数は現在使われていないようです
+     const ROTATION_SPEED = 40;
 
     // --- 基本関数 ---
     function showScreen(screenId) { console.log("Showing screen:", screenId); document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(screenId)?.classList.add('active'); }
@@ -876,18 +877,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return canvas;
     }
 
-    // === サイコロメッシュ作成 (★ユーザー指摘の正しいマッピングに修正) ===
-    function createDiceMesh(initialValue = 1) {
-        const geometry = new THREE.BoxGeometry(DICE_SIZE, DICE_SIZE, DICE_SIZE);
+     // === サイコロメッシュ作成 ===
+     function createDiceMesh(initialValue = 1) {
+        // ★ 角丸のジオメトリを使う (three.js r128以降で利用可能か確認、なければ BoxGeometry のまま)
+        // BoxGeometryのままでもマテリアル調整で十分見栄えは変わります
+        const geometry = new THREE.BoxGeometry(DICE_SIZE, DICE_SIZE, DICE_SIZE); // BoxGeometryのまま
+
         const textures = [
-            new THREE.CanvasTexture(drawDiceFace(2)), // +X (5)
-            new THREE.CanvasTexture(drawDiceFace(5)), // -X (2)
-            new THREE.CanvasTexture(drawDiceFace(1)), // +Y (1)
-            new THREE.CanvasTexture(drawDiceFace(6)), // -Y (6)
-            new THREE.CanvasTexture(drawDiceFace(4)), // +Z (3)
-            new THREE.CanvasTexture(drawDiceFace(3)), // -Z (4)
+            new THREE.CanvasTexture(drawDiceFace(2)), // +X
+            new THREE.CanvasTexture(drawDiceFace(5)), // -X
+            new THREE.CanvasTexture(drawDiceFace(1)), // +Y
+            new THREE.CanvasTexture(drawDiceFace(6)), // -Y
+            new THREE.CanvasTexture(drawDiceFace(4)), // +Z
+            new THREE.CanvasTexture(drawDiceFace(3)), // -Z
         ];
-        const materials = textures.map(texture => new THREE.MeshStandardMaterial({ map: texture, roughness: 0.6, metalness: 0.1 }));
+        const materials = textures.map(texture => new THREE.MeshStandardMaterial({
+            map: texture,
+            // ★ 艶感を出すための調整
+            roughness: 0.3, // 値を小さくして艶を出す (0に近づくほど鏡面)
+            metalness: 0.1, // 少し金属感 (0でもOK)
+            // color: 0xE0FFFF, // ベース色と合わせる場合 (mapがあるので通常不要)
+            // ★ クリアコートでさらにリアルな艶 (任意)
+            // clearcoat: 0.5,
+            // clearcoatRoughness: 0.1
+        }));
 
         const mesh = new THREE.Mesh(geometry, materials);
         mesh.userData.value = initialValue;
