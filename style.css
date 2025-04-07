@@ -6,7 +6,7 @@ body {
     background: linear-gradient(135deg, #4158D0, #C850C0, #FFCC70);
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
-    color: #f0f0f0;
+    color: #f0f0f0; /* ← 色を元に戻す */
     margin: 0;
     min-height: 100vh;
     display: flex; /* body を flex コンテナに */
@@ -17,7 +17,7 @@ body {
 
 /* ===== 画面共通 ===== */
 .screen {
-    display: none;
+    display: none; /* ★ 初期状態は非表示 */
     width: 100%;
     min-height: 100vh;
     box-sizing: border-box;
@@ -26,8 +26,8 @@ body {
     flex-grow: 1; /* 画面の高さいっぱいに広がるように */
 }
 .screen.active {
-    display: flex;
-    flex-direction: column; /* 画面内の要素も基本縦並び */
+    display: flex; /* ★ アクティブ時に flex を有効化 (CSSが担当) */
+    /* flex-direction は各画面で指定 or デフォルト(row) */
     animation: fadeIn 0.5s ease-out;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -39,26 +39,59 @@ body {
 @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} }
 
 
-/* ===== タイトル & リザルト画面 ===== */
-#title-screen, #result-screen {
-    justify-content: center; /* 垂直方向中央揃え */
-    align-items: center; /* 水平方向中央揃え */
+/* ===== タイトル & リザルト画面 & キャラクター選択画面 ===== */
+#title-screen, #result-screen, #character-select-screen {
+    flex-direction: column; /* ★ 画面全体を縦積みレイアウトに */
+    justify-content: center; /* flex有効時に垂直中央 */
+    align-items: center; /* flex有効時に水平中央 */
     text-align: center;
     z-index: 1;
+    /* .screen.active の display: flex; が適用される */
 }
-.title-content, .result-content { background-color: rgba(30, 30, 50, 0.85); padding: 40px 60px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); position: relative; z-index: 2; }
+.title-content, .result-content, .character-select-content {
+    background-color: rgba(30, 30, 50, 0.85);
+    padding: 40px 60px;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 2;
+    width: 90%; /* 幅を調整 */
+    max-width: 800px; /* 最大幅を設定 */
+    box-sizing: border-box;
+    /* ↓ .character-select-content 用に追加 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .game-title { background: linear-gradient(45deg, #ffeb3b, #ffcc70); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 4.2em; font-weight: 800; margin-bottom: 35px; text-shadow: 3px 3px 10px rgba(0,0,0,0.8); animation: pulse 2s infinite ease-in-out; font-family: 'Yuji Syuku', serif; }
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
 .difficulty-selector { margin-bottom: 30px; } .difficulty-selector p { margin-bottom: 15px; font-size: 1.2em; color: #ddd; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
 .difficulty-button { padding: 10px 22px; font-size: 1.1em; margin: 0 8px; cursor: pointer; border: none; border-radius: 20px; background-color: rgba(255, 255, 255, 0.1); color: #eee; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
 .difficulty-button:hover { background-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
 .difficulty-button.selected { background: linear-gradient(45deg, #ffeb3b, #ffc107); color: #333; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 200, 0, 0.5); }
-#start-game-button { padding: 14px 35px; font-size: 1.4em; cursor: pointer; background: linear-gradient(45deg, #C850C0, #ffcc70); border: none; border-radius: 25px; color: white; font-weight: bold; transition: all 0.3s ease; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); box-shadow: 0 5px 15px rgba(200, 80, 192, 0.4); }
+#start-game-button, #select-character-button /* キャラ選択ボタンも同様のスタイルを一部適用 */ { padding: 14px 35px; font-size: 1.4em; cursor: pointer; border: none; border-radius: 25px; color: white; font-weight: bold; transition: all 0.3s ease; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
+#start-game-button { background: linear-gradient(45deg, #C850C0, #ffcc70); box-shadow: 0 5px 15px rgba(200, 80, 192, 0.4); }
 #start-game-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(200, 80, 192, 0.6); }
+/* キャラクター選択ボタンのスタイル */
+#select-character-button {
+    padding: 10px 25px; /* 少し小さく */
+    font-size: 1.1em; /* 少し小さく */
+    background: linear-gradient(180deg, #8a94a8, #6c757d); /* サブボタンの色 */
+    box-shadow: 0 3px 7px rgba(108, 117, 125, 0.4);
+    margin-top: 15px; /* 開始ボタンとの間隔 */
+}
+#select-character-button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #9fa8b8, #7c858d);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(108, 117, 125, 0.5);
+}
 .button-pop { transition: transform 0.1s ease, box-shadow 0.2s ease; } .button-pop:active:not(:disabled) { transform: scale(0.95); }
 
 /* ===== ゲーム画面 ===== */
 #game-screen {
+    /* display は .screen.active に任せる */
+    flex-direction: column; /* ★ ゲーム画面は縦積み */
     justify-content: flex-start; /* 上から配置 */
     align-items: center; /* 中央寄せ */
     padding: 0; /* 全体のパディングは解除 */
@@ -208,8 +241,11 @@ body {
 #current-bet-info { background-color: rgba(0, 0, 0, 0.3); padding: 5px 10px; border-radius: 5px; font-size: 1.1em; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); border: 1px solid rgba(255, 235, 59, 0.3); box-shadow: inset 0 0 5px rgba(0,0,0,0.2); min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b; }
 #current-bet-info .parent-name { font-weight: normal; color: #eee; }
 
-#game-area { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 25px; gap: 20px; flex-grow: 1; /* 縦に伸ばす */ }
-.player-box { background-color: rgba(60, 60, 90, 0.85); padding: 18px; border-radius: 10px; width: 280px; /* 幅を広げる */ box-sizing: border-box; display: flex; flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); position: relative; }
+/* #game-area の gap を変更済み */
+#game-area { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 25px; gap: 15px; flex-grow: 1; /* 縦に伸ばす */ }
+
+/* .player-box の width を変更済み */
+.player-box { background-color: rgba(60, 60, 90, 0.85); padding: 18px; border-radius: 10px; width: 250px; box-sizing: border-box; display: flex; flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); position: relative; }
 .player-box h2 { margin-top: 0; margin-bottom: 12px; color: #eee; font-size: 1.3em; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
 .parent-marker { color: #ffeb3b; font-size: 0.8em; margin-left: 5px; vertical-align: middle; font-weight: bold; display: none; text-shadow: 0 0 3px #ffc107; }
 
@@ -233,6 +269,32 @@ body {
 #dice-display.settled .dice-num { animation: diceSettle 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes diceSettle { 0% { transform: scale(1.1) rotate(-2deg); } 60% { transform: scale(0.97) rotate(2deg); } 100% { transform: scale(1); } }
 .roll-counter-top-right { position: absolute; top: 10px; right: 15px; font-size: 0.9em; color: rgba(255, 255, 255, 0.6); background-color: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; z-index: 5; }
+
+/* キャラクター画像エリアのスタイルを更新 */
+.character-image-area {
+    width: 250px; /* プレイヤーボックスと同じ幅 */
+    height: 300px; /* 高さを設定 */
+    background-color: rgba(80, 80, 110, 0.7); /* 仮の背景色 */
+    border: 1px dashed rgba(255, 255, 255, 0.3); /* 仮の枠線 */
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #aaa;
+    font-size: 0.9em;
+    text-align: center;
+    align-self: center; /* 中央に寄せる */
+    flex-shrink: 0; /* 縮まないように */
+}
+.character-image-area img { /* 画像が入った時のスタイル */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* アスペクト比を保つ */
+    border-radius: 4px;
+    display: block; /* ★ none ではなく block に */
+}
+
+
 /* メッセージエリアのスタイル変更 */
 #message-area { background-color: rgba(30, 30, 50, 0.75); padding: 12px; margin-bottom: 0; /* 下マージン削除 */ border-radius: 8px; min-height: 3em; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
 #message { margin: 0; font-style: italic; color: #a0ffa0; font-size: 1.1em; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); margin-bottom: 8px; }
@@ -290,6 +352,8 @@ body {
     align-items: stretch; /* 横幅いっぱい */
     gap: 10px; /* 各要素間のギャップ */
     margin-top: 0;
+    max-width: 60%; /* 最大幅を画面の60%に */
+    margin: 0 auto; /* 左右マージン自動で中央寄せ */
 }
 
 /* 一段目: 調整ボタン + 入力 */
@@ -402,7 +466,7 @@ body {
 
 
 #bet-input:focus { background-color: rgba(255, 255, 255, 0.2); outline: 2px solid #ffeb3b; }
-#bet-input:disabled { background-color: rgba(80, 80, 80, 0.5); color: #aaa; cursor: not-allowed; }
+#bet-input:disabled { background-color: rgba(80, 80, 80, 0.5); color: #aaa; cursor: not-allowed; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); }
 
 /* NPC親ターンのスタイル調整 */
 #game-screen.npc-parent .bet-main-controls {
@@ -431,10 +495,10 @@ body {
 /* ボタン共通スタイル */
 button { padding: 10px 18px; font-size: 1em; cursor: pointer; border: none; border-radius: 20px; color: #333; font-weight: bold; transition: all 0.2s ease; text-shadow: 0px 1px 1px rgba(255,255,255,0.3); box-shadow: 0 3px 5px rgba(0,0,0,0.3); }
 button:disabled { background-color: #555 !important; background-image: none !important; color: #999 !important; cursor: not-allowed; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); text-shadow: none;}
-#roll-button, #next-wave-button, #restart-same-difficulty-button { background: linear-gradient(180deg, #ffeb3b, #ffc107); }
-#roll-button:hover:not(:disabled), #next-wave-button:hover:not(:disabled), #restart-same-difficulty-button:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
-.button-subtle, #change-difficulty-button, #history-button, #settings-button /* 設定ボタンも適用 */ { background: linear-gradient(180deg, #8a94a8, #6c757d); color: white; text-shadow: 0px -1px 1px rgba(0,0,0,0.4); }
-.button-subtle:hover:not(:disabled), #change-difficulty-button:hover, #history-button:hover:not(:disabled), #settings-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(108, 117, 125, 0.4); }
+#roll-button, #next-wave-button, #restart-same-difficulty-button, #confirm-character-yes /* 確認(はい)ボタンも同じ色 */ { background: linear-gradient(180deg, #ffeb3b, #ffc107); }
+#roll-button:hover:not(:disabled), #next-wave-button:hover:not(:disabled), #restart-same-difficulty-button:hover, #confirm-character-yes:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
+.button-subtle, #change-difficulty-button, #history-button, #settings-button, #back-to-title-button, #confirm-character-no /* 確認(いいえ)ボタンも同じ色 */ { background: linear-gradient(180deg, #8a94a8, #6c757d); color: white; text-shadow: 0px -1px 1px rgba(0,0,0,0.4); }
+.button-subtle:hover:not(:disabled), #change-difficulty-button:hover, #history-button:hover:not(:disabled), #settings-button:hover:not(:disabled), #back-to-title-button:hover:not(:disabled), #confirm-character-no:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(108, 117, 125, 0.4); }
 /* メッセージエリア内のボタン */
 .temp-choice-button { margin: 0 5px; padding: 8px 16px; font-size: 0.95em; }
 
@@ -450,6 +514,124 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #result-message, #final-score { font-size: 1.3em; margin-bottom: 15px; color: #ddd; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); } #final-score { font-weight: bold; color: #ffeb3b; }
 .result-actions { margin-top: 30px; display: flex; justify-content: space-around; gap: 15px; }
 #restart-same-difficulty-button { background: linear-gradient(180deg, #90ee90, #28a745); color: #333; } #restart-same-difficulty-button:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(40, 167, 69, 0.4); }
+
+/* ===== キャラクター選択画面のスタイル ===== */
+#character-select-screen.active {
+    /* display: flex; は .screen.active から継承 */
+    /* flex-direction, justify-content, align-items は #character-select-screen 自体で設定済み */
+}
+
+.character-select-content { /* コンテンツ用ラッパー */
+    /* スタイルは親から継承 or 個別指定 */
+     display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#character-select-screen h2 { /* 画面タイトル */
+    color: #ffcc70;
+    margin-bottom: 25px;
+    font-size: 2.5em;
+    font-family: 'Yuji Syuku', serif;
+    margin-top: 0; /* 上マージン除去 */
+}
+.character-select-body { /* リストとプレビューの親要素 */
+    display: flex; /* ★ flex に変更 */
+    width: 100%;
+    gap: 20px; /* 左右のギャップ */
+    margin-bottom: 25px;
+    min-height: 400px; /* ★ 高さを確保 */
+}
+#character-list { /* 左側リストエリア */
+    flex: 1; /* 幅の比率 */
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 60vh; /* 高さを制限 */
+    overflow-y: auto; /* スクロール可能に */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+#character-list p { /* 初期メッセージ */
+    color: #aaa;
+    text-align: center;
+    margin-top: 10px;
+    font-style: italic; /* 見やすく */
+}
+#character-list button { /* キャラクター名ボタン */
+    width: 100%;
+    padding: 10px;
+    font-size: 1.1em;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #eee; /* 文字色を明るく */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    box-shadow: none;
+    text-shadow: none;
+    font-weight: normal;
+}
+#character-list button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+#character-list button.selected { /* 選択中のキャラボタン */
+    background-color: rgba(255, 235, 59, 0.3);
+    border-color: #ffeb3b;
+    color: #fff;
+    font-weight: bold;
+}
+
+#character-preview { /* 右側プレビューエリア */
+    flex: 1.5; /* 幅の比率 */
+    background: rgba(0,0,0,0.2);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 300px; /* 最低限の高さを確保 */
+}
+#character-preview-placeholder { /* 初期メッセージ */
+    color: #aaa;
+    font-size: 1.2em;
+    font-style: italic; /* 見やすく */
+}
+#character-preview-image { /* 画像 */
+    max-width: 100%;
+    max-height: 350px; /* 最大高さを設定 */
+    object-fit: contain;
+    margin-bottom: 20px;
+    display: none; /* 初期非表示 */
+    border-radius: 5px;
+    background-color: rgba(0,0,0,0.3); /* 画像がない場合の背景 */
+    border: 1px solid rgba(255,255,255,0.1);
+}
+#character-confirm-area { /* 確認エリア */
+    display: none; /* 初期非表示 */
+    margin-top: 15px;
+}
+#character-confirm-message { /* 確認メッセージ */
+    color: #eee;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+#character-confirm-area button { /* はい/いいえボタン */
+    margin: 0 10px;
+    padding: 10px 25px;
+}
+#back-to-title-button { /* タイトルへ戻るボタン */
+    margin-top: 20px;
+    padding: 10px 30px;
+}
+
 
 /* ===== モーダル共通 ===== */
 .modal {
@@ -491,15 +673,34 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #history-log .score-change-history { font-size: 0.9em; text-align: right; margin-top: 4px; }
 #history-log .score-change-history .gain { color: #90ee90; font-weight: bold; }
 #history-log .score-change-history .loss { color: #ff7b7b; font-weight: bold; }
-#history-log .win-streak #history-log .win-streak {
-    color: #ffeb3b; /* 元の黄色系の色 */
-    font-weight: bold;
-    font-style: italic; /* 連敗表示に合わせてイタリック体を追加 */
-    margin-left: 5px;
-    animation: pulseYellow 1.5s infinite ease-in-out; /* 黄色系のパルスアニメーション */
+#history-log .win-streak {
+    color: #ffeb3b; /* ゲーム画面と同じ黄色 */
+    font-weight: bold; /* 太字 */
+    font-style: italic; /* 連敗表示とスタイルを合わせる */
+    margin-left: 5px; /* 左マージン */
+    animation: pulseYellow 1.5s infinite ease-in-out; /* ゲーム画面と同じアニメーション */
 }
-#history-log .npc-losing-streak { color: #add8e6; font-style: italic; margin-left: 5px; animation: pulseBlue 1.8s infinite ease-in-out;} /* NPC連敗用クラス */
+#history-log .npc-losing-streak {
+    color: #add8e6;
+    font-style: italic;
+    margin-left: 5px;
+    animation: pulseBlue 1.8s infinite ease-in-out;
+    font-weight: bold; /* 連勝表示と合わせる */
+}
 #history-log .parent-info { font-size: 0.85em; color: #ccc; margin-left: 8px; font-weight: normal; }
+/* WAVEクリア情報用スタイル */
+.wave-clear-info {
+    display: block; /* 改行させる */
+    margin-top: 5px; /* 上の要素との間隔 */
+    margin-bottom: 5px; /* 下の要素との間隔 */
+    font-size: 0.9em;
+    color: #90ee90; /* クリアの色 */
+    font-weight: bold;
+    text-align: center; /* 中央揃え */
+    background-color: rgba(40, 167, 69, 0.2); /* 薄い緑背景 */
+    padding: 3px 6px;
+    border-radius: 4px;
+}
 
 /* ===== カード一覧モーダル ===== */
 .card-list-modal-content { max-width: 800px; }
@@ -769,14 +970,25 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .shop-content { max-width: 90%; }
     .card { width: calc(33.33% - 15px); }
     .dice-roll-modal-content { max-width: 70vw; width: 70vw; }
+    /* 1100px での .character-image-area 調整 */
+    .character-image-area { width: 200px; height: 250px; } /* 調整後のサイズを維持 */
+    #control-area { max-width: 70%; } /* コントロールバー幅調整 */
 }
 @media (max-width: 880px) {
     #game-container { max-width: 90%; } /* 880pxでも調整 */
     .shop-content { max-width: 95%; }
     .card { width: calc(50% - 15px); min-height: 260px; }
     .dice-roll-modal-content { max-width: 80vw; width: 80vw; }
-    .player-box { width: 45%; /* 少し狭く */ }
-    #dice-area { max-width: none; /* 最大幅解除 */ flex-grow: 1; }
+    /* 880px での #game-area 調整 */
+    #game-area { flex-direction: column; gap: 10px; align-items: center; } /* 縦並び、中央寄せ */
+    .player-box { width: 80%; max-width: 350px; /* 幅を調整 */ }
+    #dice-area { width: 90%; max-width: 400px; /* 幅を調整 */ }
+    .character-image-area { width: 150px; height: 180px; order: 1; } /* サイズ調整 */
+    .character-image-area.npc { order: 3; /* NPC画像はダイスの後 */ }
+    #player-info { order: 0; } /* プレイヤー情報 */
+    #dice-area { order: 2; } /* ダイスエリア */
+    #npc-info { order: 4; } /* NPC情報 */
+    #control-area { max-width: 80%; } /* コントロールバー幅調整 */
 }
 @media (max-width: 768px) {
     #game-header { padding: 6px 10px; }
@@ -785,21 +997,24 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #game-main-area { padding-top: 45px; }
     #game-container { max-width: 95%; } /* スマホ幅 */
 
-    .title-content, .result-content { padding: 30px 20px; width: 90%; }
+    .title-content, .result-content, .character-select-content { padding: 30px 20px; width: 90%; }
     .game-title { font-size: 3em; }
     .difficulty-button { padding: 10px 15px; font-size: 1em; margin: 5px 3px; }
     #start-game-button { padding: 12px 30px; font-size: 1.2em; }
+    #select-character-button { padding: 10px 20px; font-size: 1em; } /* スマホ用調整 */
     #game-screen { padding: 0; }
     #game-scrollable-area { padding: 10px; padding-bottom: 180px; }
     #game-container { padding: 15px; margin-bottom: 0; border-radius: 15px; }
     #wave-info { text-align: center; width: 100%; margin-top: 0; margin-bottom: 5px; }
 
     #current-bet-info { font-size: 1em; margin-bottom: 10px; }
-    #game-area { flex-direction: column; gap: 15px; }
-    .player-box { width: 100%; }
+    #game-area { flex-direction: column; gap: 10px; } /* 縦並び */
+    .player-box { width: 100%; } /* 幅100% */
     .player-box h2 { display: flex; align-items: center; justify-content: center; }
     .parent-marker { font-size: 0.7em; }
-    #dice-area { width: auto; max-width: none; }
+    #dice-area { width: 100%; max-width: none; } /* 幅100% */
+    /* スマホでのキャラクター画像エリア調整 */
+    .character-image-area { width: 120px; height: 150px; margin-bottom: 5px; }
     #dice-display { font-size: 4em; letter-spacing: 0.1em;}
     .center-role { font-size: 4.5em; padding: 0.1em 0.3em; }
     .center-role.role-pinzoro { font-size: 5.5em; }
@@ -814,7 +1029,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .center-role.result-game-over { font-size: 5.5em; }
 
     #bottom-control-bar { padding: 10px 10px 15px 10px; }
-    #control-area { gap: 10px; margin-top: 0;}
+    #control-area { gap: 10px; margin-top: 0; max-width: 95%; /* スマホでは幅広げる */ }
     /* スマホでの賭け金コントロール */
     .bet-main-controls {
         flex-direction: column; /* 縦積み */
@@ -866,6 +1081,16 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #action-controls button { width: auto; flex-grow: 1; padding: 10px 5px; }
     .result-actions { flex-direction: column; gap: 15px; }
     .result-actions button { width: 100%; }
+
+    /* キャラクター選択画面 スマホ調整 */
+    .character-select-content { padding: 20px 15px; }
+    #character-select-screen h2 { font-size: 2em; }
+    .character-select-body { flex-direction: column; min-height: auto; /* スマホでは最低高さ解除 */ }
+    #character-list { max-height: 30vh; }
+    #character-preview { min-height: 250px; }
+    #character-preview-image { max-height: 180px; }
+    #character-confirm-area button { padding: 8px 20px; font-size: 0.9em; }
+    #back-to-title-button { padding: 8px 25px; font-size: 0.9em; }
 
     .modal-content { width: 90%; padding: 20px; max-height: 85vh; display: flex; flex-direction: column; }
     #history-log { font-size: 0.9em; max-height: 60vh; flex-grow: 1; }
@@ -922,6 +1147,9 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #dice-display { font-size: 3em; }
     .player-box { padding: 12px; }
     .player-box p { font-size: 0.9em; }
+    /* 480px での #game-area 調整 */
+    #game-area { gap: 8px; }
+    .character-image-area { width: 100px; height: 120px; } /* サイズ再調整 */
     .center-role { font-size: 3em; padding: 0.1em 0.2em; }
     .center-role.role-pinzoro { font-size: 3.5em; }
     .center-role.role-arashi { font-size: 3.3em; }
@@ -936,7 +1164,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 
     .parent-marker { font-size: 0.6em; }
     #bottom-control-bar { padding: 8px 8px 10px 8px; }
-    #control-area { gap: 8px; }
+    #control-area { gap: 8px; max-width: 100%; } /* スマホでは幅最大 */
     /* スマホでの賭け金コントロール */
     .bet-main-controls { gap: 8px; }
     .bet-adjust-button { padding: 6px 10px; font-size: 0.9em; min-width: 40px; }
@@ -946,6 +1174,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     .bet-action-container { gap: 8px; }
     button { padding: 8px 15px; font-size: 0.9em; }
     #start-game-button { padding: 10px 25px; font-size: 1.1em; }
+    #select-character-button { padding: 8px 18px; font-size: 0.9em; } /* スマホ用調整 */
     #action-controls { gap: 8px; }
 
     .shop-content { padding: 15px; }
@@ -962,6 +1191,13 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     #hand-cards { justify-content: center; }
     .hand-card-item { font-size: 0.8em; padding: 2px 6px; gap: 5px; }
     .sell-card-button { font-size: 0.7em; padding: 1px 4px; }
+
+    /* キャラクター選択画面 極小スマホ調整 */
+    .character-select-content { padding: 15px 10px; }
+    #character-select-screen h2 { font-size: 1.8em; }
+    #character-preview-image { max-height: 150px; }
+    #character-confirm-area button { padding: 8px 20px; font-size: 0.9em; }
+    #back-to-title-button { padding: 8px 25px; font-size: 0.9em; }
 
     .modal-content { max-height: 90vh; }
     #history-log { max-height: 70vh; }
@@ -1197,4 +1433,9 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #card-action-display::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
 #card-action-display::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 #card-action-display::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.3); }
+
+/* ===== NPC画像 左右反転 ===== */
+.character-image-area.npc img {
+    transform: scaleX(-1); /* 水平方向に反転 */
+}
 /* ===== END OF style.css ===== */

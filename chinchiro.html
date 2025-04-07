@@ -23,6 +23,9 @@
                 <button class="difficulty-button button-pop" data-difficulty="hard">難しい</button>
             </div>
             <button id="start-game-button" class="button-pop">ゲーム開始</button>
+            <!-- ↓ キャラクター選択ボタンを追加 ↓ -->
+            <button id="select-character-button" class="button-subtle">キャラクター選択</button>
+            <!-- ↑ キャラクター選択ボタンを追加 ↑ -->
             <div class="title-extra-buttons" style="margin-top: 25px; display: flex; justify-content: center; gap: 10px;">
                 <!-- 未来のボタン -->
             </div>
@@ -57,6 +60,7 @@
                     </div>
                     <div id="game-area">
                         <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
+                        <div class="character-image-area player"></div>
                         <div id="dice-area">
                             <!-- 通常時のダイス表示（モーダル表示時は隠す） -->
                             <div id="dice-display">- - -</div>
@@ -65,6 +69,7 @@
                             <div id="center-role-announcement" class="center-role"></div>
                             <div id="dice-choice-overlay" class="overlay"></div>
                         </div>
+                        <div class="character-image-area npc"></div>
                         <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
                     </div>
                     <div id="message-area">
@@ -163,6 +168,33 @@
         <div class="stars"></div>
         <div class="twinkling"></div>
     </div>
+
+    <!-- ===== キャラクター選択画面 (新規追加) ===== -->
+    <div id="character-select-screen" class="screen">
+        <div class="character-select-content"> <!-- コンテンツ用ラッパー追加 -->
+            <h2>キャラクター選択</h2>
+            <div class="character-select-body">
+                <div id="character-list">
+                    <!-- JSでキャラクターリスト生成 -->
+                    <p>キャラクターを選んでください</p>
+                </div>
+                <div id="character-preview">
+                    <p id="character-preview-placeholder">← リストから選択</p>
+                    <img id="character-preview-image" src="" alt="キャラクター画像">
+                    <div id="character-confirm-area">
+                        <p id="character-confirm-message">このキャラクターにしますか？</p>
+                        <button id="confirm-character-yes" class="button-pop">はい</button>
+                        <button id="confirm-character-no" class="button-subtle">いいえ</button>
+                    </div>
+                </div>
+            </div>
+            <button id="back-to-title-button" class="button-subtle">タイトルへ戻る</button>
+        </div>
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+    </div>
+    <!-- ===== キャラクター選択画面 ここまで ===== -->
+
 
     <!-- 履歴モーダル -->
     <div id="history-modal" class="modal">
