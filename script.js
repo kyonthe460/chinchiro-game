@@ -103,17 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeCardBeingUsed = null;
     let freeRerollsAvailableThisShopVisit = 0;
 
-    // --- キャラクターデータ (新規追加) ---
-    // ============================================================
-    // ★★★ 修正箇所: characters 配列 (キャラクターデータ拡張) ★★★
-    // ============================================================
+    // --- キャラクターデータ (テストデータ削除済み) ---
     const characters = [
-        // 既存キャラ
-        { id: 'default', name: 'デフォルト', image: './Character Image/default.png', initialCardId: null },
-        { id: 'charA', name: 'カイジ', image: './Character Image/kaiji.png', initialCardId: 'riskyBet' },
-        { id: 'charB', name: 'アカギ', image: '', initialCardId: 'giveUpEye' }, // 画像パスは後で設定
-        { id: 'charC', name: '利根川', image: '', initialCardId: 'blindingDice' }, // 画像パスは後で設定
-        // 追加キャラ (13人分) - initialCardId は後で設定
+        // 削除: default, charA, charB, charC
         { id: 'char01', name: 'キャラクター01', image: './Character Image/Character01.png', initialCardId: null },
         { id: 'char02', name: 'キャラクター02', image: './Character Image/Character02.png', initialCardId: null },
         { id: 'char03', name: 'キャラクター03', image: './Character Image/Character03.png', initialCardId: null },
@@ -129,10 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null },
     ];
     // ============================================================
-    // ★★★ characters 配列 修正ここまで ★★★
-    // ============================================================
-    let selectedCharacter = characters[0]; // 初期選択キャラ (デフォルト)
-    let currentNpcCharacter = characters[1]; // 仮の初期NPCキャラ (initGameで再設定される)
+    let selectedCharacter = characters[0]; // 初期選択キャラ (配列先頭のキャラ)
+    let currentNpcCharacter = characters[1 % characters.length]; // 仮の初期NPCキャラ (配列2番目、存在しない場合は先頭に戻る)
     let usedNpcCharacters = []; // 使用済みNPC記録用
     let previewingCharacter = null; // プレビュー中のキャラ保持用
 
@@ -505,10 +495,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ゲーム初期化 ---
     function initGame(isRestart = false) {
         console.log("--- initGame START ---");
-        // キャラクターが選択されていなければデフォルトを設定
+        // キャラクターが選択されていなければ配列の先頭を設定
         if (!selectedCharacter) {
             selectedCharacter = characters[0];
-            console.log("No character selected, using default:", selectedCharacter.name);
+            console.log("No character selected, using first available:", selectedCharacter.name);
         }
         // WAVE開始時のNPC選択
         selectNextNpc(); // isRestartに関わらずNPCは毎回選択
@@ -517,28 +507,17 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreAtWaveStart = INITIAL_PLAYER_SCORE;
         playerCards = []; // ★ 新規/リスタート時に手札をクリア
 
-        // --- 初期カード追加ロジック ---
+        // --- 初期カード追加ロジック (initialCardId を参照しないように変更) ---
         if (!isRestart) { // 新規ゲームの場合
             totalScoreChange = 0;
             usedNpcCharacters = [];
             playerCoins = 0;
-            if (selectedCharacter && selectedCharacter.initialCardId) {
-                const initialCardDef = allCards.find(card => card.id === selectedCharacter.initialCardId);
-                if (initialCardDef) {
-                    playerCards.push({ id: initialCardDef.id, level: 1 });
-                    console.log(`Added initial card for ${selectedCharacter.name}: ${initialCardDef.name}`);
-                }
-            }
+            // ★★★ initialCardPool からランダム選択ロジックはここには含めず、ステップ1.3で実装 ★★★
+            // if (selectedCharacter && selectedCharacter.initialCardId) { ... } の部分は削除
         } else { // リスタートの場合
             // 既存のコインや撃破数は維持される
-            if (selectedCharacter && selectedCharacter.initialCardId) {
-                 const initialCardDef = allCards.find(card => card.id === selectedCharacter.initialCardId);
-                 // リスタート時に手札が空なら初期カードを追加（すでに何か持っている場合は追加しない）
-                 if (initialCardDef && playerCards.length === 0) {
-                     playerCards.push({ id: initialCardDef.id, level: 1 });
-                     console.log(`Added initial card for ${selectedCharacter.name} on restart: ${initialCardDef.name}`);
-                 }
-            }
+            // ★★★ initialCardPool からランダム選択ロジックはここには含めず、ステップ1.3で実装 ★★★
+            // if (selectedCharacter && selectedCharacter.initialCardId) { ... } の部分は削除
         }
         // --- 初期カード追加ロジックここまで ---
 
@@ -2029,8 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shopScreen.classList.contains('active')) {
             animateScore(shopCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
         }
-    }
-    // === コイン獲得アニメーション再生 ===
+    }// === コイン獲得アニメーション再生 ===
     function playCoinAnimation(amount) {
         if (!gameCoinDisplayEl || amount <= 0) return;
 
@@ -2269,9 +2247,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // --- selectNextNpc 関数 ---
     function selectNextNpc() {
-        // 利用可能なNPCリストを作成 (プレイヤー選択キャラとデフォルトキャラ、前回までのNPCを除く)
+        // 利用可能なNPCリストを作成 (プレイヤー選択キャラと前回までのNPCを除く)
         const availableNpcs = characters.filter(c =>
-            c.id !== 'default' &&                     // デフォルト除外
+            // 削除: c.id !== 'default' &&
             c.id !== selectedCharacter.id &&          // ★ プレイヤー選択キャラ除外
             !usedNpcCharacters.includes(c.id)         // 使用済み除外
         );
@@ -2283,25 +2261,20 @@ document.addEventListener('DOMContentLoaded', () => {
             usedNpcCharacters.push(currentNpcCharacter.id); // 使用済みに記録
         } else {
             // 全員出た or プレイヤー以外にいない場合、使用済みリストをリセットして再度選択
-            console.log("All NPCs used or only default/player left, resetting NPC history.");
+            console.log("All NPCs used or only player left, resetting NPC history.");
             // ★ プレイヤー選択キャラは除外したままでリセット
             usedNpcCharacters = [];
-            const resettledAvailableNpcs = characters.filter(c => c.id !== 'default' && c.id !== selectedCharacter.id);
+            const resettledAvailableNpcs = characters.filter(c => c.id !== selectedCharacter.id);
             if (resettledAvailableNpcs.length > 0) {
                 const randomIndex = Math.floor(Math.random() * resettledAvailableNpcs.length);
                 currentNpcCharacter = resettledAvailableNpcs[randomIndex];
                 usedNpcCharacters.push(currentNpcCharacter.id); // リセット後も記録
             } else {
-                // 本当に選択肢がない場合 (例: プレイヤーがデフォルト以外を選び、他のキャラが1人しかいない)
-                // デフォルトNPCはプレイヤーが選択していなければ使える
-                if (selectedCharacter.id !== 'default') {
-                    currentNpcCharacter = characters.find(c => c.id === 'default');
-                } else {
-                    // デフォルトもプレイヤーが選択している場合、エラー回避で自分自身？（あるいは設計見直し要）
-                    currentNpcCharacter = characters[0]; // とりあえずデフォルト
-                    console.warn("Critical issue: No available NPC found! Defaulting to default character.");
-                }
-                if(currentNpcCharacter) usedNpcCharacters.push(currentNpcCharacter.id);
+                // 本当に選択肢がない場合 (例: プレイヤーが選択し、他のキャラがいない)
+                // エラー回避でプレイヤー自身？（あるいは設計見直し要）
+                currentNpcCharacter = selectedCharacter; // 仕方ないのでプレイヤー自身
+                console.warn("Critical issue: No available NPC found! Defaulting to player character.");
+                // この場合、usedNpcCharacters には追加しない方が良いかもしれない
             }
         }
         console.log(`Selected NPC for Wave ${currentWave}: ${currentNpcCharacter?.name}`);
