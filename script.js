@@ -103,28 +103,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeCardBeingUsed = null;
     let freeRerollsAvailableThisShopVisit = 0;
 
-    // --- キャラクターデータ (テストデータ削除済み) ---
+    // --- キャラクターデータ (テストデータ削除済み & initialCardPool 追加) ---
     const characters = [
-        // 削除: default, charA, charB, charC
-        { id: 'char01', name: 'キャラクター01', image: './Character Image/Character01.png', initialCardId: null },
-        { id: 'char02', name: 'キャラクター02', image: './Character Image/Character02.png', initialCardId: null },
-        { id: 'char03', name: 'キャラクター03', image: './Character Image/Character03.png', initialCardId: null },
-        { id: 'char04', name: 'キャラクター04', image: './Character Image/Character04.png', initialCardId: null },
-        { id: 'char05', name: 'キャラクター05', image: './Character Image/Character05.png', initialCardId: null },
-        { id: 'char06', name: 'キャラクター06', image: './Character Image/Character06.png', initialCardId: null },
-        { id: 'char07', name: 'キャラクター07', image: './Character Image/Character07.png', initialCardId: null },
-        { id: 'char08', name: 'キャラクター08', image: './Character Image/Character08.png', initialCardId: null },
-        { id: 'char09', name: 'キャラクター09', image: './Character Image/Character09.png', initialCardId: null },
-        { id: 'char10', name: 'キャラクター10', image: './Character Image/Character10.png', initialCardId: null },
-        { id: 'char11', name: 'キャラクター11', image: './Character Image/Character11.png', initialCardId: null },
-        { id: 'char12', name: 'キャラクター12', image: './Character Image/Character12.png', initialCardId: null },
-        { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null },
+        { id: 'char01', name: 'キャラクター01', image: './Character Image/Character01.png', initialCardId: null, initialCardPool: ['reroll1'] }, // 修正: initialCardPool追加
+        { id: 'char02', name: 'キャラクター02', image: './Character Image/Character02.png', initialCardId: null, initialCardPool: ['shonbenHalf'] }, // 修正: initialCardPool追加
+        { id: 'char03', name: 'キャラクター03', image: './Character Image/Character03.png', initialCardId: null, initialCardPool: ['ignoreMinBet'] }, // 修正: initialCardPool追加
+        { id: 'char04', name: 'キャラクター04', image: './Character Image/Character04.png', initialCardId: null, initialCardPool: ['changeToOne'] }, // 修正: initialCardPool追加
+        { id: 'char05', name: 'キャラクター05', image: './Character Image/Character05.png', initialCardId: null, initialCardPool: ['changeToSix'] }, // 修正: initialCardPool追加
+        { id: 'char06', name: 'キャラクター06', image: './Character Image/Character06.png', initialCardId: null, initialCardPool: ['sixEyeBonus'] }, // 修正: initialCardPool追加
+        { id: 'char07', name: 'キャラクター07', image: './Character Image/Character07.png', initialCardId: null, initialCardPool: ['oneEyeBonus'] }, // 修正: initialCardPool追加
+        { id: 'char08', name: 'キャラクター08', image: './Character Image/Character08.png', initialCardId: null, initialCardPool: ['hifumiHalf'] }, // 修正: initialCardPool追加
+        { id: 'char09', name: 'キャラクター09', image: './Character Image/Character09.png', initialCardId: null, initialCardPool: ['drawBonus'] }, // 修正: initialCardPool追加
+        { id: 'char10', name: 'キャラクター10', image: './Character Image/Character10.png', initialCardId: null, initialCardPool: ['adjustEye'] }, // 修正: initialCardPool追加
+        { id: 'char11', name: 'キャラクター11', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['betBoost'] }, // 修正: initialCardPool追加
+        { id: 'char12', name: 'キャラクター12', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['fightingSpirit'] }, // 修正: initialCardPool追加
+        { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['keepParentalRight'] }, // 修正: initialCardPool追加
     ];
     // ============================================================
     let selectedCharacter = characters[0]; // 初期選択キャラ (配列先頭のキャラ)
     let currentNpcCharacter = characters[1 % characters.length]; // 仮の初期NPCキャラ (配列2番目、存在しない場合は先頭に戻る)
     let usedNpcCharacters = []; // 使用済みNPC記録用
     let previewingCharacter = null; // プレビュー中のキャラ保持用
+    // ★★★ NPCが持つカードIDを保持する変数を追加 (ステップ1.5用準備)
+    let currentNpcCardId = null;
 
     // --- ユーザー操作待ち関連 ---
     let waitingForUserChoice = false;
@@ -507,20 +508,37 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreAtWaveStart = INITIAL_PLAYER_SCORE;
         playerCards = []; // ★ 新規/リスタート時に手札をクリア
 
-        // --- 初期カード追加ロジック (initialCardId を参照しないように変更) ---
+        // --- ★★★ 修正箇所: 初期カード追加ロジック (initialCardPool を使用) ★★★ ---
         if (!isRestart) { // 新規ゲームの場合
             totalScoreChange = 0;
             usedNpcCharacters = [];
             playerCoins = 0;
-            // ★★★ initialCardPool からランダム選択ロジックはここには含めず、ステップ1.3で実装 ★★★
-            // if (selectedCharacter && selectedCharacter.initialCardId) { ... } の部分は削除
+            // 新規ゲーム開始時に初期カードを付与
+            if (selectedCharacter && selectedCharacter.initialCardPool && selectedCharacter.initialCardPool.length > 0) {
+                // initialCardPool からランダムに1枚選ぶ (今回は1枚なので最初の要素を取得)
+                const randomCardIndex = Math.floor(Math.random() * selectedCharacter.initialCardPool.length);
+                const initialCardId = selectedCharacter.initialCardPool[randomCardIndex];
+                const initialCardDef = allCards.find(card => card.id === initialCardId);
+                if (initialCardDef) {
+                    playerCards.push({ id: initialCardDef.id, level: 1 });
+                    console.log(`Added initial card for ${selectedCharacter.name} (New Game): ${initialCardDef.name}`);
+                }
+            }
         } else { // リスタートの場合
             // 既存のコインや撃破数は維持される
-            // ★★★ initialCardPool からランダム選択ロジックはここには含めず、ステップ1.3で実装 ★★★
-            // if (selectedCharacter && selectedCharacter.initialCardId) { ... } の部分は削除
+            // リスタート時も初期カードを付与（手札が空になるため）
+            if (selectedCharacter && selectedCharacter.initialCardPool && selectedCharacter.initialCardPool.length > 0) {
+                // initialCardPool からランダムに1枚選ぶ (今回は1枚なので最初の要素を取得)
+                const randomCardIndex = Math.floor(Math.random() * selectedCharacter.initialCardPool.length);
+                const initialCardId = selectedCharacter.initialCardPool[randomCardIndex];
+                const initialCardDef = allCards.find(card => card.id === initialCardId);
+                if (initialCardDef) {
+                    playerCards.push({ id: initialCardDef.id, level: 1 });
+                    console.log(`Added initial card for ${selectedCharacter.name} (Restart): ${initialCardDef.name}`);
+                }
+            }
         }
-        // --- 初期カード追加ロジックここまで ---
-
+        // --- ★★★ 初期カード追加ロジック 修正ここまで ★★★ ---
 
         currentWave = 1; defeatedCount = 0; npcScore = NPC_START_SCORE_BASE; currentBet = 0; isPlayerParent = true; playerDice = [0, 0, 0]; npcDice = [0, 0, 0]; playerHand = null; npcHand = null; playerRollCount = 0; npcRollCount = 0; isGameActive = false; gameHistory = []; baseMinBet = 50; currentMinBet = baseMinBet; consecutiveWins = 0; npcConsecutiveWins = 0; roundCount = 0; purchasedOrUpgradedInShop = []; currentRoundInWave = 0;
         // === フラグリセット ===
@@ -541,7 +559,6 @@ document.addEventListener('DOMContentLoaded', () => {
         startBettingPhase();
         console.log("--- initGame END ---");
     }
-
 
     // --- UI更新 ---
     function updateUI() {
@@ -3557,7 +3574,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function displayCharacterPreview(character) {
-        if (characterPreviewImageEl && characterPreviewPlaceholderEl && characterConfirmAreaEl) {
+        const cardPreviewEl = document.getElementById('character-preview-card'); // ★ 追加：カード表示要素を取得
+
+        if (characterPreviewImageEl && characterPreviewPlaceholderEl && characterConfirmAreaEl && cardPreviewEl) { // ★ 追加：cardPreviewEl もチェック
+            // 画像表示処理 (変更なし)
             if (character.image) {
                 characterPreviewImageEl.src = character.image;
                 characterPreviewImageEl.alt = character.name;
@@ -3567,13 +3587,36 @@ document.addEventListener('DOMContentLoaded', () => {
                      characterPreviewImageEl.style.display = 'none';
                      characterPreviewPlaceholderEl.textContent = '画像読込失敗';
                      characterPreviewPlaceholderEl.style.display = 'block';
+                     cardPreviewEl.style.display = 'none'; // 画像エラー時もカード情報は非表示に
                  };
             } else {
                  characterPreviewImageEl.style.display = 'none';
                  characterPreviewPlaceholderEl.textContent = `${character.name} (画像なし)`; // 名前も表示
                  characterPreviewPlaceholderEl.style.display = 'block';
+                 cardPreviewEl.style.display = 'none'; // 画像なしの場合もカード情報は非表示に
             }
-            characterConfirmAreaEl.style.display = 'block';
+
+            // --- ★★★ 修正箇所: 初期カード情報表示 ★★★ ---
+            let initialCardName = "なし"; // デフォルト
+            if (character.initialCardPool && character.initialCardPool.length > 0) {
+                // 最初のカードIDを取得 (今回は1枚想定)
+                const initialCardId = character.initialCardPool[0];
+                const cardDef = allCards.find(card => card.id === initialCardId);
+                if (cardDef) {
+                    initialCardName = cardDef.name;
+                } else {
+                    console.warn(`Initial card definition not found for ID: ${initialCardId}`);
+                    initialCardName = "不明なカード";
+                }
+            }
+            // カード表示要素にテキストを設定し、表示状態を更新
+            cardPreviewEl.textContent = `所持カード：${initialCardName}`;
+            cardPreviewEl.style.display = 'block'; // カード情報を表示
+            // --- ★★★ 修正ここまで ★★★ ---
+
+            characterConfirmAreaEl.style.display = 'block'; // 確認エリア表示 (変更なし)
+        } else {
+            console.error("Required elements for character preview not found."); // エラーハンドリング追加
         }
     }
 
