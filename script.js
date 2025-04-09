@@ -112,9 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char05', name: 'キャラクター05', image: './Character Image/Character05.png', initialCardId: null, initialCardPool: ['changeToSix'] }, // 修正: initialCardPool追加
         { id: 'char06', name: 'キャラクター06', image: './Character Image/Character06.png', initialCardId: null, initialCardPool: ['sixEyeBonus'] }, // 修正: initialCardPool追加
         { id: 'char07', name: 'キャラクター07', image: './Character Image/Character07.png', initialCardId: null, initialCardPool: ['oneEyeBonus'] }, // 修正: initialCardPool追加
-        { id: 'char08', name: 'キャラクター08', image: './Character Image/Character08.png', initialCardId: null, initialCardPool: ['doubleUpBet'] }, //
+        { id: 'char08', name: 'キャラクター08', image: './Character Image/Character08.png', initialCardId: null, initialCardPool: ['fightingSpirit'] }, //
         { id: 'char09', name: 'キャラクター09', image: './Character Image/Character09.png', initialCardId: null, initialCardPool: ['stormWarning'] }, //
-        { id: 'char10', name: 'キャラクター10', image: './Character Image/Character10.png', initialCardId: null, initialCardPool: ['adjustEye'] }, // 修正: initialCardPool追加
+        { id: 'char10', name: 'キャラクター10', image: './Character Image/Character10.png', initialCardId: null, initialCardPool: ['hifumiHalf'] }, //
         { id: 'char11', name: 'キャラクター11', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['betBoost'] }, // 修正: initialCardPool追加
         { id: 'char12', name: 'キャラクター12', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] }, //
         { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['keepParentalRight'] }, // 修正: initialCardPool追加
@@ -2286,7 +2286,7 @@ function updateShopUI() {
         return useCard;
     }
 
-       // === ラウンド終了処理 (Step 1.1, 1.2, 1.3: 倍率減算カード効果実装) ===
+       // === ラウンド終了処理 (スコープ修正 + Step 1.4 まで実装) ===
        async function handleRoundEnd() {
         if (waitingForUserChoice || waitingForPlayerActionAfterRoll) return;
 
@@ -2298,23 +2298,36 @@ function updateShopUI() {
         avoid123_456Active = false;
         blessingDiceActive = false;
         blindingDiceActive = false;
-        // rewardAmplifierActive = false; // 効果適用後にリセット済み
+        rewardAmplifierActive = false;
         giveUpEyeUsedThisTurn = false; // ★ ラウンド終了時にリセット
         adjustEyeUsedThisTurn = false;
         nextChanceUsedThisTurn = false;
         soulRollUsedThisTurn = false;
-        // doubleUpBetActive = false; // 効果適用後にリセット済み
+        doubleUpBetActive = false;
         drawBonusActive = false;
         riskyBetActive = false;
         // === フラグリセットここまで ===
 
-        let pWin = false, nWin = false, draw = false, msg = "", sc = 0, rClass = 'draw';
+        // --- 変数宣言 (関数スコープで宣言) ---
+        let pWin = false, nWin = false, draw = false;
+        let msg = "", sc = 0, rClass = 'draw';
         let parentChanged = false; let preventParentChange = false; let parentKeptByCard = false;
         const parentBefore = isPlayerParent ? 'Player' : 'NPC';
         const playerInitialScore = playerScore;
         const npcInitialScore = npcScore;
         const playerName = selectedCharacter?.name || 'あなた';
         const npcName = currentNpcCharacter?.name || 'NPC';
+
+        // スコア計算用変数
+        let baseMultiplier = 1.0;
+        let multiplierBonus = 0;
+        let streakBonusRate = 0.0;
+        let paymentRateModifier = 1.0;
+        let isHifumiLoss = false;
+        let effectiveMultiplier = 0;
+        let finalAmount = 0;
+        // ★★★ giveUpEyeUsedThisTurn をここで宣言 ★★★
+        let giveUpUsedThisTurnFlag = giveUpEyeUsedThisTurn; // ラウンド開始時の状態を保持（リセット前に参照するため）
 
         // --- 1. 勝敗判定 ---
         if (playerHand?.type === 'ションベン') nWin = true;
@@ -2339,63 +2352,60 @@ function updateShopUI() {
             else draw = true;
         }
 
-         // --- 親権維持カード判定 ---
-         const keepRightCard = playerCards.find(card => card.id === 'keepParentalRight');
-         const maxKeepUses = keepRightCard ? (keepRightCard.level >= 2 ? 2 : 1) : 0;
-         const keepRightUsesCount = activeCardUses['keepParentalRight'] || 0;
-         if (isPlayerParent && nWin && keepRightCard && keepRightUsesCount < maxKeepUses) {
-             const useKeepRight = await askKeepParentRight(keepRightCard.level);
-             if (useKeepRight) {
-                 preventParentChange = true; parentKeptByCard = true;
-                 if (keepRightCard.level >= 3) { keepParentDiscountNextRound = true; }
-                 console.log(`Card Effect: 親権維持 Lv.${keepRightCard.level} 発動！ (${keepRightUsesCount + 1}/${maxKeepUses}回使用)`);
-                  activeCardUses['keepParentalRight'] = (activeCardUses['keepParentalRight'] || 0) + 1;
-                  updateCardButtonHighlight();
-             }
-         }
- 
-         // --- 連勝カウントと親交代判定 ---
-         if (pWin) {
-             if (isPlayerParent) { consecutiveWins++; npcConsecutiveWins = 0; }
-             else { consecutiveWins = 0; npcConsecutiveWins = 0; parentChanged = true; isPlayerParent = true; }
-         } else if (nWin) {
-             if (!isPlayerParent) { npcConsecutiveWins++; consecutiveWins = 0; }
-             else { consecutiveWins = 0; npcConsecutiveWins = 0; if (!preventParentChange) { parentChanged = true; isPlayerParent = false; } }
-         } else {
-              if (!isPlayerParent) consecutiveWins = 0; else npcConsecutiveWins = 0;
-         }
+        // --- 親権維持カード判定 ---
+        const keepRightCard = playerCards.find(card => card.id === 'keepParentalRight');
+        const maxKeepUses = keepRightCard ? (keepRightCard.level >= 2 ? 2 : 1) : 0;
+        const keepRightUsesCount = activeCardUses['keepParentalRight'] || 0;
+        if (isPlayerParent && nWin && keepRightCard && keepRightUsesCount < maxKeepUses) {
+            const useKeepRight = await askKeepParentRight(keepRightCard.level);
+            if (useKeepRight) {
+                preventParentChange = true; parentKeptByCard = true;
+                if (keepRightCard.level >= 3) { keepParentDiscountNextRound = true; }
+                console.log(`Card Effect: 親権維持 Lv.${keepRightCard.level} 発動！ (${keepRightUsesCount + 1}/${maxKeepUses}回使用)`);
+                 activeCardUses['keepParentalRight'] = (activeCardUses['keepParentalRight'] || 0) + 1;
+                 updateCardButtonHighlight();
+            }
+        }
+
+        // --- 連勝カウントと親交代判定 ---
+        if (pWin) {
+            if (isPlayerParent) { consecutiveWins++; npcConsecutiveWins = 0; }
+            else { consecutiveWins = 0; npcConsecutiveWins = 0; parentChanged = true; isPlayerParent = true; }
+        } else if (nWin) {
+            if (!isPlayerParent) { npcConsecutiveWins++; consecutiveWins = 0; }
+            else { consecutiveWins = 0; npcConsecutiveWins = 0; if (!preventParentChange) { parentChanged = true; isPlayerParent = false; } }
+        } else { // draw
+             if (!isPlayerParent) consecutiveWins = 0; else npcConsecutiveWins = 0;
+        }
 
         // --- スコア計算 ---
         if (draw) {
             sc = 0;
             msg = `引き分け！ (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
             rClass = 'draw';
-        } else {
-            // 1. 変数初期化
-            let baseMultiplier = 1.0;
-            let multiplierBonus = 0;
-            let streakBonusRate = 0.0;
-            let paymentRateModifier = 1.0;
-            let isHifumiLoss = false;
-            let effectiveMultiplier = 0;
-
+            // ★ 引き分けボーナスは Step 2.1 で実装
+        } else { // pWin or nWin
             const winnerHand = pWin ? playerHand : npcHand;
             const loserHand = pWin ? npcHand : playerHand;
 
             // 2. 基本倍率 (baseMultiplier) 決定
-            if (pWin) { // Player Win
-                if (loserHand?.name === ROLES.HIFUMI.name) {
-                    if (winnerHand?.name === ROLES.PINZORO.name) baseMultiplier = 6;
-                    else if (winnerHand?.name === ROLES.ARASHI.name) baseMultiplier = 4;
-                    else if (winnerHand?.name === ROLES.SHIGORO.name) baseMultiplier = 3;
-                    else if (winnerHand?.type === '目') baseMultiplier = 2;
-                    else baseMultiplier = 2;
-                } else if (loserHand?.type === 'ションベン') {
-                    baseMultiplier = Math.max(1, winnerHand?.payoutMultiplier || 1);
-                } else {
-                    baseMultiplier = Math.max(1, winnerHand?.payoutMultiplier || 1);
-                }
-            } else { // Player Lose (nWin)
+            if (pWin) {
+                if (loserHand?.name === ROLES.HIFUMI.name) { /* vs ヒフミ */ }
+                else if (loserHand?.type === 'ションベン') { /* vs ションベン */ }
+                else { /* vs その他 */ }
+                 // 省略 (前回のコードと同じ)
+                 if (loserHand?.name === ROLES.HIFUMI.name) { // vs ヒフミ
+                     if (winnerHand?.name === ROLES.PINZORO.name) baseMultiplier = 6;
+                     else if (winnerHand?.name === ROLES.ARASHI.name) baseMultiplier = 4;
+                     else if (winnerHand?.name === ROLES.SHIGORO.name) baseMultiplier = 3;
+                     else if (winnerHand?.type === '目') baseMultiplier = 2;
+                     else baseMultiplier = 2;
+                 } else if (loserHand?.type === 'ションベン') { // vs ションベン
+                     baseMultiplier = Math.max(1, winnerHand?.payoutMultiplier || 1);
+                 } else { // vs その他
+                     baseMultiplier = Math.max(1, winnerHand?.payoutMultiplier || 1);
+                 }
+            } else { // nWin
                 if (loserHand?.name === ROLES.HIFUMI.name) {
                     isHifumiLoss = true;
                     if (winnerHand?.name === ROLES.PINZORO.name) baseMultiplier = 6;
@@ -2408,135 +2418,131 @@ function updateShopUI() {
                 } else {
                     baseMultiplier = Math.max(1, winnerHand?.payoutMultiplier || 1);
                 }
+                 // ダブルアップ失敗時のヒフミ扱い (baseMultiplier 再計算)
+                 const doubleUpCardCheck = playerCards.find(c => c.id === 'doubleUpBet'); // フラグではなくカードでチェック
+                 if (doubleUpCardCheck && activeCardUses['doubleUpBet'] > (activeCardUses['doubleUpBet']-1 || 0) && !isPlayerParent) { // 該当ラウンドで使用済みかチェック
+                     if (doubleUpCardCheck.level <= 2) {
+                         console.log(`Card Effect: ダブルアップ失敗 Lv.${doubleUpCardCheck.level} -> ヒフミ負け扱い！`);
+                         isHifumiLoss = true;
+                         if (winnerHand?.name === ROLES.PINZORO.name) baseMultiplier = 6;
+                         else if (winnerHand?.name === ROLES.ARASHI.name) baseMultiplier = 4;
+                         else if (winnerHand?.name === ROLES.SHIGORO.name) baseMultiplier = 3;
+                         else if (winnerHand?.type === '目') baseMultiplier = 2;
+                         else baseMultiplier = 2;
+                         console.log(` -> Base Multiplier recalculated to: ${baseMultiplier}`);
+                     } else if (doubleUpCardCheck.level === 3) {
+                         console.log(`Card Effect: ダブルアップ失敗 Lv.3 -> ペナルティなし`);
+                     }
+                 }
             }
             console.log(`[${pWin?'Win':'Lose'}] Base Multiplier (vs ${getHandDisplayName(loserHand)}): ${baseMultiplier}`);
 
-            // --- 3. カードによる倍率ボーナス (multiplierBonus) 計算 ---
-            multiplierBonus = 0;
-
-            // 倍率加算効果 (Step 1.2)
-            if (pWin) {
-                playerCards.forEach(cardData => {
-                    const cardDef = allCards.find(c => c.id === cardData.id);
-                    if (!cardDef) return;
-                    const level = cardData.level;
-                    if (cardDef.effectTag === 'arashiBonus' && winnerHand?.name === ROLES.ARASHI.name) { multiplierBonus += level; console.log(`Card Effect: アラシ強化 Lv.${level} (+${level})`); }
-                    if (cardDef.effectTag === 'shigoroBonus' && winnerHand?.name === ROLES.SHIGORO.name) { multiplierBonus += level; console.log(`Card Effect: シゴロ強化 Lv.${level} (+${level})`); }
-                    if (cardDef.effectTag === 'oneEyeBonus' && winnerHand?.type === '目' && winnerHand.value === 1) { multiplierBonus += level; console.log(`Card Effect: 1の目ボーナス Lv.${level} (+${level})`); }
-                    if (cardDef.effectTag === 'sixEyeBonus' && winnerHand?.type === '目' && winnerHand.value === 6) { multiplierBonus += level; console.log(`Card Effect: 6の目ボーナス Lv.${level} (+${level})`); }
-                });
-                if (rewardAmplifierActive && (winnerHand?.type === '役' || winnerHand?.type === '目')) {
-                    const amplifierCard = playerCards.find(c => c.id === 'rewardAmplifier');
-                    if (amplifierCard) {
-                        const bonusValue = (amplifierCard.level >= 2) ? 2 : 1;
-                        multiplierBonus += bonusValue;
-                        console.log(`Card Effect: 報酬増幅 Lv.${amplifierCard.level} (+${bonusValue})`);
-                        rewardAmplifierActive = false;
-                    }
-                }
-                if (doubleUpBetActive && !isPlayerParent) {
-                    const doubleUpCard = playerCards.find(c => c.id === 'doubleUpBet');
-                    if (doubleUpCard) {
-                        const bonusValue = [1.0, 1.5, 2.0][(doubleUpCard.level || 1) - 1];
-                        multiplierBonus += bonusValue;
-                        console.log(`Card Effect: ダブルアップ成功 Lv.${doubleUpCard.level} (+${bonusValue.toFixed(1)})`);
-                        doubleUpBetActive = false;
-                    }
-                }
-            }
-            // ★★★ Step 1.3: 倍率減算効果 ★★★
-            else { // nWin (プレイヤー敗北)
-                playerCards.forEach(cardData => {
-                    const cardDef = allCards.find(c => c.id === cardData.id);
-                    if (!cardDef) return;
-                    const level = cardData.level;
-
-                    // ヒフミ軽減 (パッシブ)
-                    if (cardDef.effectTag === 'hifumiHalf' && isHifumiLoss) {
-                        multiplierBonus -= level;
-                        console.log(`Card Effect: ヒフミ軽減 Lv.${level} (-${level})`);
-                    }
-                    // ションベン半減 (パッシブ)
-                    if (cardDef.effectTag === 'shonbenHalf' && loserHand?.type === 'ションベン') {
-                        const reduction = [0.5, 1.0, 1.5][level - 1]; // Lv依存に戻す
-                        multiplierBonus -= reduction;
-                        console.log(`Card Effect: ションベン半減 Lv.${level} (-${reduction.toFixed(1)})`);
-                    }
-                });
-                // 見切り (アクティブ)
-                const giveUpCard = playerCards.find(c => c.id === 'giveUpEye');
-                if (giveUpUsedThisTurn && giveUpCard && giveUpCard.level >= 2) {
-                    multiplierBonus -= 0.5; // Lv2以上で使用した場合
-                    console.log(`Card Effect: 見切り Lv.${giveUpCard.level} 使用 (-0.5)`);
-                }
-            }
-
-              // ダブルアップ失敗時のヒフミ扱い
-              if (!pWin && doubleUpBetActive && !isPlayerParent) {
-                const doubleUpCard = playerCards.find(c => c.id === 'doubleUpBet');
-                if (doubleUpCard && doubleUpCard.level <= 2) {
-                    console.log(`Card Effect: ダブルアップ失敗 Lv.${doubleUpCard.level} -> ヒフミ負け扱い！`);
-                    isHifumiLoss = true;
-                    if (winnerHand?.name === ROLES.PINZORO.name) baseMultiplier = 6;
-                    else if (winnerHand?.name === ROLES.ARASHI.name) baseMultiplier = 4;
-                    else if (winnerHand?.name === ROLES.SHIGORO.name) baseMultiplier = 3;
-                    else if (winnerHand?.type === '目') baseMultiplier = 2;
-                    else baseMultiplier = 2;
-                    console.log(` -> Base Multiplier recalculated to: ${baseMultiplier}`);
-                } else if (doubleUpCard && doubleUpCard.level === 3) {
-                    console.log(`Card Effect: ダブルアップ失敗 Lv.3 -> ペナルティなし`);
-                }
-                 doubleUpBetActive = false;
+             // --- 3. カードによる倍率ボーナス (multiplierBonus) 計算 ---
+             multiplierBonus = 0;
+             // 倍率加算 (pWin)
+             if (pWin) {
+                 playerCards.forEach(cardData => {
+                     const cardDef = allCards.find(c => c.id === cardData.id);
+                     if (!cardDef) return; const level = cardData.level;
+                     if (cardDef.effectTag === 'arashiBonus' && winnerHand?.name === ROLES.ARASHI.name) { multiplierBonus += level; console.log(`Card Effect: アラシ強化 Lv.${level} (+${level})`); }
+                     if (cardDef.effectTag === 'shigoroBonus' && winnerHand?.name === ROLES.SHIGORO.name) { multiplierBonus += level; console.log(`Card Effect: シゴロ強化 Lv.${level} (+${level})`); }
+                     if (cardDef.effectTag === 'oneEyeBonus' && winnerHand?.type === '目' && winnerHand.value === 1) { multiplierBonus += level; console.log(`Card Effect: 1の目ボーナス Lv.${level} (+${level})`); }
+                     if (cardDef.effectTag === 'sixEyeBonus' && winnerHand?.type === '目' && winnerHand.value === 6) { multiplierBonus += level; console.log(`Card Effect: 6の目ボーナス Lv.${level} (+${level})`); }
+                 });
+                 const amplifierCard = playerCards.find(c => c.id === 'rewardAmplifier');
+                 if (amplifierCard && activeCardUses['rewardAmplifier'] > (activeCardUses['rewardAmplifier']-1 || 0) && (winnerHand?.type === '役' || winnerHand?.type === '目')) { // 使用済みかチェック
+                      const bonusValue = (amplifierCard.level >= 2) ? 2 : 1;
+                      multiplierBonus += bonusValue;
+                      console.log(`Card Effect: 報酬増幅 Lv.${amplifierCard.level} (+${bonusValue})`);
+                 }
+                 const doubleUpCard = playerCards.find(c => c.id === 'doubleUpBet');
+                 if (doubleUpCard && activeCardUses['doubleUpBet'] > (activeCardUses['doubleUpBet']-1 || 0) && !isPlayerParent) { // 使用済みかチェック
+                      const bonusValue = [1.0, 1.5, 2.0][(doubleUpCard.level || 1) - 1];
+                      multiplierBonus += bonusValue;
+                      console.log(`Card Effect: ダブルアップ成功 Lv.${doubleUpCard.level} (+${bonusValue.toFixed(1)})`);
+                 }
              }
+             // 倍率減算 (nWin)
+             else { // nWin
+                 playerCards.forEach(cardData => {
+                     const cardDef = allCards.find(c => c.id === cardData.id);
+                     if (!cardDef) return; const level = cardData.level;
+                     if (cardDef.effectTag === 'hifumiHalf' && isHifumiLoss) {
+                         multiplierBonus -= level;
+                         console.log(`Card Effect: ヒフミ軽減 Lv.${level} (-${level})`);
+                     }
+                     if (cardDef.effectTag === 'shonbenHalf' && loserHand?.type === 'ションベン') {
+                         const reduction = [0.5, 1.0, 1.5][level - 1];
+                         multiplierBonus -= reduction;
+                         console.log(`Card Effect: ションベン半減 Lv.${level} (-${reduction.toFixed(1)})`);
+                     }
+                 });
+                 const giveUpCard = playerCards.find(c => c.id === 'giveUpEye');
+                // ★★★ giveUpUsedThisTurnFlag (リセット前の値) を使用 ★★★
+                if (giveUpUsedThisTurnFlag && giveUpCard && giveUpCard.level >= 2) {
+                    multiplierBonus -= 0.5;
+                    console.log(`Card Effect: 見切り Lv.${giveUpCard.level} 使用 (-0.5)`);
+               }
+           }
 
             // 4. 実効倍率 (effectiveMultiplier) 計算
             effectiveMultiplier = Math.max(0, baseMultiplier + multiplierBonus);
             console.log(`Effective Multiplier (Base + Bonus): ${effectiveMultiplier}`);
 
-            // 5. 連勝ボーナスレート (streakBonusRate) 計算 (確定ルール4)
+            // 5. 連勝ボーナスレート (streakBonusRate) 計算
             streakBonusRate = 0.0;
             const currentStreakCount = pWin ? consecutiveWins : npcConsecutiveWins;
             if (currentStreakCount > 0) {
                 streakBonusRate = currentStreakCount * CONSECUTIVE_WIN_BONUS_RATE;
                 console.log(`Base Streak Bonus Rate: +${(streakBonusRate * 100).toFixed(0)}% (${currentStreakCount} wins)`);
-                // 逆境魂などは Step 1.4 で実装
+                if (pWin) {
+                    const spiritCard = playerCards.find(c => c.id === 'fightingSpirit');
+                    if (spiritCard) {
+                        const level = spiritCard.level;
+                        const conditionMet = (level < 3 && playerInitialScore <= npcInitialScore / 2) || (level >= 3 && playerInitialScore <= npcInitialScore);
+                        if (conditionMet) {
+                            const spiritBonusRate = [0.1, 0.2, 0.3][level - 1];
+                            streakBonusRate += spiritBonusRate;
+                            console.log(`Card Effect: 逆境の魂 Lv.${level}適用！ Streak Rate +${spiritBonusRate * 100}%`);
+                        }
+                    }
+                }
             }
             streakBonusRate = Math.max(0, streakBonusRate);
+            console.log(`Final Streak Bonus Rate: +${(streakBonusRate * 100).toFixed(0)}%`);
 
             // 6. 支払いレート補正 (paymentRateModifier) 計算 -> Step 1.5 で実装
             paymentRateModifier = 1.0;
 
-            // 7. 最終支払い/受け取り額 (finalAmount) 計算 (確定ルール7)
-            let finalAmount = currentBet * effectiveMultiplier * paymentRateModifier * (1 + streakBonusRate);
+            // 7. 最終支払い/受け取り額 (finalAmount) 計算
+            finalAmount = currentBet * effectiveMultiplier * paymentRateModifier * (1 + streakBonusRate);
             console.log(`Calculated Amount (EffMulti * PayMod * Streak): ${finalAmount}`);
 
             // 8. 一撃保険チェック -> Step 1.6 で実装
 
-            // 9. スコア変動 (sc) 決定 (確定ルール13, 14)
+            // 9. スコア変動 (sc) 決定
             sc = pWin ? Math.round(finalAmount) : -Math.round(finalAmount);
 
-             // メッセージ設定
+              // メッセージ設定
              if(pWin){
-                 msg = loserHand?.type === 'ションベン' ? `${npcName}ションベンで勝利！` : `勝利！ (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
-                 if (parentBefore === 'Player' && consecutiveWins > 1) msg += ` (${consecutiveWins}連勝!)`;
-                 rClass = 'win';
-             } else { // nWin
-                 if (isHifumiLoss) { // ダブルアップ失敗含む
-                     msg = `ヒフミ扱いで敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
-                 } else {
-                     msg = loserHand?.type === 'ションベン' ? "ションベンで敗北..." : `敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
-                 }
-                 if (giveUpEyeUsedThisTurn) msg = `見切り使用で敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
-                 if (parentBefore === 'NPC' && npcConsecutiveWins > 1) msg += ` (${npcName}${npcConsecutiveWins}連勝中...)`;
-                 rClass = 'lose';
-             }
-        } // End of if(draw) else
+                msg = loserHand?.type === 'ションベン' ? `${npcName}ションベンで勝利！` : `勝利！ (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
+                if (parentBefore === 'Player' && consecutiveWins > 1) msg += ` (${consecutiveWins}連勝!)`;
+                rClass = 'win';
+            } else { // nWin
+                if (isHifumiLoss) { msg = `ヒフミ扱いで敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`; }
+                else { msg = loserHand?.type === 'ションベン' ? "ションベンで敗北..." : `敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`; }
+                // ★ giveUpUsedThisTurnFlag (リセット前の値) を使用 ★
+                if (giveUpUsedThisTurnFlag) { msg = `見切り使用で敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`; }
+                if (parentBefore === 'NPC' && npcConsecutiveWins > 1) msg += ` (${npcName}${npcConsecutiveWins}連勝中...)`;
+                rClass = 'lose';
+            }
+       }
 
         // --- スコア反映 & UI更新 ---
         const psEnd = Math.max(0, playerInitialScore + sc);
         const nsEnd = Math.max(0, npcInitialScore - sc);
         playerScore = psEnd; npcScore = nsEnd;
-        totalScoreChange += sc; // ★ ゲーム全体のスコア変動を記録
+        totalScoreChange += sc;
         if (sc !== 0) { showScoreChangePopup(playerScoreContainer, sc); showScoreChangePopup(npcScoreContainer, -sc); }
         animateScore(playerScoreEl, playerInitialScore, psEnd, SCORE_ANIMATION_DURATION);
         animateScore(npcScoreEl, npcInitialScore, nsEnd, SCORE_ANIMATION_DURATION);
@@ -2553,62 +2559,88 @@ function updateShopUI() {
         });
 
         // --- 勝敗演出 ---
-        if (!draw) { announceRoundResult(pWin, false); }
+        if (!draw) { announceRoundResult(pWin, false); } // ★ draw 変数を参照
 
         // --- メッセージ表示 & 次のアクション ---
         setTimeout(() => {
+            // ★ msg, sc, parentChanged, parentKeptByCard は関数スコープでアクセス可能
             let finalMsg = `${msg} ${sc !== 0 ? (sc > 0 ? `+${sc}` : sc) + '点' : ''}`;
             if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? playerName : npcName}が親です。`; }
             else if (parentKeptByCard) { finalMsg += ` (${playerName}が親権維持発動！)`; }
-            setMessage(finalMsg); updateUI(); checkGameEnd();
-        }, SCORE_ANIMATION_DURATION + 300 + (draw ? 0 : CENTER_RESULT_DURATION));
+            setMessage(finalMsg);
+            updateUI();
+            checkGameEnd(); // ★ checkGameEnd を直接呼ぶ
+        }, SCORE_ANIMATION_DURATION + 300 + (draw ? 0 : CENTER_RESULT_DURATION)); // ★ draw 変数を参照
     }
     // === ゲーム終了チェック ===
     function checkGameEnd() {
         let isGO = false, isC = false, gameOverReason = "";
         console.log(`Checking game end: Player Score=${playerScore}, NPC Score=${npcScore}, Wave=${currentWave}, CurrentMinBet=${currentMinBet}`);
 
-        if (playerScore <= 0) { isGO = true; gameOverReason = "持ち点が0になりました。"; }
-        else if (npcScore <= 0) {
-            defeatedCount++;
+        // WAVE終了条件を先にチェック (NPCスコア0以下)
+        if (npcScore <= 0) {
+            defeatedCount++; // 先に撃破数カウント
             const earnedCoins = calculateEarnedCoins();
             calculateAndAwardCoins();
             addHistoryEntry({ wave: currentWave, round: currentRoundInWave, result: 'clear', scoreChange: earnedCoins, isWaveClear: true, earnedCoins: earnedCoins, message: `${currentNpcCharacter?.name || 'NPC'}撃破！ コイン ${earnedCoins} G獲得！` });
-            if (currentWave >= MAX_WAVES) { isC = true; gameOverReason = "最終WAVEで相手の持ち点を0にしました！"; }
-            else {
+            if (currentWave >= MAX_WAVES) {
+                isC = true; // ゲームクリア
+                gameOverReason = "最終WAVEで相手の持ち点を0にしました！";
+            } else {
+                // WAVEクリア -> ショップへ
                 console.log("NPC defeated, proceeding to shop.");
-                announceRoundResult(true, true);
+                announceRoundResult(true, true); // WAVE CLEAR演出
                 setMessage(`${currentNpcCharacter?.name || 'NPC'}撃破！ コイン ${earnedCoins} G獲得！ ショップへどうぞ！`);
                 updateUI();
                 if (betMainControls) betMainControls.style.display = 'none';
                 if (betActionContainer) betActionContainer.style.display = 'none';
                 if (actionArea) actionArea.style.display = 'none';
-                if (nextWaveArea) nextWaveArea.style.display = 'flex';
-                currentBetInfoEl.textContent = ''; currentRoundInWave = 0;
-                activeCardUses = {}; keepParentRightUsedThisWave = 0;
-                historyButton.disabled = true;
-                return;
+                if (nextWaveArea) nextWaveArea.style.display = 'flex'; // ショップへボタン表示
+                // currentRoundInWave = 0; // ★ closeShop でリセットするのでここでは不要
+                // activeCardUses = {}; // ★ closeShop でリセット
+                // keepParentRightUsedThisWave = 0; // ★ closeShop でリセット
+                historyButton.disabled = true; // ショップ中は履歴見れない
+                return; // ★ ゲーム終了ではないのでここで終了
             }
         }
+        // プレイヤーのスコア0以下 (ゲームオーバー)
+        else if (playerScore <= 0) {
+             isGO = true;
+             gameOverReason = "持ち点が0になりました。";
+        }
+        // ★ 最低賭け金未満でのゲームオーバー条件も追加
+        else if (playerScore < currentMinBet && isPlayerParent) { // 自分が親で次のベットができない
+             isGO = true;
+             gameOverReason = `持ち点(${playerScore}点)が最低賭け金(${currentMinBet}点)未満のため、親で賭けられません。`;
+        }
+        // (NPCが親でプレイヤーが最低賭け金未満の場合は、ベット時にNPCがMAXベットしてゲームオーバーになる可能性がある)
 
+
+        // ゲーム終了処理
         if (isGO || isC) {
             console.log(`Game End Triggered: Clear=${isC}, GameOver=${isGO}, Reason=${gameOverReason}`);
             isGameActive = false;
             betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); rollButton.disabled = true; maxBetButton.disabled = true; minBetButton.disabled = true;
-            historyButton.disabled = false;
+            historyButton.disabled = false; // 履歴は見れるように
             currentBetInfoEl.textContent = '';
-            announceRoundResult(isC, true);
+            announceRoundResult(isC, true); // Game Over / Clear 演出
              if (betMainControls) betMainControls.style.display = 'none';
              if (betActionContainer) betActionContainer.style.display = 'none';
              if (actionArea) actionArea.style.display = 'none';
              if (nextWaveArea) nextWaveArea.style.display = 'none';
+            // 結果画面表示
             setTimeout(() => { showResultScreen(isC, playerScore, currentWave, gameOverReason); }, 2500);
-        } else {
+        }
+        // ★★★ ゲーム続行の場合 ★★★
+        else {
             console.log("Round end, continuing game.");
-            // ★ handleRoundEnd 内の setTimeout で setMessage, updateUI, checkGameEnd が呼ばれた後に
-            //    checkGameEnd 内で isGO も isC も false の場合に startBettingPhase を呼ぶように変更
-             if (!isGameActive && !waitingForPlayerActionAfterRoll) { // ゲームが終了しておらず、操作待ちでもない場合
-                 startBettingPhase(); // 次のベットフェーズへ
+            // ★ handleRoundEnd内のsetTimeoutから呼ばれることを想定し、
+            //    ここでは直接 startBettingPhase を呼ばず、制御を戻す。
+            //    もし handleRoundEnd の setTimeout 外から呼ばれた場合は、
+            //    startBettingPhase を呼ぶ必要があるかもしれないが、現状のフローでは不要なはず。
+             if (!isGameActive && !waitingForPlayerActionAfterRoll) {
+                 // ★ タイミング調整のため、わずかに遅延させて次のベットフェーズを開始
+                 setTimeout(startBettingPhase, 100);
              }
         }
     }
@@ -2859,25 +2891,22 @@ function updateShopUI() {
         console.log(`Attempting to use card: ${card.name} (Lv.${playerCardData.level})`);
         activeCardBeingUsed = cardId; // ★カード使用開始時にロック
 
-        let useConsumed = true; // 使用回数を消費するかどうか
-        let requiresDelay = false; // メッセージ表示のための遅延が必要か
-        let turnEnd = false; // このカード使用でターンが終了するか（勝敗判定に進むか）
-        let postUseMessage = ""; // 使用後のメッセージ
+        let useConsumed = true;
+        let requiresDelay = false;
+        let turnEnd = false; // ★ デフォルトは false (ターン継続)
+        let postUseMessage = "";
 
         // --- カード効果分岐 ---
         if (['changeToOne', 'changeToSix', 'adjustEye', 'nextChance'].includes(cardId)) {
-            // ダイス選択が必要なカード
             showDiceChoiceOverlay(cardId);
-            // showDiceChoiceOverlay 内で activeCardBeingUsed は解除される
-            // 使用回数消費は handleDiceChoice で行う
-            useConsumed = false; // ここでは消費しない
-            return; // ダイス選択へ移行
+            useConsumed = false;
+            return;
         } else if (cardId === 'ignoreMinBet') {
             ignoreMinBetActive = true; updateUI(); updateBetLimits();
             postUseMessage = `最低賭け金が1になりました。`;
             requiresDelay = true;
         } else if (cardId === 'zoroChanceUp') {
-            zoroChanceUpActive = true; // フラグを立てるだけ
+            zoroChanceUpActive = true;
             postUseMessage = `このラウンド中、ゾロ目確率UP！`;
             requiresDelay = true;
         } else if (cardId === 'avoid123_456') {
@@ -2885,7 +2914,7 @@ function updateShopUI() {
             postUseMessage = `このラウンド中、役回避！`;
             requiresDelay = true;
         } else if (cardId === 'blessingDice') {
-            blessingDiceActive = true; // フラグを立てるだけ
+            blessingDiceActive = true;
             postUseMessage = `このラウンド中、6が出やすくなります。`;
             requiresDelay = true;
         } else if (cardId === 'stormWarning') {
@@ -2896,66 +2925,64 @@ function updateShopUI() {
              riskyBetActive = true; updateUI(); updateBetLimits();
              postUseMessage = `危険な賭け！賭け金決定時に効果が適用されます。`;
              requiresDelay = true;
-        }  else if (cardId === 'giveUpEye') {
-            // 見切り使用
-            playerHand = { ...ROLES.SHONBEN, type: 'ションベン' }; // ションベン扱いに
+        } else if (cardId === 'giveUpEye') {
+            // ★★★ 見切り使用時の処理修正 ★★★
+            playerHand = { ...ROLES.SHONBEN, type: 'ションベン' };
             giveUpEyeUsedThisTurn = true;
-            useConsumed = true; // 使用回数消費
-            turnEnd = true; // 勝敗判定へ
+            useConsumed = true;
+            turnEnd = true; // ★ ターン終了フラグを立てる
 
-            setMessage(`見切り使用！ションベン扱いになります。`);
-            updateUI();
-            highlightHand(playerHandEl, playerHand);
+            // メッセージ表示とUI更新は handleRoundEnd で行うため、ここではシンプルに
+            postUseMessage = `見切り使用！ションベン扱いになります。`;
+            setMessage(postUseMessage); // とりあえずメッセージ表示
+            updateUI(); // スコアや役表示を更新
+            highlightHand(playerHandEl, playerHand); // 役ハイライト
+
             rollButton.disabled = true;
-            isPlayerTurn = false; // ターン終了
-            activeCardBeingUsed = null; // ロック解除
+            isPlayerTurn = false;
+            activeCardBeingUsed = null; // ★ すぐにロック解除
             waitingForPlayerActionAfterRoll = false; // 操作待ち解除
 
-            updateCardButtonHighlight();
-
-            setTimeout(handleRoundEnd, 800); // 勝敗判定へ
-            return; // handleRoundEnd に任せる
+            // ★ 勝敗判定へ移行するタイマーを設定
+            setTimeout(handleRoundEnd, 1000); // 少し待ってから勝敗判定
+            return; // ★ この後の共通処理は行わない
+            // ★★★ 見切り修正ここまで ★★★
         } else if (cardId === 'doubleUpBet') {
-            // ダブルアップ使用
-            doubleUpBetActive = true; // フラグは立てる
+            doubleUpBetActive = true;
             useConsumed = true;
-            isPlayerTurn = false; // 子のターンは終了
-            turnEnd = true; // ★勝敗判定に進む
+            isPlayerTurn = false;
+            turnEnd = true; // 勝敗判定へ
             postUseMessage = "ダブルアップ準備完了！勝負！";
             requiresDelay = true;
         } else if (cardId === 'blindingDice') {
              blindingDiceActive = true;
              postUseMessage = `目くらまし！このラウンド中、相手のロールに影響します。`;
-             requiresDelay = true; // 遅延してメッセージ表示
-             // ★ このカードは親が使うので、使っても自分のターンは終わらない
-             turnEnd = false;
+             requiresDelay = true;
+             turnEnd = false; // ターンは続く
         } else if (cardId === 'soulRoll') {
              const costPercent = [10, 5, 5][playerCardData.level - 1];
              const cost = Math.max(1, Math.floor(playerScore * (costPercent / 100)));
              if (playerScore < cost) {
                  postUseMessage = `魂の一振りのコスト(${cost}点)を払えません！`;
-                 useConsumed = false; // 使えなかったので消費しない
+                 useConsumed = false;
              } else {
-                 playerScore -= cost; // コスト支払い
+                 playerScore -= cost;
                  soulRollUsedThisTurn = true;
                  postUseMessage = `魂の一振り！${cost}点を消費して追加ロール！`;
                  updateUI();
-                 rollButton.disabled = false; // 再度ロール可能に
+                 rollButton.disabled = false; // ロール可能に
              }
-             // ターンは終了しない
-             turnEnd = false;
+             turnEnd = false; // ターンは続く
         } else if (cardId === 'rewardAmplifier') {
              rewardAmplifierActive = true;
              postUseMessage = `報酬増幅！このラウンドの役での勝利時、配当倍率が増加します。`;
              requiresDelay = true;
-             // ターンは終了しない
-             turnEnd = false;
+             turnEnd = false; // ターンは続く
         } else if (cardId === 'drawBonus') {
             drawBonusActive = true;
             postUseMessage = `引き分けボーナス準備完了！このラウンド引き分け時に効果発動。`;
             requiresDelay = true;
-            // ターンは終了しない
-            turnEnd = false;
+            turnEnd = false; // ターンは続く
         } else {
             console.warn(`Active card effect for ${cardId} is not fully implemented yet.`);
             postUseMessage = `カード「${card.name}」の効果処理が未実装です。`;
@@ -2970,37 +2997,36 @@ function updateShopUI() {
             console.log(`Used card ${cardId}. Remaining uses: ${getRemainingUses(cardId)}`);
        }
 
-       // 遅延処理
+       // 遅延処理 & メッセージ表示
+       setMessage(postUseMessage); // ★ 先にメッセージ設定
        if (requiresDelay) {
-           setMessage(postUseMessage); // 先にメッセージ表示
            await new Promise(resolve => setTimeout(resolve, 800));
        }
 
        activeCardBeingUsed = null; // ★ ロック解除
 
-       // ターン終了処理
+       // ターン終了 or 継続処理
        if (turnEnd) {
-            // ダブルアップ使用後など、勝敗判定へ移行する場合
+            // 勝敗判定へ移行する場合 (doubleUpBet)
             waitingForPlayerActionAfterRoll = false; // 操作待ち解除
-            setMessage(postUseMessage); // 最終メッセージ表示
             setTimeout(handleRoundEnd, 800); // 勝敗判定へ
        } else {
-            // ターンが続く場合 (ロール前カード、目くらまし、魂の一振りなど)
-            if (waitingForPlayerActionAfterRoll) { // ロール後の操作待ち状態中にカードを使用した場合
-                setMessage(`${postUseMessage} どうしますか？`, 'postRollChoice'); // 再度ボタン表示
+            // ターンが続く場合
+            if (waitingForPlayerActionAfterRoll) { // ロール後の操作待ち中だった場合
+                setMessage(`${postUseMessage} どうしますか？`, 'postRollChoice'); // ボタン再表示
             } else if (['zoroChanceUp', 'avoid123_456', 'blessingDice', 'stormWarning', 'soulRoll'].includes(cardId) && useConsumed) {
-                // ロール前に使うカード、または魂の一振り使用後 (ロールボタンが有効になる)
+                 // ロール前カード or 魂の一振り使用後
                 setMessage(postUseMessage + " サイコロを振ってください。");
                 rollButton.disabled = false;
             } else {
-                // その他の場合 (ベットフェーズのカードなど)
-                setMessage(postUseMessage);
+                // その他の場合 (ベットフェーズなど)
+                // setMessage(postUseMessage); // メッセージは設定済み
                 if (['ignoreMinBet', 'riskyBet'].includes(cardId)){
                      updateBetLimits();
                 }
             }
        }
-       updateCardButtonHighlight(); // 最終的なハイライト更新
+       updateCardButtonHighlight();
    }
 
      // === カード使用可否チェック関数 ===
