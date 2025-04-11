@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char10', name: 'キャラクター10', image: './Character Image/Character10.png', initialCardId: null, initialCardPool: ['drawBonus'] },
         { id: 'char11', name: 'キャラクター11', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['betBoost'] },
         { id: 'char12', name: 'キャラクター12', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
-        { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['keepParentalRight'] },
+        { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
     ];
     let selectedCharacter = characters[0];
     let currentNpcCharacter = characters[1 % characters.length];
@@ -458,23 +458,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return dice;
     }
 
-    // === 役判定 ===
-     function getHandResult(dice, isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) {
+    // === 役判定  ===
+    function getHandResult(dice, isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) {
+        // ダイスを昇順にソート
         const s = [...dice].sort((a, b) => a - b);
         const [d1, d2, d3] = s;
-        let result;
+        let result; // 判定結果を格納する変数
 
-        if (d1 === d2 && d2 === d3) { result = d1 === 1 ? { ...ROLES.PINZORO, type: '役', value: 1 } : { ...ROLES.ARASHI, type: '役', value: d1 }; }
-        else if (d1 === 4 && d2 === 5 && d3 === 6) { result = { ...ROLES.SHIGORO, type: '役', value: 6 }; }
-        else if (d1 === 1 && d2 === 2 && d3 === 3) { result = { ...ROLES.HIFUMI, type: '役', value: 3 }; }
-        else if (d1 === d2 && d2 !== d3) { result = { ...ROLES.NORMAL_EYE, type: '目', value: d3 }; }
-        else if (d1 !== d2 && d2 === d3) { result = { ...ROLES.NORMAL_EYE, type: '目', value: d1 }; }
-        else { result = { type: '目なし', strength: ROLES.MENASHI.strength }; }
+        // --- 基本的な役判定ロジック ---
+        if (d1 === d2 && d2 === d3) { // ゾロ目
+            result = d1 === 1 ? { ...ROLES.PINZORO, type: '役', value: 1 } : { ...ROLES.ARASHI, type: '役', value: d1 };
+        } else if (d1 === 4 && d2 === 5 && d3 === 6) { // シゴロ
+            result = { ...ROLES.SHIGORO, type: '役', value: 6 };
+        } else if (d1 === 1 && d2 === 2 && d3 === 3) { // ヒフミ
+            result = { ...ROLES.HIFUMI, type: '役', value: 3 };
+        } else if (d1 === d2 && d2 !== d3) { // 2つが同じ数字
+            result = { ...ROLES.NORMAL_EYE, type: '目', value: d3 }; // 残りの1つが「目」
+        } else if (d1 !== d2 && d2 === d3) { // 2つが同じ数字
+            result = { ...ROLES.NORMAL_EYE, type: '目', value: d1 }; // 残りの1つが「目」
+        } else { // 上記以外
+            result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name }; // 目なし
+        }
 
-        console.log(`Initial Hand Result: ${getHandDisplayName(result)}`);
+        // 最初の判定結果をログに出力
+        console.log(`Initial Hand Result (${isNpc ? 'NPC' : 'Player'}): ${getHandDisplayName(result)}`);
 
-         // --- 役回避カードの効果処理 ---
-         if (!isNpc && avoid123_456Active) {
+         // --- プレイヤー専用カードの効果処理: 役回避 ---
+         if (!isNpc && avoid123_456Active) { // プレイヤーの場合 かつ 役回避カードがアクティブな場合
             const avoidCard = playerCards.find(c => c.id === 'avoid123_456');
             const avoidLevel = avoidCard?.level || 1;
             const isHifumi = result.name === ROLES.HIFUMI.name;
@@ -497,12 +507,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rerollDice;
                 let rerollResult;
                 let attempts = 0;
-                const maxAttempts = 10; // 無限ループ防止
+                const maxAttempts = 10;
 
                 do {
-                    // 役回避の再ロールでは魂の一振りLv3は適用しない (soulRollLevel=0)
-                    rerollDice = rollDice(isNpc, blindingDiceLevel, 0);
-                    rerollResult = getHandResult(rerollDice, isNpc, blindingDiceLevel, 0);
+                    // 役回避の振り直しでは他のカード効果は無視
+                    rerollDice = rollDice(isNpc, 0, 0); // isNpc=false, blinding=0, soulRoll=0
+                    // 役回避による再判定でも、この getHandResult 関数が呼ばれる
+                    // その際、blindingDiceLevel や soulRollLevel は 0 で渡される想定
+                    rerollResult = getHandResult(rerollDice, isNpc, 0, 0);
                     attempts++;
                 } while (
                     attempts < maxAttempts &&
@@ -514,30 +526,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 console.log(` -> 再ロール結果: ${rerollDice.join(',')} (${getHandDisplayName(rerollResult)})`);
-                result = rerollResult;
+                result = rerollResult; // 振り直した結果を最終結果とする
             }
-        }
-        // --- 目くらまし効果 ---
-        if (isNpc && blindingDiceLevel > 0) {
-            let rerollForced = false;
-            const badRoles = [ROLES.PINZORO.name, ROLES.ARASHI.name, ROLES.SHIGORO.name, ROLES.HIFUMI.name];
-            if (result.type === '役' && badRoles.includes(result.name)) {
-                const avoidChance = [0.2, 0.4, 0.6][blindingDiceLevel - 1];
-                if (Math.random() < avoidChance) {
-                    console.log(`Card Effect: 目くらまし Lv.${blindingDiceLevel} 発動! Forcing reroll for NPC on ${result.name}.`);
-                    rerollForced = true;
-                    result = { type: '目なし', strength: ROLES.MENASHI.strength };
-                }
-            }
-            if(blindingDiceLevel >= 3 && !rerollForced && result.type !== '目なし' && result.type !== 'ションベン') {
-                 const shonbenUpChance = 0.2;
-                 if(Math.random() < shonbenUpChance) {
-                     console.log(`Card Effect: 目くらまし Lv.3 - ションベン率UP発動! Forcing Menashi.`);
-                     result = { type: '目なし', strength: ROLES.MENASHI.strength };
-                 }
-            }
-        }
+        } // --- 役回避 処理終了 ---
 
+        // 目くらまし効果 
+        if (isNpc && blindingDiceLevel > 0) { // NPCの場合 かつ 目くらましが発動中(レベル1以上)の場合
+            let specialRoleAvoided = false; // 特殊役回避が成功したかどうかのフラグ
+
+            // 1. 特殊役回避判定 (ピンゾロ、アラシ、シゴロ、ヒフミを対象)
+            const specialRolesToAvoid = [ROLES.PINZORO.name, ROLES.ARASHI.name, ROLES.SHIGORO.name, ROLES.HIFUMI.name];
+            // 現在のNPCの役が回避対象リストに含まれているかチェック
+            if (result.type === '役' && specialRolesToAvoid.includes(result.name)) {
+                // 回避する確率 (Lv1: 20%, Lv2: 40%, Lv3: 60%)
+                const avoidChance = [0.2, 0.4, 0.6][blindingDiceLevel - 1];
+                // 確率判定
+                if (Math.random() < avoidChance) {
+                    // 回避成功！
+                    console.log(`%cCard Effect: 目くらまし Lv.${blindingDiceLevel} 発動! NPCの特殊役「${result.name}」を回避 -> 目なしに変更`, 'color: orange; font-weight: bold;');
+                    // 結果を強制的に「目なし」に書き換える
+                    // 元のコードでは strength しか設定していなかったので name も設定
+                    result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name };
+                    specialRoleAvoided = true; // 回避成功フラグを立てる
+                } else {
+                    // 回避失敗
+                    console.log(`Card Effect: 目くらまし Lv.${blindingDiceLevel} - NPCの特殊役「${result.name}」回避失敗 (確率 ${avoidChance * 100}%)`);
+                }
+            } // --- 特殊役回避判定 終了 ---
+
+            // 2. Lv.3 ションベン率UP判定
+            // 条件: 上記の特殊役回避が *発動しなかった* 場合 かつ カードレベルが3以上 かつ 現在の結果がションベンや目なし *ではない* 場合
+            if (!specialRoleAvoided && blindingDiceLevel >= 3 && result.type !== 'ションベン' && result.type !== '目なし') {
+                 const shonbenUpChance = 0.2; // 20% の確率で目なしか
+                 // 確率判定
+                 if (Math.random() < shonbenUpChance) {
+                     // 発動！
+                     console.log(`%cCard Effect: 目くらまし Lv.3 - ションベン率UP発動! NPCの結果「${getHandDisplayName(result)}」を目なしに変更`, 'color: orange; font-weight: bold;');
+                     // 結果を強制的に「目なし」に書き換える
+                     result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name };
+                 } else {
+                     // 発動失敗
+                     console.log(`Card Effect: 目くらまし Lv.3 - ションベン率UP失敗 (確率 ${shonbenUpChance * 100}%)`);
+                 }
+            } // --- Lv.3 ションベン率UP判定 終了 ---
+
+        } // --- 目くらまし 処理終了 ---
+
+        console.log(`%cFinal Hand Result (${isNpc ? 'NPC' : 'Player'}): ${getHandDisplayName(result)}`, 'font-weight: bold;');
         return result;
     }
 
@@ -797,84 +832,186 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // === カード強化説明取得 ===
-    function getUpgradeDescription(cardData, level) {
-        let conditionText = "";
-        let effectText = "";
+   // === カード強化説明取得  ===
+   function getUpgradeDescription(cardData, level) {
+    let conditionText = ""; // 発動条件/タイミング
+    let effectText = "";    // 効果内容
 
-        switch (cardData.id) {
-            case 'arashiBonus':
-                conditionText = "【発動条件】アラシで勝利時";
-                effectText = `基本倍率に +${level}。`;
-                break;
-            case 'shigoroBonus':
-                conditionText = "【発動条件】シゴロで勝利時";
-                effectText = `基本倍率に +${level}。`;
-                break;
-            case 'oneEyeBonus':
-                conditionText = "【発動条件】1の目で勝利時";
-                effectText = `基本倍率に +${level}。`;
-                break;
-            case 'sixEyeBonus':
-                conditionText = "【発動条件】6の目で勝利時";
-                effectText = `基本倍率に +${level}。`;
-                break;
-            case 'rewardAmplifier':
-                conditionText = "【発動条件】ロール後の役/目確定後";
-                effectText = `(アクティブ) WAVE中 ${level >= 3 ? '2' : '1'} 回、使用したラウンドで目以上の役で勝利した場合、基本倍率に +${level >= 2 ? '2' : '1'}。`;
-                break;
-            case 'doubleUpBet':
-                conditionText = "【発動条件】子でロール後の役/目確定後";
-                const successBonus = [1.0, 1.5, 2.0][level - 1].toFixed(1);
-                const penaltyText = (level <= 2) ? `失敗時ヒフミ負け扱い。` : `失敗時ペナルティなし。`;
-                effectText = `(アクティブ) WAVE中 1回、使用して勝利した場合、基本倍率に +${successBonus}。${penaltyText}`;
-                break;
-            case 'hifumiHalf':
-                 conditionText = "【発動条件】ヒフミで敗北時";
-                 effectText = `支払い倍率から -${level}。(最低0倍)`;
-                 break;
-             case 'shonbenHalf':
-                 conditionText = "【発動条件】ションベンで敗北時";
-                 effectText = `支払い倍率から -0.5。(最低0倍)`;
-                 break;
-            case 'giveUpEye':
-                 conditionText = "【発動条件】ロール後 目なし確定時";
-                 effectText = `(アクティブ) WAVE中 ${level} 回、使用するとションベン扱いになる。Lv2以上: 支払い半減。`;
-                 break;
-             case 'fightingSpirit':
-                 conditionText = "【発動条件】勝利時(持ち点条件あり)";
-                 effectText = `持ち点が相手の${level >= 3 ? '同値' : '半分'}以下の時、勝利時の連勝ボーナスレートに +${[10, 20, 30][level - 1]}%。`;
-                 break;
-             case 'drawBonus':
-                conditionText = "【発動条件】ロール後の役/目確定後";
-                effectText = `(アクティブ) WAVE中 ${level >= 3 ? 3 : (level === 2 ? 2 : 1)} 回、使用したラウンドで引き分けになった場合、賭け金の ${level === 3 ? '100' : '50'}% を獲得。`; // Lv3回数修正
-                break;
-             case 'blindingDice':
-                 conditionText = "【発動条件】親でロール後の役/目確定後";
-                 effectText = `(アクティブ) WAVE中 1回、使用したラウンド中、相手の特殊役(ピンゾロ/アラシ/シゴロ/ヒフミ)の確率を低下(${['小','中','大'][level-1]})。Lv3: ションベン率UP。`;
-                 break;
-             case 'soulRoll':
-                 conditionText = "【発動条件】ロール回数超過後";
-                 effectText = `(アクティブ) WAVE中 1回、振り残り0で持ち点の ${[10, 5, 5][level-1]}% を消費し追加1回ロール。Lv3: 目なし回避。`;
-                 break;
-            case 'reroll1': effectText = `最大振り直し回数が合計 ${BASE_MAX_ROLLS + level} 回になる。`; break;
-            case 'ignoreMinBet': effectText = `(アクティブ) WAVE中 ${level} 回、最低1Gで賭けられる。`; break;
-            case 'shopChoicePlus1': effectText = `次ショップ提示数+1${level >= 2 ? ` & リロールコスト-${(level-1)*10}G` : ''}${level >= 3 ? '(無料)' : ''}。`; break;
-            case 'changeToOne': case 'changeToSix': effectText = `(アクティブ) WAVE中 ${level} 回、サイコロを ${cardData.id === 'changeToOne' ? '1' : '6'} に変更できる。`; break;
-            case 'zoroChanceUp': effectText = `(アクティブ) WAVE中 ${level >= 3 ? '2' : '1'} 回、使用したラウンド中、ゾロ目確率UP(${['小','中','大'][level-1]})。`; break;
-            case 'avoid123_456': effectText = `(アクティブ) WAVE中 ${level >= 2 ? '2' : '1'} 回、使用したラウンド中、ヒフミ/シゴロを回避。Lv3: 目なしも回避。`; break;
-            case 'adjustEye': effectText = `(アクティブ) WAVE中 ${level >= 2 ? '2' : '1'}回、「目」確定後 ${level >= 3 ? '±2' : '±1'} 調整可。`; break;
-            case 'stormWarning': effectText = `(アクティブ) WAVE中 1回、使用後最初のロールで${level >= 3 ? 'アラシorピンゾロ' : 'アラシ'}以外なら、${level >= 2 ? '2' : '1'}回まで振り直し消費なし。無料ロール時ゾロ目率+${[10,15,20][level-1]}% & 低確率でアラシ化。`; break;
-            case 'nextChance': effectText = `(アクティブ) WAVE中 ${level >= 3 ? '2' : '1'}回、「目」確定後にその目${level >= 2 ? 'となったダイス1つまたは2つを選んで' : 'となったダイス1つだけを'}振り直せる。`; break;
-            case 'betBoost': effectText = `最大ベット額上限が持ち点の ${[1.2, 1.4, 1.6][level-1]}倍 になる。(相手依存有)`; break;
-            case 'keepParentalRight': effectText = `(自動/選択) WAVE中 ${level >= 2 ? '2' : '1'}回、親で負けても交代しない${level >= 3 ? '& 次R最低賭け金半減' : ''}。`; break;
-            case 'handExchange': effectText = `次ショップでのリロールが ${level >= 2 ? '2' : '1'}回無料になる${level >= 3 ? '& カード購入/強化コスト10%OFF' : ''}。`; break;
-            case 'riskyBet': effectText = `(アクティブ) WAVE中 ${level >= 3 ? '2' : '1'}回、賭け金決定時に使用。賭け金2倍${level === 1 ? '& 最低賭け金も2倍' : ''}。`; break;
-             case 'lossInsurance': effectText = `敗北時、支払い計算を上書きし、(賭け金 * ${[1.5, 1.3, 1.1][level-1]} * (1 + NPC連勝ボーナスレート)) を支払う。`; break;
-             default: effectText = cardData.flavor || '---'; break;
-        }
-        return `${conditionText ? `<b>【発動条件】</b><br>${conditionText}<br>` : ''}<b>【効果】</b><br>${effectText}`;
+    // カードIDに基づいて条件と効果を設定
+    switch (cardData.id) {
+        // --- 点数強化系 (Score) ---
+        case 'arashiBonus':
+            conditionText = "アラシで勝利した時 (パッシブ)"; // 自動 -> パッシブ
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'shigoroBonus':
+            conditionText = "シゴロで勝利した時 (パッシブ)"; // 自動 -> パッシブ
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'oneEyeBonus':
+            conditionText = "「1の目」で勝利した時 (パッシブ)"; // 自動 -> パッシブ
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'sixEyeBonus':
+            conditionText = "「6の目」で勝利した時 (パッシブ)"; // 自動 -> パッシブ
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'hifumiHalf':
+             conditionText = "ヒフミで敗北した時 (パッシブ)"; // 自動 -> パッシブ
+             effectText = `支払いスコア計算時の基本倍率から ${level} 軽減される (最低0倍)。`;
+             break;
+         case 'shonbenHalf':
+             conditionText = "ションベンで敗北した時 (パッシブ)"; // 自動 -> パッシブ
+             // Lv1, 2, 3 で効果量は同じ
+             effectText = `支払いスコア計算時の基本倍率から 0.5 軽減される (最低0倍)。※「見切り」使用時は適用外`;
+             break;
+         case 'fightingSpirit':
+             conditionText = "勝利した時 (パッシブ、持ち点条件あり)"; // 自動 -> パッシブ
+             const scoreConditionText = level >= 3 ? "相手と同値以下" : "相手の半分以下";
+             const spiritBonusRateText = [10, 20, 30][level - 1];
+             effectText = `自分の持ち点が${scoreConditionText}の場合、連勝ボーナスの増加量がさらに ${spiritBonusRateText}% 増える。`;
+             break;
+         case 'rewardAmplifier':
+             conditionText = "自分の役/目が確定した後 (アクティブ)";
+             const amplifierUses = level >= 3 ? '2' : '1';
+             const amplifierBonus = level >= 2 ? '2' : '1';
+             effectText = `WAVE中 ${amplifierUses}回 使用可能。使用したラウンドで「目」以上の役で勝利した場合、獲得スコア計算時の基本倍率に +${amplifierBonus} 加算される。`;
+             break;
+         case 'doubleUpBet':
+             conditionText = "自分が子で、役/目が確定した後 (アクティブ)";
+             const doubleUpBonus = [1.0, 1.5, 2.0][level - 1].toFixed(1);
+             const doubleUpPenaltyText = (level <= 2) ? `失敗した場合、強制的にヒフミで敗北扱いとなる。` : `失敗してもペナルティはない。`;
+             effectText = `WAVE中 1回 使用可能。使用して勝利した場合、獲得スコア計算時の基本倍率に +${doubleUpBonus} 加算される。${doubleUpPenaltyText}`;
+             break;
+        case 'betBoost':
+            conditionText = "賭け金の上限を計算する時 (パッシブ)"; // 自動 -> パッシブ
+            const boostMultiplierText = [1.2, 1.4, 1.6][level - 1].toFixed(1);
+            effectText = `最大ベット額の上限が、自分の持ち点の ${boostMultiplierText}倍 に引き上げられる (ただし相手の持ち点を超えることはできない)。`;
+            break;
+        case 'lossInsurance':
+            conditionText = "敗北時のスコア計算時 (パッシブ)"; // 自動 -> パッシブ
+            const insuranceMultiplierText = [1.5, 1.3, 1.1][level - 1].toFixed(1); // Lv3 効果を反映
+            effectText = `敗北時の支払いスコア計算を上書きし、「賭け金の ${insuranceMultiplierText}倍 (相手の連勝数に応じてさらに増加)」を支払うようになる。`;
+            break;
+
+        // --- 補助系 (Support) ---
+        case 'reroll1':
+            conditionText = "常時 (パッシブ)"; // 自動 -> パッシブ
+            effectText = `サイコロの最大振り直し回数が、基本の${BASE_MAX_ROLLS}回に加えて +${level} され、合計 ${BASE_MAX_ROLLS + level} 回になる。`;
+            break;
+        case 'ignoreMinBet':
+            conditionText = "賭け金設定フェーズ (アクティブ)";
+            effectText = `WAVE中 ${level}回 使用可能。使用したラウンドでは、最低賭け金が強制的に 1点 になる。`;
+            break;
+        case 'shopChoicePlus1':
+            conditionText = "ショップ利用時 (パッシブ)"; // 自動 -> パッシブ
+            const rerollCostReductionText = level === 2 ? " さらにリロールコストが10G安くなる。" : level >= 3 ? " さらにリロールが無料になる。" : "";
+            effectText = `次にショップを開いた時、提示されるカードの選択肢が 1枚 増える。${rerollCostReductionText}`;
+            break;
+        case 'drawBonus':
+            conditionText = "自分の役/目が確定した後 (アクティブ)";
+            const drawBonusUses = level >= 3 ? 3 : (level === 2 ? 2 : 1);
+            const drawBonusGainText = level === 3 ? "100%" : "50%";
+            effectText = `WAVE中 ${drawBonusUses}回 使用可能。使用したラウンドで引き分けになった場合、ボーナスとして賭け金の ${drawBonusGainText} を獲得する（スコアに加算）。※目なし時は使用不可`;
+            break;
+        case 'keepParentalRight':
+            conditionText = "自分が親で敗北したラウンドの終了時 (アクティブ)"; // 選択式 -> アクティブ
+            const keepUses = level >= 2 ? '2' : '1';
+            const keepDiscountText = level >= 3 ? " さらに、次のラウンドの最低賭け金が半額になる。" : "";
+            effectText = `WAVE中 ${keepUses}回 まで使用可能。使用すると、親で負けても親権を維持できる。${keepDiscountText}`;
+            break;
+        case 'handExchange':
+            conditionText = "ショップ利用時 (パッシブ)"; // 自動 -> パッシブ
+            const freeRerollsText = level >= 2 ? "2回" : "1回";
+            const buyDiscountText = level >= 3 ? " さらに、そのショップでのカード購入・強化コストが10%割引される。" : "";
+            effectText = `次にショップを開いた時、リロールが ${freeRerollsText} 無料になる。${buyDiscountText}`;
+            break;
+        case 'soulRoll':
+             conditionText = "振り残り回数が0になった後 (アクティブ)";
+             const soulCostPercent = [10, 5, 5][level - 1];
+             const soulMenashiAvoidText = level >= 3 ? " Lv3効果: この追加ロールで目なしが出ても、回避できるまで振り直す。" : "";
+             effectText = `WAVE中 1回 使用可能。自分の持ち点の ${soulCostPercent}% (最低1点) を消費して、追加で1回サイコロを振ることができる。${soulMenashiAvoidText}`;
+             break;
+        case 'riskyBet':
+             conditionText = "賭け金設定フェーズ (アクティブ)";
+             const riskyUses = level >= 3 ? '2' : '1';
+             const riskyMinBetText = level === 1 ? " 最低賭け金も2倍になる。" : "";
+             effectText = `WAVE中 ${riskyUses}回 使用可能。使用したラウンドの賭け金が強制的に2倍になる。${riskyMinBetText}`;
+             break;
+        case 'giveUpEye':
+             conditionText = "自分のロール結果が「目なし」になった後 (アクティブ)";
+             const giveUpUses = level;
+             const giveUpPaymentText = level >= 2 ? " Lv2以上: 支払いスコア計算時の基本倍率が半分(0.5)になる。" : "";
+             effectText = `WAVE中 ${giveUpUses}回 使用可能。使用すると、そのラウンドの結果を強制的に「ションベン」扱いに変更する（敗北確定）。${giveUpPaymentText}`;
+             break;
+
+        // --- 出目操作系 (Dice) ---
+        case 'changeToOne':
+            conditionText = "自分のロール後 (アクティブ)";
+            const changeOneUses = level;
+            effectText = `WAVE中 ${changeOneUses}回 使用可能。サイコロを1つ選んで、出目を強制的に「1」に変更できる。`;
+            break;
+        case 'changeToSix':
+            conditionText = "自分のロール後 (アクティブ)";
+            const changeSixUses = level;
+            effectText = `WAVE中 ${changeSixUses}回 使用可能。サイコロを1つ選んで、出目を強制的に「6」に変更できる。`;
+            break;
+        case 'zoroChanceUp':
+            conditionText = "自分のロール前 (アクティブ)";
+            const zoroUses = level >= 3 ? '2' : '1';
+            const zoroChanceText = ['少し上昇', '上昇', '大きく上昇'][level - 1];
+            effectText = `WAVE中 ${zoroUses}回 使用可能。使用したラウンド中、ゾロ目が出る確率が${zoroChanceText}する。`;
+            break;
+        case 'avoid123_456':
+            conditionText = "自分のロール前 (アクティブ)";
+            const avoidUses = level >= 2 ? '2' : '1';
+            const avoidMenashiText = level >= 3 ? " さらに「目なし」も回避する。" : "";
+            effectText = `WAVE中 ${avoidUses}回 使用可能。使用したラウンド中、「ヒフミ」と「シゴロ」が出た場合に自動で振り直して回避する。${avoidMenashiText}`;
+            break;
+        case 'blessingDice':
+            conditionText = "自分のロール前 (アクティブ)";
+            const blessingUses = level >= 3 ? '2' : '1';
+            const blessingChanceText = ['少し', 'そこそこ', 'かなり'][level - 1];
+            effectText = `WAVE中 ${blessingUses}回 使用可能。使用したラウンド中、振ったサイコロの各目が${blessingChanceText}の確率で「6」に変わる。`;
+            break;
+        case 'adjustEye':
+            conditionText = "自分のロール結果が「目」になった後 (アクティブ)";
+            const adjustUses = level >= 2 ? '2' : '1';
+            const adjustAmountText = level >= 3 ? '±2' : '±1';
+            effectText = `WAVE中 ${adjustUses}回 使用可能。「目」の数字 *以外* のサイコロを1つ選び、出目を ${adjustAmountText} できる（1未満や6超過は不可）。`;
+            break;
+        case 'stormWarning':
+            conditionText = "自分のロール前 (アクティブ)";
+            const stormRerollCount = level >= 2 ? '2' : '1';
+            const stormTargetRoleText = level >= 3 ? 'アラシまたはピンゾロ' : 'アラシ';
+            const stormBonusChanceText = [10, 15, 20][level - 1];
+            effectText = `WAVE中 1回 使用可能。使用後の最初のロールで${stormTargetRoleText} *以外* が出た場合、最大 ${stormRerollCount}回 まで振り直し回数を消費せずに振り直せる。無料振り直し中はゾロ目確率が ${stormBonusChanceText}% 上昇し、低確率で結果がアラシになる。`;
+            break;
+        case 'nextChance':
+            conditionText = "自分のロール結果が「目」になった後 (アクティブ)";
+            const nextChanceUses = level >= 3 ? '2' : '1';
+            const nextChanceDiceCount = level >= 2 ? '1つまたは2つ' : '1つ';
+            effectText = `WAVE中 ${nextChanceUses}回 使用可能。「目」の数字 *と同じ* サイコロを${nextChanceDiceCount}選んで振り直すことができる。`;
+            break;
+        case 'blindingDice':
+             conditionText = "自分が親で、役/目が確定した後 (アクティブ)";
+             const blindingAvoidChanceText = ['少し', 'そこそこ', '大きく'][level - 1];
+             const blindingShonbenText = level >= 3 ? " さらに相手がションベンする確率も少し上げる。" : "";
+             // 修正: (NPC)削除、良い役→役、確率が〜なる→確率が〜上がる
+             effectText = `WAVE中 1回 使用可能。使用したラウンド中、相手が良い役（ピンゾロ/アラシ/シゴロ/ヒフミ）を出した場合に、それを無効化（目なし扱い）する確率が${blindingAvoidChanceText}上がる。${blindingShonbenText}`;
+             break;
+
+        default:
+            // 未定義のカードIDの場合
+            conditionText = "---";
+            effectText = '---'; // フレーバーテキストは削除
+            break;
     }
+
+    // 最終的な説明文を組み立てて返す
+    const conditionHtml = conditionText ? `<b>【発動条件/タイミング】</b><br>${conditionText}<br>` : '';
+    return `${conditionHtml}<b>【効果】</b><br>${effectText}`;
+}
     function getCardTypeName(type) { switch(type) { case 'support': return '補助'; case 'dice': return '出目操作'; case 'score': return '点数強化'; case 'special': return '特殊'; default: return '不明'; } }
     // === ショップを開く処理 ===
     function openShop() {
