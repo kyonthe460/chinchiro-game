@@ -2946,64 +2946,172 @@ function updateShopUI() {
     }
 
     // --- カード画面モーダル関連 ---
-     function openCardActionModal() {
+    function openCardActionModal() {
         if (!cardActionModal) return;
         console.log("Opening Card Action Modal");
-        displayCardsInModal();
+        displayCardsInModal(); // 修正後の関数を呼び出す
         cardActionModal.style.display = 'flex';
     }
+
     function displayCardsInModal() {
-        if (!cardActionDisplay || !cardActionMessage) return;
-        cardActionDisplay.innerHTML = '';
-        let usableCardFound = false;
+        // 新しいHTML要素を取得
+        const activeCardDisplay = document.getElementById('active-card-display');
+        const passiveCardDisplay = document.getElementById('passive-card-display');
+        const activeCardMessage = document.getElementById('active-card-message');
+        const passiveCardMessage = document.getElementById('passive-card-message');
 
-        if (playerCards.length === 0) { cardActionMessage.textContent = "手札にカードがありません。"; return; }
+        // 要素が見つからない場合はエラーを出して終了
+        if (!activeCardDisplay || !passiveCardDisplay || !activeCardMessage || !passiveCardMessage) {
+            console.error("Required elements for card action modal not found!");
+            return;
+        }
 
+        // 表示エリアを初期化
+        activeCardDisplay.innerHTML = '';
+        passiveCardDisplay.innerHTML = '';
+        activeCardDisplay.classList.remove('empty');
+        passiveCardDisplay.classList.remove('empty');
+
+        let activeCards = []; // アクティブカードを格納する配列
+        let passiveCards = []; // パッシブカードを格納する配列
+
+        // 手札のカードをアクティブとパッシブに分類
         playerCards.forEach(cardData => {
-            const card = allCards.find(c => c.id === cardData.id); if (!card) return;
-            const cardElement = document.createElement('div');
-            const rarityClass = ['normal', 'rare', 'epic', 'legendary'][card.rarity - 1] || 'normal';
-            cardElement.className = `card-action-item type-${card.type} rarity-${rarityClass}`;
-            cardElement.dataset.cardId = cardData.id;
-            const isUsable = waitingForPlayerActionAfterRoll ? checkCardUsabilityInPostRoll(cardData.id) : checkCardUsability(cardData.id);
-            const remainingUses = getRemainingUses(cardData.id);
-            const totalUses = getTotalUses(cardData.id);
-            const isPassive = !card.usesPerWave && (card.applyEffect || card.removeEffect || card.effectTag);
-            let usesHtml = '';
-            if (card.usesPerWave && totalUses !== Infinity) { usesHtml = `<div class="card-action-uses">残 ${remainingUses} / ${totalUses} 回</div>`; }
-            else if (isPassive) { usesHtml = `<div class="card-action-uses" style="color: #aaa;">(パッシブ)</div>`; }
-            let buttonHtml = '';
-            if (card.usesPerWave) { buttonHtml = `<button class="use-card-button button-pop" data-card-id="${cardData.id}" ${!isUsable ? 'disabled' : ''}>使用</button>`; }
-            if (isPassive) { cardElement.classList.add('passive'); }
-            else if (!card.usesPerWave) {} // 用途不明
-            else if (isUsable) { cardElement.classList.add('usable'); usableCardFound = true; }
-            else if (remainingUses <= 0) { cardElement.classList.add('used-up'); }
-            else { cardElement.classList.add('not-usable'); }
-            const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N'; const rarityBadgeHtml = `<span class="card-rarity-badge">${rarityText}</span>`;
-            const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`; const cardNameHtml = `${card.name} ${levelSpan}`;
-            const cardInnerHtml = `<span class="card-type-badge">${getCardTypeName(card.type)}</span> ${rarityBadgeHtml} <h3 class="card-name">${cardNameHtml}</h3> <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p> ${usesHtml} ${buttonHtml}`;
-            cardElement.innerHTML = cardInnerHtml;
-            if (card.image) { cardElement.style.backgroundImage = `url('${card.image}')`; cardElement.style.backgroundSize = 'cover'; cardElement.style.backgroundPosition = 'center'; }
-            cardActionDisplay.appendChild(cardElement);
+            const card = allCards.find(c => c.id === cardData.id);
+            if (!card) return;
+
+            // usesPerWave プロパティがあればアクティブ、なければパッシブと判断
+            if (card.usesPerWave) {
+                activeCards.push(cardData);
+            } else {
+                passiveCards.push(cardData);
+            }
         });
 
-        if (usableCardFound) { cardActionMessage.textContent = "使用したいカードを選択してください。"; }
-        else if (playerCards.length > 0) { cardActionMessage.textContent = "現在使用できるカードはありません。"; }
+        let usableActiveCardFound = false; // 使用可能なアクティブカードがあるかのフラグ
+
+        // --- アクティブカードの表示処理 ---
+        if (activeCards.length === 0) {
+            // アクティブカードがない場合のメッセージとスタイル
+            activeCardMessage.textContent = "使用可能なカードはありません。";
+            activeCardDisplay.classList.add('empty');
+            activeCardDisplay.textContent = "(手札にアクティブカードがありません)";
+        } else {
+            // アクティブカードがある場合
+            activeCardMessage.textContent = "使用したいカードを選択してください。"; // デフォルトメッセージ
+
+            activeCards.forEach(cardData => {
+                const card = allCards.find(c => c.id === cardData.id);
+                const cardElement = document.createElement('div');
+                const rarityClass = ['normal', 'rare', 'epic', 'legendary'][card.rarity - 1] || 'normal';
+                cardElement.className = `card-action-item type-${card.type} rarity-${rarityClass}`;
+                cardElement.dataset.cardId = cardData.id;
+
+                const isUsable = waitingForPlayerActionAfterRoll ? checkCardUsabilityInPostRoll(cardData.id) : checkCardUsability(cardData.id);
+                const remainingUses = getRemainingUses(cardData.id);
+                const totalUses = getTotalUses(cardData.id);
+                let usesHtml = '';
+                if (totalUses !== Infinity) {
+                     usesHtml = `<div class="card-action-uses">残 ${remainingUses} / ${totalUses} 回</div>`;
+                 }
+
+                const buttonHtml = `<button class="use-card-button button-pop" data-card-id="${cardData.id}" ${!isUsable ? 'disabled' : ''}>使用</button>`;
+
+                if (isUsable) {
+                    cardElement.classList.add('usable');
+                    usableActiveCardFound = true;
+                } else if (remainingUses <= 0 && totalUses !== Infinity) {
+                    cardElement.classList.add('used-up');
+                } else {
+                    cardElement.classList.add('not-usable');
+                }
+
+                const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N'; const rarityBadgeHtml = `<span class="card-rarity-badge">${rarityText}</span>`;
+                const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`; const cardNameHtml = `${card.name} ${levelSpan}`;
+                const cardInnerHtml = `<span class="card-type-badge">${getCardTypeName(card.type)}</span> ${rarityBadgeHtml} <h3 class="card-name">${cardNameHtml}</h3> <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p> ${usesHtml} ${buttonHtml}`;
+                cardElement.innerHTML = cardInnerHtml;
+                if (card.image) { cardElement.style.backgroundImage = `url('${card.image}')`; cardElement.style.backgroundSize = 'cover'; cardElement.style.backgroundPosition = 'center'; }
+
+                activeCardDisplay.appendChild(cardElement);
+            });
+
+            if (!usableActiveCardFound) {
+                 activeCardMessage.textContent = "現在使用できるカードはありません。";
+            }
+        }
+
+        // --- パッシブカードの表示処理 ---
+        if (passiveCards.length === 0) {
+            passiveCardMessage.textContent = "装備中のカードはありません。";
+            passiveCardDisplay.classList.add('empty');
+            passiveCardDisplay.textContent = "(手札にパッシブカードがありません)";
+        } else {
+            passiveCardMessage.textContent = "現在装備中のカードです。";
+
+            passiveCards.forEach(cardData => {
+                const card = allCards.find(c => c.id === cardData.id);
+                const cardElement = document.createElement('div');
+                const rarityClass = ['normal', 'rare', 'epic', 'legendary'][card.rarity - 1] || 'normal';
+                cardElement.className = `card-action-item type-${card.type} rarity-${rarityClass} passive`;
+                cardElement.dataset.cardId = cardData.id;
+
+                const usesHtml = `<div class="card-action-uses" style="color: #aaa;">(パッシブ)</div>`;
+                const buttonHtml = ''; // パッシブにはボタンなし
+
+                const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N'; const rarityBadgeHtml = `<span class="card-rarity-badge">${rarityText}</span>`;
+                const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`; const cardNameHtml = `${card.name} ${levelSpan}`;
+                const cardInnerHtml = `<span class="card-type-badge">${getCardTypeName(card.type)}</span> ${rarityBadgeHtml} <h3 class="card-name">${cardNameHtml}</h3> <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p> ${usesHtml} ${buttonHtml}`;
+                cardElement.innerHTML = cardInnerHtml;
+                if (card.image) { cardElement.style.backgroundImage = `url('${card.image}')`; cardElement.style.backgroundSize = 'cover'; cardElement.style.backgroundPosition = 'center'; }
+
+                passiveCardDisplay.appendChild(cardElement);
+            });
+        }
+    } // displayCardsInModal 関数の終わり
+
+    // モーダル閉じるボタンのイベントリスナー
+    if (closeCardActionModalButton && cardActionModal) {
+        closeCardActionModalButton.addEventListener('click', () => {
+            cardActionModal.style.display = 'none';
+            // モーダルを閉じた時に、もしロール後の選択待ち状態だったらメッセージを再表示
+            if (waitingForPlayerActionAfterRoll) {
+                const handName = getHandDisplayName(playerHand);
+                 const canReroll = playerRollCount < currentMaxRolls;
+                 const hasStormWarningReroll = stormWarningRerollsLeft > 0;
+                 const soulRollAvailable = playerCards.find(c => c.id === 'soulRoll') && playerRollCount >= currentMaxRolls && !soulRollUsedThisTurn && getRemainingUses('soulRoll') > 0;
+                 let rerollStatus = "";
+                 if (canReroll || hasStormWarningReroll) rerollStatus = "(振り直し可能)";
+                 else if (soulRollAvailable) rerollStatus = "(魂の一振り使用可能)";
+                 else rerollStatus = "(振り直し不可)";
+                 const currentStatusMessage = playerHand?.type === '目なし'
+                     ? `${handName}！どうしますか？ ${rerollStatus}`
+                     : `${handName}！どうしますか？`;
+                setMessage(currentStatusMessage, 'postRollChoice');
+                updateCardButtonHighlight();
+            }
+        });
     }
-    if (closeCardActionModalButton && cardActionModal) { closeCardActionModalButton.addEventListener('click', () => { cardActionModal.style.display = 'none'; }); }
-    if(cardActionDisplay) {
-        cardActionDisplay.addEventListener('click', async (event) => {
+
+    // カード使用ボタンのイベントリスナー (対象要素を変更)
+    const activeCardDisplayForEvent = document.getElementById('active-card-display');
+    if(activeCardDisplayForEvent) { // 要素が存在すればイベントリスナーを設定
+        activeCardDisplayForEvent.addEventListener('click', async (event) => { // ★ イベントリスナーの対象を activeCardDisplayForEvent に変更
+            // クリックされた要素が '.use-card-button' で、かつ disabled でないかチェック
             if (event.target.matches('.use-card-button:not(:disabled)')) {
-                const cardId = event.target.dataset.cardId;
+                const cardId = event.target.dataset.cardId; // カードIDを取得
                 if (cardId) {
-                    cardActionModal.style.display = 'none'; // 先にモーダルを閉じる
-                    await handleActiveCardUse(cardId);
-                    // updateCardButtonHighlight は handleActiveCardUse 内で呼ばれる
+                    cardActionModal.style.display = 'none'; // モーダルを閉じる
+                    await handleActiveCardUse(cardId); // カード使用処理を呼び出す
+                    // updateCardButtonHighlight は handleActiveCardUse 内で呼ばれる想定
                 }
             }
         });
     }
-    if (cardActionButton) { cardActionButton.addEventListener('click', openCardActionModal); }
+
+    // 手札ボタン（カードアクションモーダルを開くボタン）のイベントリスナー
+    if (cardActionButton) {
+        cardActionButton.addEventListener('click', openCardActionModal);
+    }
 
      // === アクティブカード使用処理 ===
     async function handleActiveCardUse(event) {

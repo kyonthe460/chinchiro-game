@@ -1314,73 +1314,159 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     100% { transform: rotate(360deg); }
 }
 
-/* ===== カード画面モーダル ===== */
+/* ===== カード画面モーダル デザイン修正 (モーダル全体スクロール版) ===== */
 .card-action-modal-content {
     max-width: 900px;
-    max-height: 85vh;
+    max-height: 85vh;   /* モーダル全体の最大高さは維持 */
     display: flex;
     flex-direction: column;
+    overflow-y: auto;   
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
+}
+.card-action-modal-content::-webkit-scrollbar { width: 8px; }
+.card-action-modal-content::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+.card-action-modal-content::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+.card-action-modal-content::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.3); }
+
+
+/* --- カードセクション (アクティブ/パッシブ共通) --- */
+.card-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+.card-section:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
-#card-action-message {
+/* セクションタイトル (H3) */
+.card-section h3 {
+    color: #ffcc70;
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 8px;
+    text-align: left;
+    padding-left: 5px;
+}
+
+/* セクションメッセージ (Pタグ) */
+.card-section-message {
+    font-size: 0.95em;
+    color: #ccc;
+    margin-bottom: 15px;
+    min-height: 1.1em;
+    text-align: left;
+    padding-left: 5px;
     font-style: italic;
-    color: #a0ffa0;
 }
 
-#card-action-display {
+/* カード表示エリア (アクティブ/パッシブ共通) */
+.card-display-area {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
-    justify-content: center;
-    overflow-y: auto;
-    padding: 10px;
-    flex-grow: 1;
-    background-color: rgba(0, 0, 0, 0.1);
+    justify-content: flex-start;
+    padding: 10px 5px;
+    background-color: rgba(0, 0, 0, 0.15);
     border-radius: 8px;
+    min-height: 50px; /* ★ カードがない場合でもある程度の高さを確保 */
 }
 
-/* カード画面モーダル内のカードスタイル */
+/* カードがない場合の表示 */
+.card-display-area.empty {
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    font-style: italic;
+    min-height: 50px;
+}
+
+/* --- カードアイテム自体のスタイル (共通部分) --- */
 .card-action-item {
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 15px;
-    width: 200px;
-    min-height: 260px;
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    background-size: cover;
+    border: 1px solid rgba(255, 255, 255, 0.15); /* 枠線 */
+    border-radius: 10px; /* 角丸 */
+    padding: 15px;      /* 内側パディング */
+    width: 200px;       /* カード幅 */
+    min-height: 260px;  /* カード最低高さ */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); /* 影 */
+    display: flex;      /* flexbox を使用 */
+    flex-direction: column; /* 子要素を縦に配置 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; /* アニメーション */
+    position: relative;   /* 子要素の配置基準 */
+    overflow: hidden;    /* はみ出し要素を隠す */
+    background-size: cover; /* 背景画像 */
     background-position: center center;
     background-repeat: no-repeat;
-    background-color: rgba(60, 60, 90, 0.8);
-    cursor: default;
-    text-align: center;
+    background-color: rgba(60, 60, 90, 0.8); /* デフォルト背景色 */
+    text-align: center;   /* テキスト中央揃え */
+    cursor: default;     /* デフォルトカーソル */
 }
-.card-action-item:hover {}
+.card-action-item:hover {} /* ホバー時の基本スタイルは削除（usableなどで個別指定）*/
 
+/* カード内の要素スタイル */
 .card-action-item .card-type-badge,
-.card-action-item .card-rarity-badge,
-.card-action-item .card-name {
-    font-size: 1em;
-    margin-top: 5px;
+.card-action-item .card-rarity-badge { /* タイプとレアリティバッジ */
+    /* 既存のスタイルを流用 (省略) */
+    position: absolute; top: 0; padding: 3px 10px; font-size: 0.8em; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); z-index: 1;
 }
-.card-action-item .card-description {
-    font-size: 0.8em;
-}
-.card-action-item .card-name { margin-top: 25px; }
+.card-action-item .card-type-badge { left: 0; border-radius: 10px 0 10px 0; }
+.card-action-item .card-rarity-badge { right: 0; border-radius: 0 10px 0 10px; }
+/* バッジの色分け (既存流用) */
+.card.rarity-normal .card-rarity-badge, .card-action-item.rarity-normal .card-rarity-badge { background-color: #9e9e9e; }
+.card.rarity-rare .card-rarity-badge, .card-action-item.rarity-rare .card-rarity-badge { background-color: #4a90e2; }
+.card.rarity-epic .card-rarity-badge, .card-action-item.rarity-epic .card-rarity-badge { background-color: #9c27b0; }
+.card.rarity-legendary .card-rarity-badge, .card-action-item.rarity-legendary .card-rarity-badge { background-color: #ff9800; }
+.card.type-support .card-type-badge, .card-action-item.type-support .card-type-badge { background-color: #4a90e2; }
+.card.type-dice .card-type-badge, .card-action-item.type-dice .card-type-badge { background-color: #e65252; }
+.card.type-score .card-type-badge, .card-action-item.type-score .card-type-badge { background-color: #28a745; }
 
-.card-action-uses {
+
+.card-action-item .card-name { /* カード名 */
+    font-size: 1em; /* サイズ調整 */
+    color: #ffeb3b;
+    margin-top: 25px; /* バッジとかぶらないように調整 */
+    margin-bottom: 8px;
+    font-weight: 800;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 5px 8px; /* パディング調整 */
+    border-radius: 8px;
+    display: inline-block;
+    line-height: 1.3;
+}
+.card-action-item .card-level { /* レベル表示 */
+    display: block;
+    font-size: 0.8em;
+    color: #ffcc70;
+    font-weight: normal;
+}
+.card-action-item .card-description { /* 説明文 */
+    font-size: 0.85em; /* サイズ調整 */
+    color: #e8e8e8;
+    line-height: 1.5;
+    text-align: left;
+    margin-bottom: 10px;
+    flex-grow: 1; /* 残りの高さを埋める */
+    position: relative;
+    z-index: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9), 1px -1px 2px rgba(0,0,0,0.9), -1px 1px 2px rgba(0,0,0,0.9);
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 8px;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.card-action-item .card-action-uses { /* 残り使用回数 */
     font-size: 0.9em;
     color: #ccc;
-    margin-top: auto;
+    margin-top: auto; /* 下に配置 */
     padding-top: 10px;
     border-top: 1px dashed rgba(255, 255, 255, 0.15);
 }
-
-.use-card-button {
+.card-action-item .use-card-button { /* 使用ボタン */
     margin-top: 10px;
     padding: 8px 20px;
     font-size: 1em;
@@ -1388,20 +1474,34 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     box-sizing: border-box;
     background: linear-gradient(180deg, #5bc0de, #31b0d5);
     color: white;
+    /* ホバーと無効状態は既存のものを流用 */
 }
-.use-card-button:hover:not(:disabled) {
+.card-action-item .use-card-button:hover:not(:disabled) {
     background: linear-gradient(180deg, #70cce6, #4ac0e0);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(49, 176, 213, 0.4);
 }
+.card-action-item .use-card-button:disabled { /* disabled は !important 不要 */
+    background-color: #555;
+    background-image: none;
+    color: #999;
+    cursor: not-allowed;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    text-shadow: none;
+}
 
+
+/* --- カード状態によるスタイル --- */
+/* 使用不可 (条件未達) */
 .card-action-item.not-usable {
     filter: grayscale(70%) brightness(0.8);
     cursor: not-allowed;
 }
 .card-action-item.not-usable .use-card-button {
-    display: none;
+     /* disabled 属性でスタイルが適用されるはず */
 }
+
+/* 使用済み (回数切れ) */
 .card-action-item.used-up {
     opacity: 0.6;
     filter: grayscale(90%);
@@ -1411,9 +1511,10 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     color: #888;
 }
 .card-action-item.used-up .use-card-button {
-    display: none;
+    display: none; /* 回数切れならボタン非表示 */
 }
 
+/* 使用可能 */
 .card-action-item.usable {
     cursor: pointer;
     border-color: cyan;
@@ -1429,10 +1530,27 @@ button:disabled { background-color: #555 !important; background-image: none !imp
   50% { border-color: #3fffff; box-shadow: 0 0 22px rgba(0, 255, 255, 0.7), 3px 3px 8px rgba(0, 0, 0, 0.4); }
 }
 
-#card-action-display::-webkit-scrollbar { width: 8px; }
-#card-action-display::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
-#card-action-display::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-#card-action-display::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.3); }
+/* パッシブカード専用スタイル */
+.card-action-item.passive {
+    filter: grayscale(30%) brightness(0.9); /* 少し色褪せる */
+    cursor: default;
+    animation: none; /* アニメーションなし */
+    border-color: rgba(255, 255, 255, 0.15); /* 通常ボーダー */
+}
+.card-action-item.passive:hover {
+    transform: none; /* ホバーエフェクトなし */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); /* 通常の影 */
+}
+.card-action-item.passive .use-card-button {
+    display: none; /* ボタン非表示 */
+}
+
+/* スマホ表示調整 */
+@media (max-width: 768px) {
+    .card-display-area {
+        justify-content: center; /* スマホでは中央寄せ */
+    }
+}
 
 /* ===== NPC画像 左右反転 ===== */
 .character-image-area.npc img {

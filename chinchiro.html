@@ -281,16 +281,28 @@
 
     <!-- ===== カード画面モーダル ===== -->
     <div id="card-action-modal" class="modal">
-        <div class="modal-content card-action-modal-content"> <!-- 新しいクラス -->
+        <div class="modal-content card-action-modal-content">
             <span id="close-card-action-modal" class="close-button">×</span>
             <h2>手札のカード</h2>
-            <div id="card-action-message" style="min-height: 1.2em; margin-bottom: 15px; color: #eee;">
-                <!-- JSで使用メッセージなどを表示 -->
-                使用したいカードを選択してください。
+
+            <!-- アクティブカードセクション -->
+            <div class="card-section">
+                <h3>アクティブカード</h3>
+                <p id="active-card-message" class="card-section-message">使用したいカードを選択してください。</p>
+                <div id="active-card-display" class="card-display-area">
+                    <!-- JSでアクティブカードがここに挿入される -->
+                </div>
             </div>
-            <div id="card-action-display">
-                <!-- JSでカード要素がここに挿入される -->
+
+            <!-- パッシブカードセクション -->
+            <div class="card-section">
+                <h3>パッシブカード (装備カード)</h3>
+                <p id="passive-card-message" class="card-section-message">現在装備中のカードです。</p>
+                <div id="passive-card-display" class="card-display-area">
+                    <!-- JSでパッシブカードがここに挿入される -->
+                </div>
             </div>
+
         </div>
     </div>
 
