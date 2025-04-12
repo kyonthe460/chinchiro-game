@@ -13,19 +13,19 @@
 <body>
 
     <!-- ===== タイトル画面 ===== -->
-    <div id="title-screen" class="screen active"> <!-- ★ 初期は active だが JS で制御される -->
+    <div id="title-screen" class="screen active">
         <div class="title-content">
             <h1 class="game-title">チンチロりん♪</h1>
-            <div class="difficulty-selector">
-                <p>難易度選択:</p>
-                <button class="difficulty-button button-pop" data-difficulty="easy">簡単</button>
-                <button class="difficulty-button button-pop selected" data-difficulty="normal">普通</button>
-                <button class="difficulty-button button-pop" data-difficulty="hard">難しい</button>
+            <!-- ↓ 難易度選択を削除し、モード選択を追加 ↓ -->
+            <div class="mode-selector">
+                <p>モード選択:</p>
+                <button class="mode-button button-pop selected" data-mode="normal">通常</button>
+                <button class="mode-button button-pop" data-mode="endless">エンドレス</button>
+                <button class="mode-button button-pop" data-mode="pvp">対人戦 (準備中)</button>
             </div>
+            <!-- ↑ モード選択を追加 ↑ -->
             <button id="start-game-button" class="button-pop">ゲーム開始</button>
-            <!-- ↓ キャラクター選択ボタンを追加 ↓ -->
             <button id="select-character-button" class="button-subtle">キャラクター選択</button>
-            <!-- ↑ キャラクター選択ボタンを追加 ↑ -->
             <div class="title-extra-buttons" style="margin-top: 25px; display: flex; justify-content: center; gap: 10px;">
                 <!-- 未来のボタン -->
             </div>
@@ -128,7 +128,7 @@
             <div id="player-status">
                 <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
                 <div id="shop-player-hand" class="player-hand-display">
-                     手札 (<span id="hand-count">0</span>/5):
+                     手札 (<span id="hand-count">0</span>/5): <!-- ★ 手札上限表示は後で修正 -->
                      <ul id="hand-cards"></ul>
                 </div>
             </div>
@@ -161,8 +161,8 @@
             <p id="result-message">残念！</p>
             <p id="final-score">最終スコア: 0</p>
             <div class="result-actions">
-                <button id="restart-same-difficulty-button" class="button-pop">もう一度遊ぶ</button>
-                <button id="change-difficulty-button" class="button-subtle">難易度を変更</button>
+                <button id="restart-same-mode-button" class="button-pop">もう一度遊ぶ</button> <!-- ★ ID変更 -->
+                <button id="back-to-title-from-result-button" class="button-subtle">タイトルに戻る</button> <!-- ★ IDとテキスト変更 -->
             </div>
         </div>
         <div class="stars"></div>
@@ -252,7 +252,7 @@
                         <li>親が勝負に負けると、次のラウンドから「親」と「子」が交代します（カード効果で交代を防げる場合もあります）。</li>
                         <li>相手キャラクターの持ち点を0にするか、相手が最低賭け金を払えなくなるとWAVEクリア！</li>
                         <li>WAVEをクリアすると「ショップ」が開き、獲得した「コイン」を使って「カード」を購入・強化できます。</li>
-                        <li>カードには、サイコロの目を操作したり、点数を増やしたり、様々な有利な効果があります。手札は最大5枚まで持てます。</li>
+                        <li>カードには、サイコロの目を操作したり、点数を増やしたり、様々な有利な効果があります。手札は最大5枚まで持てます。</li> <!-- ★ 手札上限表示は後で修正 -->
                         <li>WAVEが進むごとに相手は強くなり、最低賭け金も上がっていきます。</li>
                         <li>プレイヤーの持ち点が0になるか、最低賭け金が払えなくなるとゲームオーバーです。全WAVEクリアを目指しましょう！</li>
                         <li>詳しい役の種類や点数、カードの効果は、それぞれのタブで確認できます。</li>
