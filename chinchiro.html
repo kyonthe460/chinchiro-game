@@ -121,19 +121,21 @@
         </div>
     </div>
 
-    <!-- ===== ショップ画面 ===== -->
-    <div id="shop-screen" class="screen"> <!-- ★ 初期は active ではない -->
+      <!-- ===== ショップ画面 ===== -->
+      <div id="shop-screen" class="screen"> <!-- ★ 初期は active ではない -->
         <div class="shop-content">
             <h2 class="shop-title">カードショップ</h2>
             <div id="player-status">
                 <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
+                <!-- ↓ 手札上限表示を合計枚数に変更 ↓ -->
                 <div id="shop-player-hand" class="player-hand-display">
-                     手札 (<span id="hand-count">0</span>/5): <!-- ★ 手札上限表示は後で修正 -->
+                     手札 (<span id="hand-count">0</span>/8): <!-- 合計8枚上限 -->
                      <ul id="hand-cards"></ul>
                 </div>
+                <!-- ↑ 手札上限表示を合計枚数に変更 ↑ -->
             </div>
             <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
-            <div id="card-offers"></div>
+            <div id="card-offers"></div> <!-- ★ フェーズ3で内部構造変更 -->
             <div id="shop-actions" class="shop-actions">
                 <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
                 <button id="close-shop-button" class="button-subtle">お店を出る</button>
@@ -144,8 +146,9 @@
         </div>
         <div id="discard-modal" class="modal" style="display: none;">
             <div class="modal-content discard-modal-content">
+                <!-- ↓ JSでタイトルとメッセージが書き換わる -->
                 <h3>手札がいっぱいです！</h3>
-                <p>新しいカードを追加するために、売却するカードを選んでください。(売却額: (初期コスト+強化コスト合計)の半額)</p>
+                <p>新しいカードを追加するために、売却するカードを選んでください。</p>
                 <div id="discard-options"></div>
                 <button id="cancel-discard-button" class="button-subtle">キャンセル</button>
             </div>
