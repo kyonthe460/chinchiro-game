@@ -2992,13 +2992,11 @@ function updateShopUI() {
 
         // --- アクティブカードの表示処理 ---
         if (activeCards.length === 0) {
-            // アクティブカードがない場合のメッセージとスタイル
             activeCardMessage.textContent = "使用可能なカードはありません。";
             activeCardDisplay.classList.add('empty');
             activeCardDisplay.textContent = "(手札にアクティブカードがありません)";
         } else {
-            // アクティブカードがある場合
-            activeCardMessage.textContent = "使用したいカードを選択してください。"; // デフォルトメッセージ
+            activeCardMessage.textContent = "使用したいカードを選択してください。";
 
             activeCards.forEach(cardData => {
                 const card = allCards.find(c => c.id === cardData.id);
@@ -3011,24 +3009,29 @@ function updateShopUI() {
                 const remainingUses = getRemainingUses(cardData.id);
                 const totalUses = getTotalUses(cardData.id);
                 let usesHtml = '';
-                if (totalUses !== Infinity) {
-                     usesHtml = `<div class="card-action-uses">残 ${remainingUses} / ${totalUses} 回</div>`;
-                 }
+                if (totalUses !== Infinity) { usesHtml = `<div class="card-action-uses">残 ${remainingUses} / ${totalUses} 回</div>`; }
 
                 const buttonHtml = `<button class="use-card-button button-pop" data-card-id="${cardData.id}" ${!isUsable ? 'disabled' : ''}>使用</button>`;
 
-                if (isUsable) {
-                    cardElement.classList.add('usable');
-                    usableActiveCardFound = true;
-                } else if (remainingUses <= 0 && totalUses !== Infinity) {
-                    cardElement.classList.add('used-up');
-                } else {
-                    cardElement.classList.add('not-usable');
-                }
+                if (isUsable) { cardElement.classList.add('usable'); usableActiveCardFound = true; }
+                else if (remainingUses <= 0 && totalUses !== Infinity) { cardElement.classList.add('used-up'); }
+                else { cardElement.classList.add('not-usable'); }
 
                 const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N'; const rarityBadgeHtml = `<span class="card-rarity-badge">${rarityText}</span>`;
-                const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`; const cardNameHtml = `${card.name} ${levelSpan}`;
-                const cardInnerHtml = `<span class="card-type-badge">${getCardTypeName(card.type)}</span> ${rarityBadgeHtml} <h3 class="card-name">${cardNameHtml}</h3> <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p> ${usesHtml} ${buttonHtml}`;
+                // ★ レベル表示HTMLを生成 (ショップと同様のクラス付与)
+                const currentLevel = cardData.level;
+                let levelSpanHtml = `<span class="card-level">[Lv.${currentLevel}]</span>`; // 基本
+                // ショップのアップグレード表示はモーダルには不要なので、現在のレベルのみ表示
+
+                const cardNameHtml = `${card.name}`; // 名前のみ
+                const cardInnerHtml = `
+                    <span class="card-type-badge">${getCardTypeName(card.type)}</span>
+                    ${rarityBadgeHtml}
+                    <h3 class="card-name">${cardNameHtml}</h3>
+                    ${levelSpanHtml} {/* ★ 名前とレベルを分離 */}
+                    <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p>
+                    ${usesHtml}
+                    ${buttonHtml}`;
                 cardElement.innerHTML = cardInnerHtml;
                 if (card.image) { cardElement.style.backgroundImage = `url('${card.image}')`; cardElement.style.backgroundSize = 'cover'; cardElement.style.backgroundPosition = 'center'; }
 
@@ -3040,7 +3043,7 @@ function updateShopUI() {
             }
         }
 
-        // --- パッシブカードの表示処理 ---
+         // --- パッシブカードの表示処理 ---
         if (passiveCards.length === 0) {
             passiveCardMessage.textContent = "装備中のカードはありません。";
             passiveCardDisplay.classList.add('empty');
@@ -3055,12 +3058,24 @@ function updateShopUI() {
                 cardElement.className = `card-action-item type-${card.type} rarity-${rarityClass} passive`;
                 cardElement.dataset.cardId = cardData.id;
 
-                const usesHtml = `<div class="card-action-uses" style="color: #aaa;">(パッシブ)</div>`;
-                const buttonHtml = ''; // パッシブにはボタンなし
+                // ★ パッシブステータス表示 (ボタン風)
+                const usesHtml = `<div class="card-action-uses"><span class="passive-status">装備中</span></div>`;
+                const buttonHtml = '';
 
                 const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N'; const rarityBadgeHtml = `<span class="card-rarity-badge">${rarityText}</span>`;
-                const levelSpan = `<span class="card-level">[Lv.${cardData.level}]</span>`; const cardNameHtml = `${card.name} ${levelSpan}`;
-                const cardInnerHtml = `<span class="card-type-badge">${getCardTypeName(card.type)}</span> ${rarityBadgeHtml} <h3 class="card-name">${cardNameHtml}</h3> <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p> ${usesHtml} ${buttonHtml}`;
+                // ★ レベル表示HTMLを生成 (ショップと同様のクラス付与)
+                const currentLevel = cardData.level;
+                let levelSpanHtml = `<span class="card-level">[Lv.${currentLevel}]</span>`; // 基本
+
+                const cardNameHtml = `${card.name}`; // 名前のみ
+                const cardInnerHtml = `
+                    <span class="card-type-badge">${getCardTypeName(card.type)}</span>
+                    ${rarityBadgeHtml}
+                    <h3 class="card-name">${cardNameHtml}</h3>
+                    ${levelSpanHtml} 
+                    <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p>
+                    ${usesHtml}
+                    ${buttonHtml}`;
                 cardElement.innerHTML = cardInnerHtml;
                 if (card.image) { cardElement.style.backgroundImage = `url('${card.image}')`; cardElement.style.backgroundSize = 'cover'; cardElement.style.backgroundPosition = 'center'; }
 
