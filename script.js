@@ -2874,17 +2874,43 @@ function updateShopUI() {
     function generateSettingsCardListHtml() {
         if (!settingsCardListInner) return;
         settingsCardListInner.innerHTML = '';
-        const sortedCards = [...allCards].sort((a, b) => { if (a.rarity !== b.rarity) return b.rarity - a.rarity; if (a.type !== b.type) return a.type.localeCompare(b.type); return a.name.localeCompare(b.name, 'ja'); });
+        // カードをレアリティ(降順) -> タイプ -> 名前(昇順)でソート
+        const sortedCards = [...allCards].sort((a, b) => {
+            if (a.rarity !== b.rarity) return b.rarity - a.rarity;
+            if (a.type !== b.type) return a.type.localeCompare(b.type);
+            return a.name.localeCompare(b.name, 'ja');
+        });
+
         sortedCards.forEach(card => {
-            const item = document.createElement('div'); item.className = 'card-list-item';
-            const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N'; const typeName = getCardTypeName(card.type); const typeClass = `type-${card.type}`; const rarityClass = `rarity-${rarityText}`;
+            const item = document.createElement('div');
+            item.className = 'card-list-item';
+            const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N';
+            const typeName = getCardTypeName(card.type);
+            const typeClass = `type-${card.type}`;
+            const rarityClass = `rarity-${rarityText}`;
+
+            // ★★★ 修正点 1 & 2: レベル表記と説明文を分離し、不要なコメント削除 ★★★
+            let effectDetailsHtml = '';
+            // Lv.1
+            effectDetailsHtml += `<div class="effect-level-title"><strong>Lv.1:</strong></div>`; // レベル表記を別divに
+            effectDetailsHtml += `<div class="effect-level-description">${getUpgradeDescription(card, 1)}</div>`; // 説明文を別divに
+            // Lv.2
+            if (MAX_CARD_LEVEL >= 2) {
+                effectDetailsHtml += `<div class="effect-level-title"><strong>Lv.2:</strong></div>`;
+                effectDetailsHtml += `<div class="effect-level-description">${getUpgradeDescription(card, 2)}</div>`;
+            }
+            // Lv.3
+            if (MAX_CARD_LEVEL >= 3) {
+                effectDetailsHtml += `<div class="effect-level-title"><strong>Lv.3:</strong></div>`;
+                effectDetailsHtml += `<div class="effect-level-description">${getUpgradeDescription(card, 3)}</div>`;
+            }
+
+            // item の innerHTML を設定
             item.innerHTML = `
                 <h3> ${card.name} <span class="card-meta"><span class="${typeClass}">${typeName}</span> <span class="${rarityClass}">★${rarityText}</span></span> </h3>
                 <p class="flavor-text">${card.flavor || '---'}</p>
                 <div class="effect-details">
-                    <p><strong>Lv.1:</strong> ${getUpgradeDescription(card, 1)}</p>
-                    ${(card.rarity > 1 || MAX_CARD_LEVEL > 1) ? `<p><strong>Lv.2:</strong> ${getUpgradeDescription(card, 2)}</p>` : ''}
-                    ${(card.rarity > 1 && MAX_CARD_LEVEL >= 3) ? `<p><strong>Lv.3:</strong> ${getUpgradeDescription(card, 3)}</p>` : ''}
+                    ${effectDetailsHtml} 
                 </div>`;
             settingsCardListInner.appendChild(item);
         });

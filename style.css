@@ -1438,4 +1438,22 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 .character-image-area.npc img {
     transform: scaleX(-1); /* 水平方向に反転 */
 }
+
+/* ===== 設定モーダル カード一覧 Lv表記調整 ===== */
+.effect-details .effect-level-title {
+    margin-top: 8px; /* 各レベル間のスペース */
+    margin-bottom: 2px; /* レベル表記と説明文の間のスペースを詰める */
+    color: #ffcc70; /* レベル表記の色を少し目立たせる */
+}
+
+.effect-details .effect-level-description {
+    padding-left: 10px; /* 説明文を少しインデント */
+    border-left: 2px solid rgba(255, 255, 255, 0.1); /* 左に区切り線 */
+    margin-bottom: 8px; /* 次のレベル表記とのスペース */
+}
+/* 最初のレベル(Lv.1)の上マージンは不要な場合 */
+.effect-details .effect-level-title:first-of-type {
+    margin-top: 0;
+}
+
 /* ===== END OF style.css ===== */
