@@ -181,8 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 役の定義 ---
     const ROLES = { PINZORO: { name: 'ピンゾロ', strength: 7, payoutMultiplier: 5 }, ARASHI: { name: 'アラシ', strength: 6, payoutMultiplier: 3 }, SHIGORO: { name: 'シゴロ', strength: 5, payoutMultiplier: 2 }, NORMAL_EYE: { name: '目', strength: 4, payoutMultiplier: 1 }, HIFUMI: { name: 'ヒフミ', strength: 1, payoutMultiplier: -2 }, MENASHI: { name: '目なし', strength: 0 }, SHONBEN: { name: 'ションベン', strength: -1, payoutMultiplier: -1 } };
 
-    // --- カードデータ定義 ---
-    const allCards = [
+     // --- カードデータ定義 ---
+     const allCards = [
          { id: 'reroll1', name: '振り直し回数+1', type: 'support', cost: 50, rarity: 1, flavor: 'もう一回！あと一回だけ！', applyEffect: (level = 1) => currentMaxRolls = BASE_MAX_ROLLS + level, removeEffect: (level = 1) => currentMaxRolls = BASE_MAX_ROLLS, image: './Card Image/01.jpeg' },
          { id: 'shonbenHalf', name: 'ションベン軽減', type: 'score', cost: 70, rarity: 1, flavor: 'おっとっと、少しこぼしただけさ。', effectTag: 'shonbenHalf', image: './Card Image/02.jpeg' },
          { id: 'ignoreMinBet', name: '最低賭け金無視', type: 'support', cost: 40, rarity: 1, flavor: 'チリも積もれば...', usesPerWave: 1, image: './Card Image/03.jpeg' },
@@ -197,21 +197,21 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'shigoroBonus', name: 'シゴロ強化', type: 'score', cost: 130, rarity: 1, flavor: '4-5-6！幸運の階段。', effectTag: 'shigoroBonus', image: './Card Image/12.jpeg' },
         { id: 'hifumiHalf', name: 'ヒフミ軽減', type: 'score', cost: 180, rarity: 2, flavor: '1-2-3...痛恨のミスも、少しだけ軽く。', effectTag: 'hifumiHalf', image: './Card Image/13.jpeg' },
         { id: 'drawBonus', name: '引き分けボーナス', type: 'support', cost: 90, rarity: 1, flavor: 'まあ、悪くないんじゃない？', usesPerWave: 1, image: './Card Image/14.jpeg' },
-        { id: 'blessingDice', name: '天の恵み', type: 'dice', cost: 130, rarity: 2, flavor: '天よ、我に力を！(このラウンド中6が出やすく)', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'adjustEye', name: '出目調整', type: 'dice', cost: 60, rarity: 1, flavor: 'あと一つ…！を現実に。', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'stormWarning', name: '嵐の予感', type: 'dice', cost: 250, rarity: 3, flavor: '嵐の前触れ…次こそは！(無料ロール時ゾロ目率UP)', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'nextChance', name: 'ネクストチャンス', type: 'dice', cost: 180, rarity: 3, flavor: '諦めるのはまだ早い。', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'betBoost', name: '賭け金ブースト', type: 'score', cost: 160, rarity: 2, flavor: 'リスクを取らねば、得られるものも少ない。', effectTag: 'betBoost', image: null }, // ★画像未設定
-        { id: 'fightingSpirit', name: '逆境の魂', type: 'score', cost: 140, rarity: 2, flavor: '窮鼠猫を噛む、とはよく言ったものだ。', effectTag: 'fightingSpirit', image: null }, // ★画像未設定
-        { id: 'rewardAmplifier', name: '報酬増幅', type: 'score', cost: 280, rarity: 3, flavor: '勝利の美酒は、より甘く。', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'keepParentalRight', name: '親権維持', type: 'support', cost: 180, rarity: 2, flavor: 'この座は、譲らん！', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'handExchange', name: '手札交換', type: 'support', cost: 50, rarity: 1, flavor: '不要なものを、新たな可能性に。', effectTag: 'handExchange', image: null }, // ★画像未設定
-        { id: 'soulRoll', name: '魂の一振り', type: 'support', cost: 200, rarity: 3, flavor: 'すべてをこの一振りに…！', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'doubleUpBet', name: 'ダブルアップ', type: 'score', cost: 220, rarity: 3, flavor: '倍プッシュだ…！', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'riskyBet', name: '危険な賭け', type: 'support', cost: 120, rarity: 2, flavor: '勝負は常に、リスクと隣り合わせ。', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'giveUpEye', name: '見切り', type: 'support', cost: 70, rarity: 1, flavor: '深追いは禁物。損切りも大事。', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'blindingDice', name: '目くらまし', type: 'dice', cost: 260, rarity: 3, flavor: 'さあ、惑うがいい！', usesPerWave: 1, image: null }, // ★画像未設定
-        { id: 'lossInsurance', name: '一撃保険', type: 'score', cost: 190, rarity: 3, flavor: '備えあれば憂いなし…？', effectTag: 'lossInsurance', image: null }, // ★画像未設定
+        { id: 'blessingDice', name: '天の恵み', type: 'dice', cost: 130, rarity: 2, flavor: '天よ、我に力を！(このラウンド中6が出やすく)', usesPerWave: 1, image: './Card Image/15.png' }, 
+        { id: 'adjustEye', name: '出目調整', type: 'dice', cost: 60, rarity: 1, flavor: 'あと一つ…！を現実に。', usesPerWave: 1, image: './Card Image/16.png' }, 
+        { id: 'stormWarning', name: '嵐の予感', type: 'dice', cost: 250, rarity: 3, flavor: '嵐の前触れ…次こそは！(無料ロール時ゾロ目率UP)', usesPerWave: 1, image: './Card Image/17.png' }, 
+        { id: 'nextChance', name: 'ネクストチャンス', type: 'dice', cost: 180, rarity: 3, flavor: '諦めるのはまだ早い。', usesPerWave: 1, image: './Card Image/18.png' }, 
+        { id: 'betBoost', name: '賭け金ブースト', type: 'score', cost: 160, rarity: 2, flavor: 'リスクを取らねば、得られるものも少ない。', effectTag: 'betBoost', image: './Card Image/19.png' }, 
+        { id: 'fightingSpirit', name: '逆境の魂', type: 'score', cost: 140, rarity: 2, flavor: '窮鼠猫を噛む、とはよく言ったものだ。', effectTag: 'fightingSpirit', image: './Card Image/20.png' }, 
+        { id: 'rewardAmplifier', name: '報酬増幅', type: 'score', cost: 280, rarity: 3, flavor: '勝利の美酒は、より甘く。', usesPerWave: 1, image: './Card Image/21.png' }, 
+        { id: 'keepParentalRight', name: '親権維持', type: 'support', cost: 180, rarity: 2, flavor: 'この座は、譲らん！', usesPerWave: 1, image: './Card Image/22.png' }, 
+        { id: 'handExchange', name: '手札交換', type: 'support', cost: 50, rarity: 1, flavor: '不要なものを、新たな可能性に。', effectTag: 'handExchange', image: './Card Image/23.png' }, 
+        { id: 'soulRoll', name: '魂の一振り', type: 'support', cost: 200, rarity: 3, flavor: 'すべてをこの一振りに…！', usesPerWave: 1, image: './Card Image/24.png' }, 
+        { id: 'doubleUpBet', name: 'ダブルアップ', type: 'score', cost: 220, rarity: 3, flavor: '倍プッシュだ…！', usesPerWave: 1, image: './Card Image/25.png' }, 
+        { id: 'riskyBet', name: '危険な賭け', type: 'support', cost: 120, rarity: 2, flavor: '勝負は常に、リスクと隣り合わせ。', usesPerWave: 1, image: './Card Image/26.png' },
+        { id: 'giveUpEye', name: '見切り', type: 'support', cost: 70, rarity: 1, flavor: '深追いは禁物。損切りも大事。', usesPerWave: 1, image: './Card Image/27.png' }, 
+        { id: 'blindingDice', name: '目くらまし', type: 'dice', cost: 260, rarity: 3, flavor: 'さあ、惑うがいい！', usesPerWave: 1, image: './Card Image/28.png' }, 
+        { id: 'lossInsurance', name: '一撃保険', type: 'score', cost: 190, rarity: 3, flavor: '備えあれば憂いなし…？', effectTag: 'lossInsurance', image: './Card Image/29.png' }, 
     ];
 
      // --- three.js 関連変数 ---
@@ -276,18 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /* // ↓ 難易度設定関数 削除 または コメントアウト
-    function setDifficulty(newDifficulty) {
-        difficulty = newDifficulty;
-        difficultyButtons.forEach(btn => btn.classList.toggle('selected', btn.dataset.difficulty === difficulty));
-        switch (difficulty) {
-            case 'easy': npcScoreIncrement = 300; break;
-            case 'hard': npcScoreIncrement = 700; break;
-            default: npcScoreIncrement = 500; break;
-        }
-        console.log(`Difficulty set to: ${difficulty}, NPC score increment: ${npcScoreIncrement}`);
-    }
-    */
     function getHandDisplayName(hand) { if (!hand) return '-'; if (hand.type === '役') return hand.name; if (hand.type === '目') return `目 (${hand.value})`; if (hand.type === 'ションベン') return 'ションベン'; if (hand.type === '目なし') return '目なし'; return '-'; }
 
     // === setMessage 関数の修正 ===
@@ -1052,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Hand Exchange Card Lv.${exchangeCard?.level}, Free rerolls for this visit: ${freeRerollsAvailableThisShopVisit}`);
 
         applyPlayerCardEffects();
-        displayShopOffers();
+        displayShopOffers(); // ★ フェーズ3で修正
         const choiceCardCheck = playerCards.find(c => c.id === 'shopChoicePlus1');
         if (choiceCardCheck) {
              shopChoicePlus1Active = false;
@@ -1065,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             console.log("Updating shop UI after slight delay...");
-            updateShopUI();
+            updateShopUI(); // ★ フェーズ3で修正
         }, 0);
 
         showScreen('shop-screen');
@@ -1074,15 +1062,13 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Closing shop, proceeding to next wave.");
         currentWave++;
 
-        playerScore = INITIAL_PLAYER_SCORE; // ★ スコアリセット (永続ブーストは後で加味)
+        playerScore = INITIAL_PLAYER_SCORE; // ★ 永続ブーストは後で加味
         scoreAtWaveStart = INITIAL_PLAYER_SCORE;
-        // ↓ 難易度依存のNPCスコア増加を削除
-        // npcScore = NPC_START_SCORE_BASE + defeatedCount * npcScoreIncrement;
-        // ↓ defeatedCount に応じた固定増加に変更 (増加量は調整の余地あり)
-        const npcScoreBaseIncrease = 500; // 例: 1体倒すごとに500点増加
+
+        const npcScoreBaseIncrease = 500; // 例
         npcScore = NPC_START_SCORE_BASE + defeatedCount * npcScoreBaseIncrease;
 
-        selectNextNpc(); // ★ selectNextNpc 内でモードによるリセット処理を追加する必要あり (フェーズ4)
+        selectNextNpc(); // ★ フェーズ4でモードによるリセット処理追加
         baseMinBet = 50 + (currentWave - 1) * MIN_BET_INCREMENT;
         currentMinBet = baseMinBet;
         isPlayerParent = true;
@@ -1106,11 +1092,11 @@ document.addEventListener('DOMContentLoaded', () => {
         startBettingPhase();
     }
    function selectNextNpc() {
-    // ★ エンドレスモード時のリセット処理はここに追記 (フェーズ4)
-    // if (gameMode === 'endless' && currentWave > 1 && (currentWave - 1) % 10 === 0) {
-    //     console.log("Endless mode: Resetting used NPC list at wave", currentWave);
-    //     usedNpcCharacters = [];
-    // }
+    // ★ フェーズ4でモードによるリセット処理追加
+    if (gameMode === 'endless' && currentWave > 1 && (currentWave - 1) % 10 === 0) {
+        console.log("Endless mode: Resetting used NPC list at wave", currentWave);
+        usedNpcCharacters = [];
+    }
 
     const availableNpcs = characters.filter(c =>
         c.id !== selectedCharacter.id &&
@@ -1216,6 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardElement.classList.add('sold-out'); buttonHtml = ''; costDisplay = '';
             cardElement.classList.remove('upgradeable', 'max-level', 'upgradeable-lv3');
         }
+        // imageプロパティにパスがあれば背景画像として設定
         if (cardData.image) { cardElement.style.backgroundImage = `url('${cardData.image}')`; }
 
         const rarityText = ['N', 'R', 'EP', 'LG'][cardData.rarity - 1] || 'N';
@@ -1262,9 +1249,9 @@ function updateShopUI() {
 
         const offerData = currentShopOffers.find(offer => offer.id === cardId);
         if (!offerData || !button) {
-             console.warn(`Offer data or button not found for cardId: ${cardId} in updateShopUI`);
+             // console.warn(`Offer data or button not found for cardId: ${cardId} in updateShopUI`); // パック等でIDがない場合もあるので一旦コメントアウト
              if (button) button.style.display = 'none';
-             if (costDisplayEl) costDisplayEl.textContent = 'エラー';
+             // if (costDisplayEl) costDisplayEl.textContent = 'エラー'; // 同上
             return;
         }
 
@@ -1330,17 +1317,24 @@ function updateShopUI() {
     function handleBuyCard(event) {
         // ★ フェーズ3でアイテムタイプ分岐追加
         const button = event.target;
-        const cardId = button.dataset.cardId;
-        const action = button.dataset.action;
+        const cardId = button.dataset.cardId; // カードIDを取得（パックやアイテムの場合は別の識別子を使うかも）
+        const action = button.dataset.action; // 'buy' or 'upgrade'
         const cost = parseInt(button.dataset.cost || '0');
-        const offerData = currentShopOffers.find(offer => offer.id === cardId);
-        if (!offerData) return;
 
-        const actualCost = cost;
+        // currentShopOffers から対応するアイテムデータを特定 (type プロパティも参照する)
+        // ★ フェーズ3で修正が必要
+        const offerData = currentShopOffers.find(offer => offer.id === cardId); // 仮: IDのみで検索
+
+        if (!offerData) {
+             console.error("Offer data not found for", cardId);
+             return;
+        }
+
+        const actualCost = cost; // 割引などはここで適用済みのはず
 
         if (playerCoins < actualCost) { setShopMessage("コインが足りません！"); return; }
 
-        if (action === 'upgrade') {
+        if (action === 'upgrade') { // カード強化
             const currentCardData = playerCards.find(c => c.id === cardId);
             if (!currentCardData || currentCardData.level >= MAX_CARD_LEVEL) { setShopMessage("これ以上強化できません。"); return; }
             const nextLevel = currentCardData.level + 1;
@@ -1352,17 +1346,20 @@ function updateShopUI() {
             setShopMessage(`${offerData.name} を Lv.${nextLevel} に強化しました！`);
             applyPlayerCardEffects();
             updateShopUI();
-        } else if (action === 'buy') {
-             // ★ フェーズ2で手札上限チェック修正
+        } else if (action === 'buy') { // 新規購入 (カード、パック、アイテム)
+            // ★ フェーズ3でアイテムタイプによる分岐処理を追加
+            // 以下はカード購入の場合のロジック
+            // ★ フェーズ2で手札上限チェック修正
             if (playerCards.length >= MAX_HAND_CARDS) {
                  setShopMessage("手札がいっぱいです！売却するカードを選んでください。");
-                 cardToDiscardFor = { ...offerData, cost: actualCost };
+                 cardToDiscardFor = { ...offerData, cost: actualCost }; // 購入予定のカード情報
                  openDiscardModal(); return;
             }
-            purchaseCard({ ...offerData, cost: actualCost });
+            purchaseCard({ ...offerData, cost: actualCost }); // カード購入処理へ
         }
     }
     function purchaseCard(cardDefinition) {
+        // ★ フェーズ2で手札上限チェック修正
         playerCoins -= cardDefinition.cost;
         playerCards.push({ id: cardDefinition.id, level: 1 });
         purchasedOrUpgradedInShop.push(cardDefinition.id);
@@ -1417,15 +1414,16 @@ function updateShopUI() {
         // ★ フェーズ2で修正必要
         const discardedCardId = event.target.dataset.cardId;
         const sellPrice = parseInt(event.target.dataset.sellPrice || '0');
-        const newCardDefinition = cardToDiscardFor;
+        const newCardDefinition = cardToDiscardFor; // 購入予定のアイテム情報
         if (!newCardDefinition) return;
 
         removePlayerCardEffect(discardedCardId);
         playerCoins += sellPrice;
         console.log(`Sold card ${discardedCardId} for ${sellPrice}G.`);
 
+        // ★ フェーズ3でパック購入などの処理分岐を追加
         if (playerCoins >= newCardDefinition.cost) {
-             purchaseCard(newCardDefinition); // ★ フェーズ3でパック購入の場合の処理分岐必要
+             purchaseCard(newCardDefinition); // カード購入の場合
         } else {
              setShopMessage(`売却しましたが、コインが足りず ${newCardDefinition.name} を購入できませんでした。`);
         }
@@ -1489,8 +1487,8 @@ function updateShopUI() {
         }
     }
 
-    // === 賭け金上限更新 ===
-    function updateBetLimits() {
+      // === 賭け金上限更新 ===
+      function updateBetLimits() {
         let playerMaxPotential = playerScore;
         const betBoostCard = playerCards.find(card => card.id === 'betBoost');
         if (betBoostCard) {
@@ -1498,7 +1496,7 @@ function updateShopUI() {
             playerMaxPotential = Math.floor(playerScore * boostMultiplier);
         }
         const effectiveNpcScore = Math.max(1, npcScore);
-        // ↓ エンドレスモードでの最低賭け金調整は startBettingPhase で行うため、ここは変更なし
+        // 最低賭け金は currentMinBet を参照
         const maxBet = isPlayerParent
             ? Math.max(currentMinBet, Math.min(playerMaxPotential, effectiveNpcScore))
             : Math.max(currentMinBet, Math.min(npcScore, playerScore));
@@ -1550,7 +1548,7 @@ function updateShopUI() {
         activeCardBeingUsed = null; ignoreMinBetActive = false;
         zoroChanceUpActive = false; avoid123_456Active = false; blessingDiceActive = false; stormWarningActive = false; stormWarningRerollsLeft = 0; blindingDiceActive = false; doubleUpBetActive = false; rewardAmplifierActive = false; giveUpEyeUsedThisTurn = false; adjustEyeUsedThisTurn = false; nextChanceUsedThisTurn = false; soulRollUsedThisTurn = false; waitingForUserChoice = false; userChoiceResolver = null; riskyBetActive = false;
         waitingForPlayerActionAfterRoll = false;
-        drawBonusActive = false; // ★ drawBonusActive フラグをリセット
+        drawBonusActive = false;
 
         if (betMainControls) betMainControls.style.display = 'flex';
         if (betActionContainer) betActionContainer.style.display = 'flex';
@@ -1566,11 +1564,13 @@ function updateShopUI() {
         }
         // ★ エンドレスモードの最低賭け金調整
         if (gameMode === 'endless') {
-            currentMinBet = Math.min(currentMinBet, playerScore); // プレイヤー持ち点以下にする
+            currentMinBet = Math.min(currentMinBet, playerScore);
+            currentMinBet = Math.max(1, currentMinBet); // 最低1は保証
         }
          betInput.value = currentMinBet;
-        updateUI();
+        updateUI(); // UIに反映
 
+        // 最低賭け金チェック
         if (playerScore < currentMinBet) {
              setMessage(`あなたの持ち点(${playerScore}点)が最低賭け金(${currentMinBet}点)未満のため、ゲームオーバーです。`);
              currentBetInfoEl.textContent = '';
@@ -1611,9 +1611,10 @@ function updateShopUI() {
             betInput.disabled = true; setBetButton.disabled = true; betAdjustButtons.forEach(btn => btn.disabled = true); maxBetButton.disabled = true; minBetButton.disabled = true;
             setMessage(`${npcName}(親)が賭け金を決定中... (最低 ${currentMinBet}点)`);
             setTimeout(() => {
-                const npcBet = determineNpcBet(currentWave);
+                const npcBet = determineNpcBet(currentWave); // 賭け金決定ロジック
+                // NPCの賭け金が最低賭け金を満たしているか、支払い可能か再チェック
                 if (npcScore < npcBet || npcBet < currentMinBet) {
-                     console.error(`Error: NPC bet ${npcBet} is invalid (NPC Score: ${npcScore}, Min Bet: ${currentMinBet})`);
+                     console.error(`Error: NPC bet ${npcBet} is invalid (NPC Score: ${npcScore}, Min Bet: ${currentMinBet}) - Forcing WAVE clear.`);
                      defeatedCount++;
                      const earnedCoins = calculateEarnedCoins();
                      calculateAndAwardCoins();
@@ -1637,40 +1638,28 @@ function updateShopUI() {
                 currentBetInfoEl.innerHTML = `現在の賭け金: ${currentBet} 点 <span class="parent-name">(親: ${npcName})</span>`;
                 setMessage(`${npcName}(親)が ${currentBet} 点で勝負！ ${npcName}がサイコロを振ります...`);
                 isGameActive = true;
-                isPlayerTurn = false;
+                isPlayerTurn = false; // NPCターンから開始
                 updateUI();
-                const blindingCard = playerCards.find(c => c.id === 'blindingDice');
-                const canUseBlinding = blindingCard && (getRemainingUses('blindingDice') > 0);
-                 if (canUseBlinding && !isPlayerParent) { // blindingDiceは親が子に使うカードだが、現状はプレイヤーが使える前提になっている？要確認
-                    setMessage(`${npcName}(親)が ${currentBet} 点で勝負！ ${npcName}がサイコロを振ります...`);
-                     setTimeout(npcTurn, NPC_BET_DELAY / 2);
-                } else {
-                    setTimeout(npcTurn, NPC_BET_DELAY / 2);
-                }
+                // カード効果(Blinding Dice)の使用確認などはNPCターン内で行うか検討
+                setTimeout(npcTurn, NPC_BET_DELAY / 2);
+
             }, NPC_BET_DELAY);
         }
         console.log("--- startBettingPhase END ---");
     }
 
-    // === NPC賭け金決定ロジック ===
+    // === NPC賭け金決定ロジック (変更なし) ===
     function determineNpcBet(wave) {
-        // ↓ 難易度による変動を削除
-        // let baseRateMin = 0.1, baseRateMax = 0.2, aggressiveChance = 0.3, aggressiveRateMin = 0.3, aggressiveRateMax = 0.5, cautiousChance = 0.4, cautiousRateMin = 0.05, cautiousRateMax = 0.15, maxBetChance = 0.05;
-        // if (difficulty === 'hard') { aggressiveChance = 0.5; cautiousChance = 0.2; maxBetChance = 0.15; }
-        // else if (difficulty === 'easy') { aggressiveChance = 0.1; cautiousChance = 0.6; maxBetChance = 0.01; }
-        // if (wave >= 8) { baseRateMin = 0.2; baseRateMax = 0.35; aggressiveChance += 0.1; aggressiveRateMin = 0.4; aggressiveRateMax = 0.6; cautiousChance -= 0.1; cautiousRateMin = 0.1; cautiousRateMax = 0.2; maxBetChance += 0.1; }
-        // else if (wave >= 5) { baseRateMin = 0.15; baseRateMax = 0.25; aggressiveChance += 0.05; aggressiveRateMin = 0.35; aggressiveRateMax = 0.55; cautiousChance -= 0.05; cautiousRateMin = 0.08; cautiousRateMax = 0.18; maxBetChance += 0.05; }
-        // ↓ シンプルなWAVE依存に変更
         let baseRateMin = 0.1, baseRateMax = 0.2, aggressiveChance = 0.3, aggressiveRateMin = 0.3, aggressiveRateMax = 0.5, cautiousChance = 0.4, cautiousRateMin = 0.05, cautiousRateMax = 0.15, maxBetChance = 0.05;
         if (wave >= 8) { baseRateMin = 0.2; baseRateMax = 0.35; aggressiveChance = 0.5; aggressiveRateMin = 0.4; aggressiveRateMax = 0.6; cautiousChance = 0.2; cautiousRateMin = 0.1; cautiousRateMax = 0.2; maxBetChance = 0.15; }
         else if (wave >= 5) { baseRateMin = 0.15; baseRateMax = 0.25; aggressiveChance = 0.4; aggressiveRateMin = 0.35; aggressiveRateMax = 0.55; cautiousChance = 0.3; cautiousRateMin = 0.08; cautiousRateMax = 0.18; maxBetChance = 0.1; }
-
 
         const effectivePlayerScore = Math.max(1, playerScore);
         const npcMinPossibleBet = currentMinBet;
         const maxBetPossible = Math.min(npcScore, effectivePlayerScore);
 
-        if (npcScore < npcMinPossibleBet) return npcScore;
+        if (npcScore < npcMinPossibleBet) return npcScore; // 最低賭け金未満なら全額？ -> 実際は払えないのでエラーになるはず
+        // 払える最大額が最低賭け金未満の場合、最低賭け金をベットする（ただし払えない）-> これもエラーになるはず
         if (maxBetPossible < npcMinPossibleBet) return npcMinPossibleBet;
 
         let bet = 0;
@@ -1691,9 +1680,9 @@ function updateShopUI() {
                 console.log("NPC AI: Cautious move.");
             }
         }
-        bet = Math.max(npcMinPossibleBet, bet);
-        bet = Math.min(bet, maxBetPossible);
-        return Math.max(1, bet);
+        bet = Math.max(npcMinPossibleBet, bet); // 最低賭け金は保証
+        bet = Math.min(bet, maxBetPossible);    // 支払い可能額、相手のスコアが上限
+        return Math.max(1, bet); // 最低1点は保証
     }
 
     // --- three.js 関連 ---
@@ -2907,17 +2896,24 @@ function updateShopUI() {
 
     // === 結果画面表示 ===
     function showResultScreen(isClear, currentScore, wave, reason = "") {
-        // ★ gameMode を参照してメッセージを調整 (フェーズ4で実装)
         resultTitleEl.textContent = isClear ? "ゲームクリア！" : "ゲームオーバー";
         resultTitleEl.className = isClear ? 'clear' : 'over';
-        resultMessageEl.textContent = isClear ? `祝！ 全${MAX_WAVES}WAVE制覇！` : `残念！ WAVE ${wave} で敗北... ${reason}`;
+        // ★ モードに応じてメッセージ変更 (フェーズ4)
+        let messageText = "";
+        if (gameMode === 'endless') {
+            messageText = `エンドレスモード終了！ 到達WAVE: ${wave}, 最終スコア:`; // スコアは別途計算
+        } else { // normal mode
+            messageText = isClear ? `祝！ 全${MAX_WAVES}WAVE制覇！` : `残念！ WAVE ${wave} で敗北... ${reason}`;
+        }
+        resultMessageEl.textContent = messageText;
 
         let finalCalcScore = 0;
         const coinBonus = playerCoins * 3;
-        const clearBonus = MAX_WAVES * 100; // 通常モードクリアボーナス
+        const clearBonus = (gameMode === 'normal' && isClear) ? MAX_WAVES * 100 : 0; // 通常クリアボーナス
 
-        // エンドレスモードのスコア計算は別途考慮が必要 (フェーズ4)
-        finalCalcScore = Math.max(0, totalScoreChange + (isClear ? clearBonus : 0) + coinBonus);
+        // ★ エンドレスモードの最終スコア計算方法 (要検討)
+        // 現状は totalScoreChange を基にする
+        finalCalcScore = Math.max(0, totalScoreChange + clearBonus + coinBonus);
 
         finalScoreEl.textContent = `最終スコア: ${finalCalcScore}`;
         showScreen('result-screen');
