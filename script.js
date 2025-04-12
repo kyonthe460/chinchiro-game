@@ -2831,31 +2831,52 @@ function updateShopUI() {
         showScreen('result-screen');
     }
 
-    // === 履歴追加・表示 ===
-    function addHistoryEntry(entry) { gameHistory.push(entry); }
+     // === 履歴追加・表示 ===
+     function addHistoryEntry(entry) {
+        // ★ 現在のNPC名を取得してentryオブジェクトに追加
+        entry.npcName = currentNpcCharacter?.name || 'NPC不明'; // そのラウンド時点のNPC名を保存
+        gameHistory.push(entry);
+        console.log("History entry added:", entry); // デバッグ用ログ追加
+    }
+
     function displayHistory() {
         historyLogEl.innerHTML = '';
-        if (gameHistory.length === 0) { historyLogEl.innerHTML = '<li>履歴なし</li>'; return; }
+        if (gameHistory.length === 0) {
+            historyLogEl.innerHTML = '<li>履歴なし</li>';
+            return;
+        }
+        // 履歴を新しい順に表示するために reverse() を使用
         [...gameHistory].reverse().forEach(e => {
             const li = document.createElement('li');
             li.className = e.result || 'unknown';
             const isClearEntry = e.result === 'clear' || e.isWaveClear;
-            if (isClearEntry && e.message) { li.innerHTML = `<div class="wave-clear-info">${e.message}</div>`; }
-            else if (!isClearEntry || (isClearEntry && e.earnedCoins !== undefined)) {
-                if (isClearEntry) { li.innerHTML = `<div class="wave-clear-info">WAVE ${e.wave} クリア！ コイン ${e.earnedCoins} G獲得！</div>`; }
-                else {
+
+            if (isClearEntry && e.message) {
+                // WAVEクリアメッセージなど特殊なエントリー
+                li.innerHTML = `<div class="wave-clear-info">${e.message}</div>`;
+            } else if (!isClearEntry || (isClearEntry && e.earnedCoins !== undefined)) {
+                if (isClearEntry) {
+                    // WAVEクリア時のコイン獲得エントリー
+                    li.innerHTML = `<div class="wave-clear-info">WAVE ${e.wave} クリア！ コイン ${e.earnedCoins} G獲得！</div>`;
+                } else {
+                    // 通常のラウンド結果エントリー
                     let resultText = ''; let resultClass = '';
                     if (e.result === 'win') { resultText = '勝ち'; resultClass = 'history-win'; }
                     else if (e.result === 'lose') { resultText = '負け'; resultClass = 'history-lose'; }
                     else { resultText = '引き分け'; resultClass = 'history-draw'; }
+
                     const scoreStr = e.scoreChange !== 0 ? ` (<span class="${e.scoreChange > 0 ? 'gain' : 'loss'}">${e.scoreChange > 0 ? '+' : ''}${e.scoreChange}</span>)` : '';
+                    // 連勝数は親だった場合のみ表示（保存されたデータに基づく）
                     const winStreakStr = e.consecutiveWins > 1 ? ` <span class="win-streak">(${e.consecutiveWins}連勝)</span>` : '';
                     const npcWinStreakStr = e.npcConsecutiveWins > 1 ? ` <span class="npc-losing-streak">(${e.npcConsecutiveWins}連敗...)</span>` : '';
-                    const parentName = e.parentBefore === 'Player' ? (selectedCharacter?.name || 'あなた') : (currentNpcCharacter?.name || 'NPC'); // ここは履歴データに依存すべき
+                    // 親の名前を決定 (履歴データから)
+                    const parentName = e.parentBefore === 'Player' ? (selectedCharacter?.name || 'あなた') : (e.npcName || 'NPC不明'); // ★ 保存されたNPC名を使用
                     const parentStr = e.parentBefore ? `<span class="parent-info">(親: ${parentName})</span>` : '';
                     const betStr = e.betAmount > 0 ? `<span class="bet-amount">賭け金: ${e.betAmount}</span>` : '';
                     const playerNameForHistory = selectedCharacter?.name || 'あなた';
-                    const npcNameForHistory = currentNpcCharacter?.name || 'NPC'; // ここも履歴データに依存すべき
+                    // ★★★ NPCの名前を履歴データから取得 ★★★
+                    const npcNameForHistory = e.npcName || 'NPC不明'; // 保存されたNPC名を使用
+
                     li.innerHTML = `
                         <span class="wave-num"><span class="wave-highlight">WAVE ${e.wave}</span> - <span class="round-normal">ROUND ${e.round}</span> ${parentStr}</span>
                         <div class="details">
@@ -2865,7 +2886,12 @@ function updateShopUI() {
                         <div class="score-change-history">${scoreStr}${winStreakStr}${npcWinStreakStr}</div>
                     `;
                 }
-            } else { console.warn("Skipping history entry due to missing/unexpected data:", e); li.innerHTML = `<span class="wave-num">WAVE ${e.wave} - ROUND ${e.round}</span> <div>履歴データエラー</div>`; li.style.color = 'red'; li.style.borderLeftColor = 'red'; }
+            } else {
+                console.warn("Skipping history entry due to missing/unexpected data:", e);
+                li.innerHTML = `<span class="wave-num">WAVE ${e.wave} - ROUND ${e.round}</span> <div>履歴データエラー</div>`;
+                li.style.color = 'red';
+                li.style.borderLeftColor = 'red';
+            }
             historyLogEl.appendChild(li);
         });
     }
@@ -3028,7 +3054,7 @@ function updateShopUI() {
                     <span class="card-type-badge">${getCardTypeName(card.type)}</span>
                     ${rarityBadgeHtml}
                     <h3 class="card-name">${cardNameHtml}</h3>
-                    ${levelSpanHtml} {/* ★ 名前とレベルを分離 */}
+                    ${levelSpanHtml} 
                     <p class="card-description">${getUpgradeDescription(card, cardData.level)}</p>
                     ${usesHtml}
                     ${buttonHtml}`;
