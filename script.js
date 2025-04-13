@@ -1101,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 最終的な説明文を組み立てて返す
     const conditionHtml = conditionText ? `<b>【発動条件/タイミング】</b><br>${conditionText}<br>` : '';
     return `${conditionHtml}<b>【効果】</b><br>${effectText}`;
-} // ★ ここまでが getUpgradeDescription 関数の終わり
+} // ここまでが getUpgradeDescription 関数の終わり
 
     function getCardTypeName(type) { switch(type) { case 'support': return '補助'; case 'dice': return '出目操作'; case 'score': return '点数強化'; case 'special': return '特殊'; default: return '不明'; } }
     // === ショップを開く処理 ===
@@ -1136,12 +1136,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showScreen('shop-screen');
     }
-     // === ショップを閉じる処理 ===
+    // === ショップを閉じる処理 (NPCリセットロジック削除) ===
     function closeShop() {
         console.log("Closing shop, proceeding to next wave.");
-
-        // アクティブカード使用回数をリセット
-        activeCardUses = {};
+        activeCardUses = {}; // アクティブカード使用回数リセット
         console.log("Active card uses reset for new wave.");
 
         currentWave++;
@@ -1153,10 +1151,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const npcScoreBaseIncrease = 500; // NPCスコア増加量 (調整可能)
         npcScore = NPC_START_SCORE_BASE + defeatedCount * npcScoreBaseIncrease;
 
-        selectNextNpc(); // 次のNPC選択 (エンドレスモードのリセット含む)
+        selectNextNpc(); // ★ ここでNPCが選択され、必要ならリストがリセットされる
+
         baseMinBet = 50 + (currentWave - 1) * MIN_BET_INCREMENT;
         currentMinBet = baseMinBet; // startBettingPhaseでモード別調整
-        isPlayerParent = true; // 次のWAVEはプレイヤーが親から開始
+        isPlayerParent = true; // 次はプレイヤー親
         playerHand = null; npcHand = null; playerRollCount = 0; npcRollCount = 0; isGameActive = false;
         consecutiveWins = 0; npcConsecutiveWins = 0; // 連勝数リセット
         currentRoundInWave = 0; // ラウンド数リセット
@@ -1169,8 +1168,8 @@ document.addEventListener('DOMContentLoaded', () => {
         rollButton.disabled = true; // ロールボタン無効化
         historyButton.disabled = false; // 履歴ボタン有効化
 
-        // WAVE固有のカード効果フラグリセット (例: 親権維持使用回数)
-        keepParentRightUsedThisWave = 0;
+        // WAVE固有のカード効果フラグリセット
+        keepParentRightUsedThisWave = 0; // 親権維持カードのフラグリセットだがこれは他のアクティブカードとは別？
         keepParentDiscountNextRound = false;
         waitingForPlayerActionAfterRoll = false; // 操作待ち状態解除
 
@@ -1179,11 +1178,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('game-screen'); // ゲーム画面表示
         startBettingPhase(); // 新しいWAVEのベットフェーズ開始
     }
+
+   // === 次のNPC選択 (エンドレスモード対応) ===
    function selectNextNpc() {
-    // ★ フェーズ4でモードによるリセット処理追加
     if (gameMode === 'endless' && currentWave > 1 && (currentWave - 1) % 10 === 0) {
-        console.log("Endless mode: Resetting used NPC list at wave", currentWave);
-        usedNpcCharacters = [];
+        console.log(`Endless mode: Resetting used NPC list before selecting NPC for wave ${currentWave}`);
+        usedNpcCharacters = []; // 10WAVEごとにNPCリストリセット
     }
 
     const availableNpcs = characters.filter(c =>
@@ -1196,20 +1196,21 @@ document.addEventListener('DOMContentLoaded', () => {
         currentNpcCharacter = availableNpcs[randomIndex];
         usedNpcCharacters.push(currentNpcCharacter.id);
     } else {
-        console.log("All NPCs used or only player left, resetting NPC history.");
-        usedNpcCharacters = []; // リストをリセット
+        console.log("All NPCs used or only player left, resetting NPC history for next cycle."); // メッセージ変更
+        usedNpcCharacters = []; // リストをリセットして再度抽選試行
         const resettledAvailableNpcs = characters.filter(c => c.id !== selectedCharacter.id);
         if (resettledAvailableNpcs.length > 0) {
             const randomIndex = Math.floor(Math.random() * resettledAvailableNpcs.length);
             currentNpcCharacter = resettledAvailableNpcs[randomIndex];
             usedNpcCharacters.push(currentNpcCharacter.id); // リセット後も使用済みリストに追加
         } else {
-             currentNpcCharacter = selectedCharacter; // プレイヤー自身しかいない場合
-            console.warn("Critical issue: No available NPC found! Defaulting to player character.");
+             currentNpcCharacter = selectedCharacter; // プレイヤー自身しかいない場合 (ほぼ起こらないはず)
+            console.warn("Critical issue: No available NPC found even after reset! Defaulting to player character.");
         }
     }
     console.log(`Selected NPC for Wave ${currentWave}: ${currentNpcCharacter?.name}`);
 
+    // NPCの初期カード設定 
     currentNpcCardId = null;
     if (currentNpcCharacter && currentNpcCharacter.initialCardPool && currentNpcCharacter.initialCardPool.length > 0) {
         const randomCardIndex = Math.floor(Math.random() * currentNpcCharacter.initialCardPool.length);
@@ -3288,26 +3289,25 @@ function updateShopUI() {
 
     // === 結果画面表示 ===
     function showResultScreen(isClear, currentScore, wave, reason = "") {
-        resultTitleEl.textContent = isClear ? "ゲームクリア！" : "ゲームオーバー";
-        resultTitleEl.className = isClear ? 'clear' : 'over';
-        // ★ モードに応じてメッセージ変更
-        let messageText = "";
-        if (gameMode === 'endless') {
-            // エンドレスモードのメッセージ
-            messageText = `エンドレスモード終了！ 到達WAVE: ${wave}. ${reason}`;
-        } else { // normal mode
-            messageText = isClear ? `祝！ 全${MAX_WAVES}WAVE制覇！` : `残念！ WAVE ${wave} で敗北... ${reason}`;
+        // モードとクリア/ゲームオーバーで表示を分岐
+        if (gameMode === 'endless' && !isClear) { // エンドレスモードでゲームオーバーの場合
+            resultTitleEl.textContent = "エンドレスモード 終了";
+            resultTitleEl.className = 'over'; // ゲームオーバーのスタイル適用
+            resultMessageEl.textContent = `到達 WAVE: ${wave}. ${reason}`; // 到達WAVEと理由を表示
+        } else { // 通常モード または クリア の場合
+            resultTitleEl.textContent = isClear ? "ゲームクリア！" : "ゲームオーバー";
+            resultTitleEl.className = isClear ? 'clear' : 'over';
+            resultMessageEl.textContent = isClear ? `祝！ 全${MAX_WAVES}WAVE制覇！` : `残念！ WAVE ${wave} で敗北... ${reason}`;
         }
-        resultMessageEl.textContent = messageText;
 
+        // --- 最終スコア計算 ---
         let finalCalcScore = 0;
         const coinBonus = playerCoins * 3;
         const clearBonus = (gameMode === 'normal' && isClear) ? MAX_WAVES * 100 : 0; // 通常クリアボーナス
-        const waveBonusEndless = (gameMode === 'endless') ? wave * 50 : 0; // エンドレスWAVEボーナス
+        const waveBonusEndless = (gameMode === 'endless') ? (wave -1) * 50 : 0; // ★ エンドレス到達WAVEボーナス (wave-1 * 50点)
 
-        // ★ エンドレスモードの最終スコア計算方法 (暫定)
-        // totalScoreChange(ラウンドでの純粋な得失点) + コインボーナス + クリアボーナス(通常) or WAVEボーナス(エンドレス)
-        finalCalcScore = Math.max(0, totalScoreChange + clearBonus + waveBonusEndless + coinBonus);
+        // スコア計算: 総得失点 + コインボーナス + (通常クリアボーナス or エンドレスWAVEボーナス)
+        finalCalcScore = Math.max(0, totalScoreChange + coinBonus + clearBonus + waveBonusEndless);
 
         finalScoreEl.textContent = `最終スコア: ${finalCalcScore}`;
         showScreen('result-screen');
