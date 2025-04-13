@@ -788,9 +788,72 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 .sell-card-button:disabled { background-color: #555 !important; color: #999 !important; cursor: not-allowed; }
 
 .shop-message { font-size: 1em; color: #ccc; margin-bottom: 30px; min-height: 1.2em; }
-#card-offers { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; margin-bottom: 35px; align-items: flex-start; }
+/* ショップレイアウト用スタイル */
+.shop-offers-container {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.shop-section {
+    margin-bottom: 25px; /* 各セクション間のマージン */
+    padding-bottom: 15px; /* 下線とのスペース */
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15); /* セクション区切り線 */
+}
+.shop-section:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.shop-section-title {
+    font-size: 1.3em;
+    color: #ffcc70;
+    text-align: left;
+    margin-top: 0;
+    margin-bottom: 15px; /* タイトルとアイテム行の間隔 */
+    padding-left: 5px;
+    font-weight: 500;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+/* アイテム表示行の共通スタイル (カードアクションモーダルと同様) */
+.shop-item-row {
+    display: flex;
+    flex-wrap: nowrap; /* 横一列に */
+    gap: 15px;         /* アイテム間の隙間 */
+    justify-content: flex-start; /* 左詰め */
+    padding: 10px 15px; /* 内側のパディング */
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    min-height: 150px; /* ★ 最低限の高さを確保 (中身がない場合など) */
+    align-items: stretch; /* ★ アイテムの高さを揃える */
+    overflow-x: auto; /* 横スクロール */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
+}
+/* スクロールバー (WebKit) */
+.shop-item-row::-webkit-scrollbar { height: 8px; }
+.shop-item-row::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+.shop-item-row::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+.shop-item-row::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.3); }
+
+/* オファーがない場合のメッセージ */
+.shop-empty-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    color: #888;
+    font-style: italic;
+    min-height: 100px; /* メッセージ表示時の高さ */
+}
 /* ショップカード要素調整 & レアリティエフェクト */
-.card { border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 15px 15px 50px 15px; width: 200px; min-height: 280px; box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; overflow: hidden; background-size: cover; background-position: center center; background-repeat: no-repeat; background-color: rgba(60, 60, 90, 0.8); }
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 15px 15px 50px 15px;
+    width: 200px; min-height: 280px; /* サイズを維持 */
+    flex-shrink: 0; /* 縮まないように */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; overflow: hidden; background-size: cover; background-position: center center; background-repeat: no-repeat; background-color: rgba(60, 60, 90, 0.8);
+}
 .card:not(.sold-out):hover { transform: translateY(-6px) scale(1.03); box-shadow: 5px 10px 15px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(0,0,0,0.3); }
 .card::before { content: ""; position: absolute; top: 0; left: -85%; z-index: 2; display: block; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.3) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); opacity: 0; transition: opacity 0.3s; }
 .card.rarity-rare::before { animation: shining 3.5s infinite linear; opacity: 1; }
@@ -834,8 +897,52 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #close-shop-button:hover { background: linear-gradient(180deg, #f3bc70, #f0a540); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4); }
 /* ショップ売却確認ボタン用コンテナ */
 #shop-confirmation-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-/* ★ 確認ボタンのスタイル */
+/* 確認ボタンのスタイル */
 #shop-confirmation-buttons button { padding: 10px 25px; font-size: 1.1em; }
+/* パックとブーストアイテムの基本スタイルを追加 */
+.pack, .boost-item {
+    border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 15px 15px 50px 15px;
+    width: 200px; min-height: 280px; /* カードと同じサイズに */
+    flex-shrink: 0;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative; overflow: hidden;
+    background-size: cover; background-position: center center; background-repeat: no-repeat;
+    background-color: rgba(80, 60, 100, 0.8); /* 少し色を変える (例: 紫系) */
+    text-align: center;
+}
+.pack:not(.sold-out):hover, .boost-item:not(.sold-out):hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 5px 10px 15px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(0,0,0,0.3);
+}
+/* パック/ブーストアイテム内の要素スタイル (カードに準拠) */
+.pack .card-name, .boost-item .card-name { /* h3流用 */
+    font-size: 1.1em; /* カード名より少し小さく */
+    color: #e0e0e0; /* 白っぽく */
+    margin-top: 15px; margin-bottom: 10px;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: inline-block; /* 幅を内容に合わせる */
+}
+.pack .card-description, .boost-item .card-description { /* p流用 */
+    font-size: 0.9em; color: #d0d0d0; line-height: 1.5; text-align: left; margin-bottom: 10px; flex-grow: 1; background-color: rgba(0, 0, 0, 0.4); padding: 8px; border-radius: 5px; box-sizing: border-box; text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+}
+/* パック/ブーストアイテムのフッターとコスト表示 (カードに準拠) */
+.pack .card-footer, .boost-item .card-footer { position: absolute; bottom: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; }
+.pack .card-cost, .boost-item .card-cost { font-size: 1.0em; font-weight: bold; color: #ffcc70; background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+/* パック/ブーストアイテムの購入ボタン (カードに準拠) */
+.pack .buy-button, .boost-item .buy-button { padding: 6px 14px; font-size: 0.9em; cursor: pointer; border: none; border-radius: 15px; color: #333; font-weight: bold; transition: all 0.2s ease; text-shadow: 0px 1px 1px rgba(255,255,255,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.3); background: linear-gradient(180deg, #6fa8dc, #4a90e2); color: white; } /* ボタン色変更 */
+.pack .buy-button:hover:not(:disabled), .boost-item .buy-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(74, 144, 226, 0.4); background: linear-gradient(180deg, #81b7f3, #5aa1e9); }
+.pack .buy-button:disabled, .boost-item .buy-button:disabled { background-color: #555 !important; background-image: none !important; color: #999 !important; cursor: not-allowed; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); text-shadow: none; }
+
+/* 売り切れスタイル (パック/ブーストアイテムにも適用) */
+.pack.sold-out, .boost-item.sold-out { opacity: 0.55; pointer-events: none; position: relative; box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); animation: none; border-color: rgba(255, 255, 255, 0.15); }
+.pack.sold-out::after, .boost-item.sold-out::after { content: "SOLD OUT"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg) scale(1.1); background-color: rgba(220, 53, 69, 0.9); color: white; padding: 10px 18px; font-size: 1.3em; font-weight: bold; border-radius: 8px; z-index: 10; text-shadow: 2px 2px 3px rgba(0,0,0,0.6); box-shadow: 3px 3px 7px rgba(0,0,0,0.4); white-space: nowrap; border: 2px solid rgba(255, 255, 255, 0.5); }
+.pack.sold-out .card-footer, .boost-item.sold-out .card-footer { display: none; }
 
 /* カード破棄モーダル */
 .discard-modal-content { max-width: 500px; text-align: center; }

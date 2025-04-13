@@ -121,21 +121,51 @@
         </div>
     </div>
 
-      <!-- ===== ショップ画面 ===== -->
-      <div id="shop-screen" class="screen"> <!-- ★ 初期は active ではない -->
+       <!-- ===== ショップ画面 ===== -->
+    <div id="shop-screen" class="screen">
         <div class="shop-content">
             <h2 class="shop-title">カードショップ</h2>
             <div id="player-status">
                 <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
-                <!-- ↓ 手札上限表示を合計枚数に変更 ↓ -->
                 <div id="shop-player-hand" class="player-hand-display">
-                     手札 (<span id="hand-count">0</span>/8): <!-- 合計8枚上限 -->
+                     手札 (<span id="hand-count">0</span>/8):
                      <ul id="hand-cards"></ul>
                 </div>
-                <!-- ↑ 手札上限表示を合計枚数に変更 ↑ -->
             </div>
             <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
-            <div id="card-offers"></div> <!-- ★ フェーズ3で内部構造変更 -->
+
+            <!-- ↓ #card-offers を削除し、4つのセクションコンテナに変更 ↓ -->
+            <div class="shop-offers-container">
+                <div class="shop-section">
+                    <h4 class="shop-section-title">アクティブカード (使用カード)</h4>
+                    <div id="active-card-offers" class="shop-item-row">
+                        <!-- JSでアクティブカードがここに挿入される -->
+                        <span class="shop-empty-message">(オファーなし)</span> <!-- 初期メッセージ -->
+                    </div>
+                </div>
+                <div class="shop-section">
+                    <h4 class="shop-section-title">パッシブカード (装備カード)</h4>
+                    <div id="passive-card-offers" class="shop-item-row">
+                        <!-- JSでパッシブカードがここに挿入される -->
+                         <span class="shop-empty-message">(オファーなし)</span>
+                    </div>
+                </div>
+                <div class="shop-section">
+                    <h4 class="shop-section-title">パック</h4>
+                    <div id="pack-offers" class="shop-item-row">
+                        <!-- JSでパックがここに挿入される -->
+                         <span class="shop-empty-message">(オファーなし)</span>
+                    </div>
+                </div>
+                <div class="shop-section">
+                    <h4 class="shop-section-title">永続強化</h4>
+                    <div id="boost-offers" class="shop-item-row">
+                        <!-- JSで追加持ち点アイテムがここに挿入される -->
+                         <span class="shop-empty-message">(オファーなし)</span>
+                    </div>
+                </div>
+            </div>
+
             <div id="shop-actions" class="shop-actions">
                 <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
                 <button id="close-shop-button" class="button-subtle">お店を出る</button>
@@ -146,9 +176,8 @@
         </div>
         <div id="discard-modal" class="modal" style="display: none;">
             <div class="modal-content discard-modal-content">
-                <!-- ↓ JSでタイトルとメッセージが書き換わる -->
                 <h3>手札がいっぱいです！</h3>
-                <p>新しいカードを追加するために、売却するカードを選んでください。</p>
+                <p>新しいカードを追加するために、売却するカードを選んでください。(売却額: (初期コスト+強化コスト合計)の半額)</p>
                 <div id="discard-options"></div>
                 <button id="cancel-discard-button" class="button-subtle">キャンセル</button>
             </div>
