@@ -1084,7 +1084,7 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 #settings-content dt {
     font-weight: bold;
     color: #ffeb3b;
-    margin-top: 12px;
+    margin-top: 15px; 
     text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
 }
 #settings-content dd {
@@ -1094,8 +1094,10 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     color: #ccc;
 }
 #settings-content strong { font-weight: bold; }
-#settings-content .payout-win { color: #ff9800; }
-#settings-content .payout-lose { color: #e91e63; }
+#settings-content .payout-win { color: #ff9800; } /* 勝ち(高倍率) */
+#settings-content .payout-win-normal { color: #ffeb3b; } /* 勝ち(通常倍率) */
+#settings-content .payout-lose { color: #e91e63; } /* 負け */
+#settings-content .payout-neutral { color: #ccc; } /* 中立 */
 
 .settings-tab-content {
     display: none; /* 初期状態は非表示 */
@@ -1121,6 +1123,91 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     background-color: rgba(255, 255, 255, 0.3);
 }
 
+/* 得点計算式 説明エリア */
+.score-calculation-info {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.score-calculation-info h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #eee; /* 見出しの色を少し抑える */
+    font-size: 1.1em;
+    text-align: center;
+    border-bottom: none; /* 下線削除 */
+}
+.score-calculation-info p {
+    margin-bottom: 8px;
+    font-size: 0.9em; /* 少し小さく */
+    line-height: 1.6;
+    color: #ccc;
+}
+.calculation-formula {
+    font-family: monospace; /* 計算式っぽく */
+    font-size: 1em; /* 少し大きく */
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    word-wrap: break-word; /* 長い場合に折り返す */
+}
+.calculation-formula strong {
+    color: #ffeb3b; /* 黄色 */
+}
+.calculation-formula .formula-part {
+    color: #aaa; /* 記号など */
+}
+.score-calculation-info small {
+    font-size: 0.8em;
+    color: #aaa;
+    display: block; /* 改行 */
+    text-align: center;
+    margin-top: 5px;
+}
+/* ツールチップ風スタイル (任意) */
+.tooltip {
+    position: relative;
+    border-bottom: 1px dotted #aaa; /* 下点線 */
+    cursor: help; /* ヘルプカーソル */
+    color: #87CEFA; /* 水色 */
+}
+.tooltip:hover::after {
+    content: attr(title); /* title属性の内容を表示 */
+    position: absolute;
+    bottom: 120%; /* テキストの上に表示 */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(50, 50, 70, 0.95);
+    color: #eee;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* フォントを戻す */
+    font-weight: normal; /* 太字解除 */
+    font-style: normal; /* イタリック解除 */
+}
+
+/* カード効果倍率表示用スタイル */
+.card-effect-rate {
+    font-size: 0.85em;
+    color: #aaa;
+    margin-left: 15px;
+    margin-top: -5px; /* 上の説明との間隔を詰める */
+    margin-bottom: 10px; /* 次の役との間隔 */
+    font-style: italic;
+}
+.card-effect-rate span {
+    font-weight: bold;
+    color: #87CEFA; /* 水色 */
+    font-style: normal;
+}
 
 /* レスポンシブ対応 */
 @media (max-width: 1100px) {
