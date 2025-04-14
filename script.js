@@ -78,6 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const characterConfirmMessageEl = document.getElementById('character-confirm-message');
     const characterPreviewCardEl = document.getElementById('character-preview-card'); // ★ 追加
 
+    // --- アイテム獲得演出モーダル 要素取得 --- // ★ 追加
+    const itemRevealModal = document.getElementById('item-reveal-modal');
+    const itemRevealContent = itemRevealModal?.querySelector('.modal-content');
+    const closeItemRevealModalButton = document.getElementById('close-item-reveal-modal');
+    const itemRevealTitleEl = document.getElementById('item-reveal-title');
+    const itemRevealImageEl = document.getElementById('item-reveal-image');
+    const itemRevealPlaceholderEl = document.getElementById('item-reveal-placeholder');
+    const itemRevealNameEl = document.getElementById('item-reveal-name');
+    const itemRevealRarityEl = document.getElementById('item-reveal-rarity');
+    const itemRevealTypeEl = document.getElementById('item-reveal-type');
+    const itemRevealDescriptionEl = document.getElementById('item-reveal-description');
+    const itemRevealLevelEl = document.getElementById('item-reveal-level');
+    const confirmItemRevealButton = document.getElementById('confirm-item-reveal-button');
+    // --- ここまで ---
+
     // --- ゲーム状態 ---
     const INITIAL_PLAYER_SCORE = 2500;
     let playerScore = INITIAL_PLAYER_SCORE;
@@ -220,7 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
             image: './Card Image/Boost_500.png', // 仮の画像パス
             boostAmount: 500,
             cost: 400, // 仮の価格 (高めに設定)
-            type: 'boost' // アイテムタイプ識別用
+            type: 'boost', // アイテムタイプ識別用
+            rarity: 2 // ★ レアリティ追加 (演出用)
         },
         {
             id: 'boost_1000',
@@ -229,7 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
             image: './Card Image/Boost_1000.png', // 仮の画像パス
             boostAmount: 1000,
             cost: 750, // 仮の価格 (さらに高めに設定)
-            type: 'boost'
+            type: 'boost', // アイテムタイプ識別用
+            rarity: 3 // ★ レアリティ追加 (演出用)
         }
     ];
 
@@ -812,6 +829,8 @@ document.addEventListener('DOMContentLoaded', () => {
                if (initialCardDef) {
                    playerCards.push({ id: initialCardDef.id, level: 1 });
                    console.log(`Added initial card for ${selectedCharacter.name}: ${initialCardDef.name}`);
+                   // ★ 初期カード獲得演出 (任意)
+                   // showItemRevealModal({ item: initialCardDef, level: 1, source: 'initial' });
                }
            // } else {
            //      console.log(`${selectedCharacter.name} already has an initial card type.`);
@@ -1588,7 +1607,7 @@ function updateShopUI() {
     if (shopRerollButton) { shopRerollButton.innerHTML = `<span class="reroll-icon">↻</span> ${rerollButtonText}`; shopRerollButton.disabled = rerollDisabled; }
 }
 
-    // === カード購入/強化処理 (変更なし) ===
+    // === カード購入/強化処理 === // ★ 修正: showItemRevealModal 呼び出し追加
     function handleBuyCard(event) {
         // イベントオブジェクトからボタン要素を特定
         const button = event.target.closest('.buy-button, .upgrade-button');
@@ -1625,6 +1644,12 @@ function updateShopUI() {
                 setShopMessage(`${offerData.name} を Lv.${nextLevel} に強化しました！`);
                 applyPlayerCardEffects();
                 updateShopUI();
+                // ★ 追加: 強化成功時に演出モーダル表示
+                showItemRevealModal({
+                    item: offerData,
+                    level: nextLevel,
+                    source: 'upgrade'
+                });
             } else { // action === 'buy'
                 // --- カード新規購入処理 (purchaseCardを呼び出す) ---
                 purchaseCard(offerData, actualCost);
@@ -1644,7 +1669,7 @@ function updateShopUI() {
         }
     }
 
-    // === カード購入実行 (変更なし) ===
+    // === カード購入実行 === // ★ 修正: showItemRevealModal 呼び出し追加
     function purchaseCard(cardDefinition, purchaseCost) {
         const cardDef = allCards.find(c => c.id === cardDefinition.id);
         if (!cardDef) { console.error("Card definition not found for", cardDefinition.id); return; }
@@ -1679,9 +1704,15 @@ function updateShopUI() {
         setShopMessage(`${cardDefinition.name} を購入しました！`);
         applyPlayerCardEffects();
         updateShopUI();
+        // ★ 追加: 購入成功時に演出モーダル表示
+        showItemRevealModal({
+            item: cardDefinition,
+            level: 1,
+            source: 'buy'
+        });
     }
 
-    // パック購入実行関数 (変更なし)
+    // === パック購入実行関数 === // ★ 修正: showItemRevealModal 呼び出し追加
     function purchasePack(packDefinition, purchaseCost) {
         playerCoins -= purchaseCost;
         purchasedOrUpgradedInShop.push(packDefinition.id); // パックIDを購入済みリストへ
@@ -1692,7 +1723,11 @@ function updateShopUI() {
         // パックからカードを1枚ランダムに抽選して手札に追加
         const possibleCards = packDefinition.cardPool || [];
         if (possibleCards.length === 0) {
-            setTimeout(() => setShopMessage(`${packDefinition.name} を購入しましたが、中身が空でした...`), 500);
+            // ★ 演出モーダルで「空でした」表示 (任意)
+             setTimeout(() => {
+                 setShopMessage(`${packDefinition.name} を購入しましたが、中身が空でした...`);
+                 showItemRevealModal({ item: packDefinition, source: 'pack_empty' });
+             }, 500);
             return;
         }
 
@@ -1704,14 +1739,19 @@ function updateShopUI() {
              // 少し間を置いて結果表示
             setTimeout(() => {
                 const existingCard = playerCards.find(c => c.id === drawnCardId);
+                let newItemLevel = 1;
+                let revealSource = 'pack_new';
                 if (existingCard) { // 既に持っている -> レベルアップ試行
                     if (existingCard.level < MAX_CARD_LEVEL) {
                         existingCard.level++;
+                        newItemLevel = existingCard.level;
+                        revealSource = 'pack_upgrade';
                         setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現！Lv.${existingCard.level}にアップグレード！`);
                         console.log(` -> Upgraded ${drawnCardDef.name} to Lv.${existingCard.level} from pack.`);
                         applyPlayerCardEffects(); // パッシブ効果再適用
                         updateShopHandDisplay(); // 手札表示更新
                     } else {
+                        revealSource = 'pack_max_level';
                         setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現しましたが、既に最大レベルです。`);
                         console.log(` -> Drew ${drawnCardDef.name} from pack, but already max level.`);
                     }
@@ -1735,6 +1775,8 @@ function updateShopUI() {
                         cardTypeToDiscard = drawnCardType;
                         setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現！しかし${typeNameJp}カードの手札がいっぱいです！売却するカードを選んでください。`);
                         openDiscardModal(); // 破棄モーダルを開く
+                        // ★ 破棄モーダル内で追加された場合に演出を呼ぶ必要あり (handleDiscardChoice 内に追加)
+                        return; // 演出モーダル表示は破棄モーダル後に任せる
                     } else {
                         // 手札に空きがあれば追加
                         playerCards.push({ id: drawnCardDef.id, level: 1 });
@@ -1744,16 +1786,27 @@ function updateShopUI() {
                         updateShopHandDisplay(); // 手札表示更新
                     }
                 }
+                // ★ 追加: 獲得/アップグレード/最大レベル到達時に演出モーダル表示
+                 showItemRevealModal({
+                    item: drawnCardDef,
+                    level: newItemLevel,
+                    source: revealSource,
+                    packName: packDefinition.name
+                });
             }, 800); // 0.8秒後に結果表示
 
         } else {
-             setTimeout(() => setShopMessage(`${packDefinition.name} を購入しましたが、カード定義が見つかりませんでした。`), 500);
+             // ★ 演出モーダルでエラー表示 (任意)
+             setTimeout(() => {
+                 setShopMessage(`${packDefinition.name} を購入しましたが、カード定義が見つかりませんでした。`);
+                  showItemRevealModal({ item: packDefinition, source: 'pack_error' });
+             }, 500);
             console.error(`Card definition not found for ID: ${drawnCardId} from pack ${packDefinition.name}`);
         }
         // updateShopUI(); // パック購入ボタン自体は即時更新済み
     }
 
-    // 永続強化アイテム購入実行関数 (変更なし)
+    // === 永続強化アイテム購入実行関数 === // ★ 修正: showItemRevealModal 呼び出し追加
     function purchaseBoost(boostDefinition, purchaseCost) {
         // すでに購入済みか再度チェック (念のため)
         if (purchasedOrUpgradedInShop.includes(boostDefinition.id)) {
@@ -1782,6 +1835,12 @@ function updateShopUI() {
         // ショップ画面のコイン表示も更新
         if(shopCoinDisplayEl) shopCoinDisplayEl.textContent = playerCoins; // ショップ内コイン表示はアニメーションなしで即時反映
         updateShopUI(); // アイテムを売り切れ表示にする
+
+        // ★ 追加: 購入成功時に演出モーダル表示
+        showItemRevealModal({
+            item: boostDefinition,
+            source: 'boost'
+        });
     }
 
      // === リロール処理 (変更なし) ===
@@ -1854,7 +1913,7 @@ function updateShopUI() {
 
         discardModal.style.display = 'flex';
     }
-     // === 破棄選択処理 (変更なし) ===
+     // === 破棄選択処理 === // ★ 修正: showItemRevealModal 呼び出し追加
      function handleDiscardChoice(event) {
         const discardedCardId = event.target.dataset.cardId;
         const sellPrice = parseInt(event.target.dataset.sellPrice || '0');
@@ -1867,22 +1926,38 @@ function updateShopUI() {
 
         // cardToDiscardFor にコスト情報が含まれているか確認
         const purchaseCost = itemToPotentiallyAdd.cost || 0;
+        let successfullyAdded = false; // ★ 追加フラグ
+        let addedItemLevel = 1; // ★ 追加レベル
 
         if (itemToPotentiallyAdd.itemType === 'card') {
             if (purchaseCost > 0) { // 通常のカード購入の場合
                 if (playerCoins >= purchaseCost) {
-                    purchaseCard(itemToPotentiallyAdd, purchaseCost); // 再度購入処理を試みる (上限チェック含む)
+                    playerCoins -= purchaseCost; // ★ ここでコストを引く
+                    playerCards.push({ id: itemToPotentiallyAdd.id, level: 1 });
+                    purchasedOrUpgradedInShop.push(itemToPotentiallyAdd.id);
+                    setShopMessage(`売却して空きを作り、${itemToPotentiallyAdd.name} を購入しました！`);
+                    console.log(`Added ${itemToPotentiallyAdd.name} (Lv.1) to hand after discarding (Cost: ${purchaseCost}G).`);
+                    successfullyAdded = true; // ★ フラグON
+                    addedItemLevel = 1;
                 } else {
                     setShopMessage(`売却しましたが、コインが足りず ${itemToPotentiallyAdd.name} を購入できませんでした。`);
                 }
             } else { // パックから引いたカードを追加する場合 (コスト0のはず)
-                // 手札に空きができたので、直接カードを追加する
                 playerCards.push({ id: itemToPotentiallyAdd.id, level: 1 });
                 setShopMessage(`売却して空きを作り、${itemToPotentiallyAdd.name} を手札に加えました！`);
-                console.log(`Added ${itemToPotentiallyAdd.name} (Lv.1) to hand after discarding.`);
+                console.log(`Added ${itemToPotentiallyAdd.name} (Lv.1) to hand after discarding (from pack).`);
+                successfullyAdded = true; // ★ フラグON
+                addedItemLevel = 1;
+            }
+            if (successfullyAdded) {
                 applyPlayerCardEffects();
-                updateShopHandDisplay(); // 手札表示更新
-                updateShopUI(); // ショップ全体のUI更新も行う
+                updateShopHandDisplay();
+                // ★ 追加: 破棄後にアイテム追加成功した場合、演出モーダル表示
+                showItemRevealModal({
+                    item: itemToPotentiallyAdd,
+                    level: addedItemLevel,
+                    source: purchaseCost > 0 ? 'buy' : 'pack_new' // 購入かパックかでソースを区別
+                });
             }
         } else {
             // パックやブースト購入時に破棄が必要になるケースは現状ないはずだが、念のため
@@ -1894,7 +1969,7 @@ function updateShopUI() {
         cardToDiscardFor = null;
         cardTypeToDiscard = null; // タイプ指定をリセット
         discardModal.style.display = 'none';
-        // updateShopUI(); // purchaseCard内などで呼ばれるので不要かも
+        updateShopUI(); // ショップ全体のUI更新
     }
      // === 破棄キャンセル (変更なし) ===
     function cancelDiscard() { cardToDiscardFor = null; cardTypeToDiscard = null; discardModal.style.display = 'none'; setShopMessage(DEFAULT_SHOP_MESSAGE); }
@@ -2526,7 +2601,7 @@ function updateShopUI() {
        maxBetButton.addEventListener('click', () => { if (betInput.disabled) return; if (playerScore >= currentMinBet) { betInput.value = betInput.max; updateBetLimits(); } else { setMessage(`持ち点が最低賭け金(${currentMinBet}点)未満です。`); } });
        minBetButton.addEventListener('click', () => { if (betInput.disabled) return; betInput.value = currentMinBet; updateBetLimits(); });
 
-       // 賭け金決定ボタン 
+       // 賭け金決定ボタン
        setBetButton.addEventListener('click', () => {
            if (!isPlayerParent || betInput.disabled || isGameActive || waitingForPlayerActionAfterRoll) return;
            updateBetLimits();
@@ -2732,7 +2807,7 @@ function updateShopUI() {
 
    nextWaveButton.addEventListener('click', openShop);
    // restartSameModeButton を押した場合も isRestart = false で初期化し、永続ブーストをリセットする
-   restartSameModeButton.addEventListener('click', () => { initGame(false); }); 
+   restartSameModeButton.addEventListener('click', () => { initGame(false); });
    // タイトルに戻るボタン (リザルト画面から)
    backToTitleFromResultButton.addEventListener('click', () => {
        permanentScoreBoost = 0; // ★ タイトルに戻る際に永続ブーストをリセット
@@ -3378,8 +3453,8 @@ function updateShopUI() {
         }
     }
 
-    // === 結果画面表示 ===
-    function showResultScreen(isClear, currentScore, wave, reason = "") {
+     // === 結果画面表示 ===
+     function showResultScreen(isClear, currentScore, wave, reason = "") {
         // モードとクリア/ゲームオーバーで表示を分岐
         if (gameMode === 'endless' && !isClear) { // エンドレスモードでゲームオーバーの場合
             resultTitleEl.textContent = "エンドレスモード 終了";
@@ -3486,7 +3561,7 @@ function updateShopUI() {
             console.error("#settings-card-list-content not found for setting default filter.");
         }
 
-        // カードソート 
+        // カードソート
         const sortedCards = [...allCards].sort((a, b) => {
             if (a.rarity !== b.rarity) return b.rarity - a.rarity;
             if (a.type !== b.type) return a.type.localeCompare(b.type);
@@ -3578,6 +3653,10 @@ function updateShopUI() {
                 updateCardButtonHighlight();
             }
        }
+       // ★ 追加: アイテム獲得演出モーダル外クリックで閉じる
+        if (itemRevealModal && event.target === itemRevealModal) {
+            itemRevealModal.style.display = 'none';
+        }
     });
 
     // 設定モーダルのナビゲーションボタンのイベントリスナー
@@ -3790,7 +3869,7 @@ function updateShopUI() {
         }
     }
 
-    // モーダル閉じるボタンのイベントリスナー 
+    // モーダル閉じるボタンのイベントリスナー
     if (closeCardActionModalButton && cardActionModal) {
         closeCardActionModalButton.addEventListener('click', () => {
             cardActionModal.style.display = 'none';
@@ -3813,7 +3892,7 @@ function updateShopUI() {
         });
     }
 
-    // カード使用ボタンのイベントリスナー 
+    // カード使用ボタンのイベントリスナー
     const activeCardDisplayForEvent = document.getElementById('active-card-display');
     if(activeCardDisplayForEvent) { // 要素が存在すればイベントリスナーを設定
         activeCardDisplayForEvent.addEventListener('click', async (event) => { // ★ イベントリスナーの対象を activeCardDisplayForEvent に変更
@@ -4420,6 +4499,130 @@ function updateShopUI() {
         }
     }
 
+    // --- アイテム獲得演出モーダル関数 --- // ★ 新規追加
+    function showItemRevealModal(data) {
+        if (!itemRevealModal || !itemRevealContent || !data || !data.item) {
+            console.error("Cannot show item reveal modal: Missing elements or data.");
+            return;
+        }
+
+        const item = data.item;
+        const source = data.source || 'unknown'; // 'buy', 'upgrade', 'pack_new', 'pack_upgrade', 'pack_max_level', 'pack_empty', 'pack_error', 'boost', 'initial'
+        const level = data.level || 1;
+        const packName = data.packName || '';
+
+        // --- モーダルコンテンツ設定 ---
+        let title = "アイテム獲得！";
+        if (source.startsWith('pack')) title = `${packName} から出現！`;
+        else if (source === 'upgrade') title = "カード強化完了！";
+        else if (source === 'boost') title = "永続強化獲得！";
+
+        // レアリティ取得 (カードとブーストのみ)
+        const rarity = item.rarity || 1; // デフォルトは1
+        const rarityClass = `rarity-${['normal', 'rare', 'epic', 'legendary'][rarity - 1] || 'normal'}`;
+        const rarityText = ['N', 'R', 'EP', 'LG'][rarity - 1] || 'N';
+
+        // タイプ取得 (カードのみ)
+        let typeName = '';
+        let typeClass = '';
+        if (item.itemType === 'card' || allCards.find(c => c.id === item.id)) { // カード定義が存在するか確認
+            const cardDef = allCards.find(c => c.id === item.id);
+            if (cardDef) {
+                typeName = getCardTypeName(cardDef.type);
+                typeClass = `type-${cardDef.type}`;
+            }
+        } else if (item.itemType === 'boost') {
+            typeName = '永続強化';
+            typeClass = 'type-boost'; // 仮のクラス
+        } else if (item.itemType === 'pack') {
+            typeName = 'パック';
+            typeClass = 'type-pack'; // 仮のクラス
+        }
+
+        // モーダルコンテンツ要素に値を設定
+        if(itemRevealTitleEl) itemRevealTitleEl.textContent = title;
+        if(itemRevealNameEl) itemRevealNameEl.textContent = item.name || '不明なアイテム';
+
+        if(itemRevealImageEl && itemRevealPlaceholderEl) {
+            if (item.image) {
+                itemRevealImageEl.src = item.image;
+                itemRevealImageEl.alt = item.name || '';
+                itemRevealImageEl.style.display = 'block';
+                itemRevealPlaceholderEl.style.display = 'none';
+                itemRevealImageEl.onerror = () => {
+                    itemRevealImageEl.style.display = 'none';
+                    itemRevealPlaceholderEl.textContent = '画像読込失敗';
+                    itemRevealPlaceholderEl.style.display = 'block';
+                };
+            } else {
+                itemRevealImageEl.style.display = 'none';
+                itemRevealPlaceholderEl.textContent = '画像なし';
+                itemRevealPlaceholderEl.style.display = 'block';
+            }
+        }
+
+        if(itemRevealRarityEl) {
+            itemRevealRarityEl.textContent = rarityText;
+            itemRevealRarityEl.className = `rarity-badge ${rarityClass}`; // クラス名も更新
+        }
+        if(itemRevealTypeEl) {
+            itemRevealTypeEl.textContent = typeName;
+            itemRevealTypeEl.className = `type-badge ${typeClass}`; // クラス名も更新
+        }
+
+        // 説明文設定 (カードの場合はレベルに応じた説明)
+        let description = item.description || item.flavor || '---';
+        if (item.itemType === 'card') {
+            const cardDef = allCards.find(c => c.id === item.id);
+            if (cardDef) {
+                description = getUpgradeDescription(cardDef, level); // レベルに応じた説明を取得
+            }
+        }
+        if(itemRevealDescriptionEl) itemRevealDescriptionEl.textContent = description;
+
+        // レベル表示 (強化時またはパックからのアップグレード時)
+        if(itemRevealLevelEl) {
+            if (source === 'upgrade' || source === 'pack_upgrade') {
+                itemRevealLevelEl.textContent = `Lv. ${level}`;
+                itemRevealLevelEl.style.display = 'block';
+            } else {
+                itemRevealLevelEl.style.display = 'none';
+            }
+        }
+
+        // モーダルコンテンツにレアリティクラスを設定
+        if(itemRevealContent) {
+            itemRevealContent.className = `modal-content item-reveal-content ${rarityClass}`;
+        }
+
+        // --- 特殊ケースの表示調整 ---
+        if (source === 'pack_empty') {
+            if(itemRevealNameEl) itemRevealNameEl.textContent = "空のパック";
+            if(itemRevealDescriptionEl) itemRevealDescriptionEl.textContent = "残念、何も入っていませんでした...";
+            if(itemRevealImageEl) itemRevealImageEl.style.display = 'none';
+            if(itemRevealPlaceholderEl) itemRevealPlaceholderEl.style.display = 'block';
+            if(itemRevealRarityEl) itemRevealRarityEl.style.display = 'none';
+            if(itemRevealTypeEl) itemRevealTypeEl.style.display = 'none';
+        } else if (source === 'pack_max_level') {
+             if(itemRevealDescriptionEl) itemRevealDescriptionEl.textContent += "\n(既に最大レベルです)";
+        } else if (source === 'pack_error') {
+            if(itemRevealNameEl) itemRevealNameEl.textContent = "エラー";
+            if(itemRevealDescriptionEl) itemRevealDescriptionEl.textContent = "カード情報の取得に失敗しました。";
+             if(itemRevealImageEl) itemRevealImageEl.style.display = 'none';
+             if(itemRevealPlaceholderEl) itemRevealPlaceholderEl.style.display = 'block';
+             if(itemRevealRarityEl) itemRevealRarityEl.style.display = 'none';
+             if(itemRevealTypeEl) itemRevealTypeEl.style.display = 'none';
+        } else {
+            // 通常表示の場合はバッジ表示
+            if(itemRevealRarityEl) itemRevealRarityEl.style.display = 'inline-block';
+            if(itemRevealTypeEl) itemRevealTypeEl.style.display = 'inline-block';
+        }
+
+
+        // モーダル表示
+        itemRevealModal.style.display = 'flex';
+    }
+
         // --- ショップ関連イベントリスナー ---
         shopCloseButton.addEventListener('click', closeShop);
         if (shopRerollButton) shopRerollButton.addEventListener('click', handleReroll);
@@ -4458,7 +4661,7 @@ function updateShopUI() {
                  if (diceChoiceOverlay && diceChoiceOverlay.style.display !== 'none') { hideDiceChoiceOverlay(); }
                  const gameScr = document.getElementById('game-screen');
                  if(gameScr) gameScr.classList.remove('dimmed');
-                 permanentScoreBoost = 0; 
+                 permanentScoreBoost = 0;
                  console.log("Returning to title from character select. permanentScoreBoost reset.");
                  showScreen('title-screen');
              };
@@ -4616,6 +4819,19 @@ function updateShopUI() {
         }
         initializeGame();
         setupCharacterSelectListeners();
+
+        // --- ★ 追加: アイテム獲得演出モーダルの閉じるボタンリスナー ---
+        if (closeItemRevealModalButton) {
+            closeItemRevealModalButton.addEventListener('click', () => {
+                if (itemRevealModal) itemRevealModal.style.display = 'none';
+            });
+        }
+        if (confirmItemRevealButton) {
+            confirmItemRevealButton.addEventListener('click', () => {
+                if (itemRevealModal) itemRevealModal.style.display = 'none';
+            });
+        }
+        // --- ここまで ---
 
     }); // === DOMContentLoaded END ===
     // ===== END OF script.js =====
