@@ -2338,80 +2338,100 @@ function updateShopUI() {
         }, totalDuration);
     }
 
-    // --- 役/目 結果モーダル表示関数 --- //
+    // --- 役/目 結果モーダル表示関数 --- // 
     function showRoleResultModal(hand, dice) {
         return new Promise(resolve => {
-            if (!roleResultModal || !roleResultModalBody || !roleResultNameEl || !roleResultDiceDisplayEl || isShowingRoleResult) {
-                console.warn("Role result modal not ready or already showing.");
-                resolve(); // すぐに Promise を解決して処理を続行
+            if (!roleResultModal || !roleResultModalBody || !roleResultNameEl || !roleResultDiceDisplayEl || isShowingRoleResult || isShowingGameResult) {
+                console.warn("Role result modal not ready or another result modal is showing.");
+                resolve();
                 return;
             }
-
-            isShowingRoleResult = true; // 表示中フラグON
-            // 前回のクラスをクリア
+            isShowingRoleResult = true;
             roleResultModalBody.className = 'role-result-modal-body';
 
             let resultText = '';
             let cssClassSuffix = '';
-            let duration = ROLE_RESULT_MODAL_DURATION_BASE;
+            let duration = ROLE_RESULT_MODAL_DURATION_BASE; // 基本時間
 
-            if (!hand) {
-                resultText = 'エラー';
-                cssClassSuffix = 'error'; // 仮のクラス
-            } else {
-                resultText = getHandDisplayName(hand); // 役名または「目 (X)」を取得
+            if (!hand) { resultText = 'エラー'; cssClassSuffix = 'error'; }
+            else {
+                resultText = getHandDisplayName(hand);
                 if (hand.type === '役') {
                     switch (hand.name) {
-                        case ROLES.PINZORO.name: cssClassSuffix = 'pinzoro'; duration = 2200; break;
-                        case ROLES.ARASHI.name: cssClassSuffix = 'arashi'; duration = 2000; break;
-                        case ROLES.SHIGORO.name: cssClassSuffix = 'shigoro'; duration = 1800; break;
-                        case ROLES.HIFUMI.name: cssClassSuffix = 'hifumi'; break;
+                        case ROLES.PINZORO.name: cssClassSuffix = 'pinzoro'; duration = 2500; break; //時間調整
+                        case ROLES.ARASHI.name: cssClassSuffix = 'arashi'; duration = 2200; break;   
+                        case ROLES.SHIGORO.name: cssClassSuffix = 'shigoro'; duration = 2000; break; 
+                        case ROLES.HIFUMI.name: cssClassSuffix = 'hifumi'; duration = 1800; break;  
                         default: cssClassSuffix = 'unknown-yaku'; break;
                     }
                 } else if (hand.type === '目') {
-                    cssClassSuffix = 'normal-eye';
+                    cssClassSuffix = 'normal-eye'; duration = 1500; 
                 } else if (hand.type === 'ションベン') {
-                    cssClassSuffix = 'shonben';
+                    cssClassSuffix = 'shonben'; duration = 1600; 
                 } else if (hand.type === '目なし') {
-                    // 目なしは通常、役確定とはみなされないので、このモーダルで表示するケースは少ないはず
-                    // 表示する場合はションベンと同じスタイルを使うなど検討
-                    resultText = '目なし'; // 表示テキストは「目なし」
-                    cssClassSuffix = 'shonben'; // スタイルはションベンを流用
+                    resultText = '目なし'; cssClassSuffix = 'shonben'; duration = 1600; 
                 } else {
                     cssClassSuffix = 'unknown';
                 }
             }
-
-            // コンテンツ設定
             roleResultNameEl.textContent = resultText;
-            roleResultDiceDisplayEl.textContent = dice ? dice.join(' ') : '- - -'; // サイコロの目を表示
+            roleResultDiceDisplayEl.textContent = dice ? dice.join(' ') : '- - -';
+            // ションベン or 目なし の場合はサイコロ非表示
+            roleResultDiceDisplayEl.style.display = (cssClassSuffix === 'shonben') ? 'none' : 'block';
 
-            // スタイル用クラス設定
             roleResultModalBody.classList.add(`role-reveal-${cssClassSuffix}`);
-
-            // 表示アニメーション開始
             roleResultModalBody.classList.add('reveal-start');
             roleResultModal.style.display = 'flex';
 
-            // タイマー設定 (既存のタイマーがあればクリア)
             if (roleResultModalTimeout) clearTimeout(roleResultModalTimeout);
-
             roleResultModalTimeout = setTimeout(() => {
-                // 非表示アニメーション開始
                 roleResultModalBody.classList.remove('reveal-start');
                 roleResultModalBody.classList.add('reveal-end');
-
-                // 非表示アニメーション完了後にモーダルを隠す
-                // アニメーション時間 (0.3s = 300ms) を考慮
                 setTimeout(() => {
                     roleResultModal.style.display = 'none';
-                    roleResultModalBody.classList.remove('reveal-end'); // 次回のためにクラスを削除
-                    roleResultModalBody.className = 'role-result-modal-body'; // クラスをリセット
-                    isShowingRoleResult = false; // 表示中フラグOFF
-                    resolve(); // Promise を解決
-                }, 300); // CSSのfadeOutアニメーション時間
+                    roleResultModalBody.classList.remove('reveal-end');
+                    roleResultModalBody.className = 'role-result-modal-body';
+                    isShowingRoleResult = false;
+                    resolve();
+                }, 300);
+            }, duration); 
+        });
+    }
 
-            }, duration); // 設定された表示時間後に実行
+    // --- ゲーム結果モーダル表示関数 --- 
+    function showGameResultModal(isClear, reason = "") {
+        return new Promise(resolve => {
+             if (!roleResultModal || !roleResultModalBody || !roleResultNameEl || isShowingRoleResult || isShowingGameResult) {
+                console.warn("Game result modal not ready or another result modal is showing.");
+                 resolve();
+                return;
+            }
+            isShowingGameResult = true;
+            roleResultModalBody.className = 'role-result-modal-body';
+
+            let resultText = isClear ? "WAVE CLEAR!" : "GAME OVER";
+            let cssClassSuffix = isClear ? "wave-clear" : "game-over";
+            let duration = GAME_RESULT_MODAL_DURATION; 
+
+            roleResultNameEl.textContent = resultText;
+            roleResultDiceDisplayEl.style.display = 'none';
+
+            roleResultModalBody.classList.add(`role-reveal-${cssClassSuffix}`);
+            roleResultModalBody.classList.add('reveal-start'); // 同じ登場アニメーションを使用
+            roleResultModal.style.display = 'flex';
+
+            if (roleResultModalTimeout) clearTimeout(roleResultModalTimeout);
+            roleResultModalTimeout = setTimeout(() => {
+                roleResultModalBody.classList.remove('reveal-start');
+                roleResultModalBody.classList.add('reveal-end'); // 同じ非表示アニメーションを使用
+                setTimeout(() => {
+                    roleResultModal.style.display = 'none';
+                    roleResultModalBody.classList.remove('reveal-end');
+                    roleResultModalBody.className = 'role-result-modal-body';
+                    isShowingGameResult = false;
+                    resolve();
+                }, 300);
+            }, duration); 
         });
     }
 
@@ -2423,7 +2443,7 @@ function updateShopUI() {
                  resolve();
                 return;
             }
-            isShowingGameResult = true; // ★ ゲーム結果表示中フラグ ON
+            isShowingGameResult = true; 
             roleResultModalBody.className = 'role-result-modal-body'; // クラスリセット
 
             let resultText = isClear ? "WAVE CLEAR!" : "GAME OVER";

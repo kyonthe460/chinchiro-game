@@ -2113,39 +2113,6 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 
-/* 役ごとのスタイル (既存の .center-role のスタイルを参考に調整) */
-/* 例: ピンゾロ */
-.role-reveal-pinzoro #role-result-name {
-    font-family: 'Shippori Mincho', serif;
-    font-size: 9em;
-    color: gold;
-    text-shadow: 0 0 10px white, 0 0 20px gold, 3px 3px 5px rgba(0,0,0,0.6);
-    filter: drop-shadow(0 0 10px gold);
-}
-.role-reveal-pinzoro #role-result-dice-display {
-    font-size: 5em; /* ピンゾロ時はサイコロも大きく */
-    color: gold;
-}
-/* 例: アラシ */
-.role-reveal-arashi #role-result-name {
-    font-family: 'RocknRoll One', sans-serif;
-    font-size: 8em;
-    color: #ffcc80;
-    text-shadow: 0 0 8px #ff5722, 3px 3px 6px rgba(0, 0, 0, 0.7);
-}
-.role-reveal-arashi #role-result-dice-display {
-     color: #ffcc80;
-}
-/* 他の役 (シゴロ、ヒフミ、目、ションベン) も同様に定義... */
-.role-reveal-shigoro #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 7.5em; color: #ffe082; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 5px #ff9800; }
-.role-reveal-shigoro #role-result-dice-display { color: #ffe082; }
-.role-reveal-normal-eye #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 6.5em; color: #eee; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-.role-reveal-normal-eye #role-result-dice-display { color: #fff; }
-.role-reveal-hifumi #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 7em; color: #cdeaff; text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 5px #5882b4; }
-.role-reveal-hifumi #role-result-dice-display { color: #cdeaff; }
-.role-reveal-shonben #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 5.5em; color: #bbb; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
-.role-reveal-shonben #role-result-dice-display { color: #aaa; }
-
 /* モーダル表示アニメーション */
 .role-result-reveal-modal .role-result-reveal-content {
    /* アニメーションはJSでクラス付与により制御 */
@@ -2206,6 +2173,225 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     font-size: 1.2em;
     color: #ccc;
     margin-top: 10px;
+}
+
+/* ===== 役/目/結果 モーダル演出強化 ===== */
+
+/* --- モーダルボディの基本アニメーション --- */
+#role-result-modal-body.reveal-start {
+    /* 既存の roleRevealAppear アニメーションを使用 */
+    animation: roleRevealAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+#role-result-modal-body.reveal-end {
+    /* 既存の roleRevealFadeOut アニメーションを使用 */
+     animation: roleRevealFadeOut 0.3s ease-out forwards;
+}
+
+/* --- ピンゾロ強化 --- */
+.role-reveal-pinzoro #role-result-modal-body {
+    background: radial-gradient(ellipse at center, rgba(255, 235, 0, 0.5) 0%, rgba(255, 215, 0, 0) 70%);
+    border-radius: 50%;
+    padding: 50px; /* 十分な余白 */
+    box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.7); /* 外側の輝き */
+    animation: roleRevealAppear 0.6s cubic-bezier(0.68, -0.6, 0.27, 1.55) forwards, pinzoroBgPulse 1.5s infinite ease-in-out 0.6s; /* 登場後にパルス開始 */
+}
+@keyframes pinzoroBgPulse {
+    0%, 100% { box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.7); transform: scale(1); }
+    50% { box-shadow: 0 0 80px 30px rgba(255, 215, 0, 1); transform: scale(1.05); }
+}
+.role-reveal-pinzoro #role-result-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 10em; /* さらに大きく */
+    color: gold;
+    text-shadow: 0 0 15px white, 0 0 30px gold, 0 0 45px #fff, 5px 5px 8px rgba(0,0,0,0.6);
+    filter: drop-shadow(0 0 15px gold);
+    animation: pinzoroTextPop 0.6s cubic-bezier(0.68, -0.6, 0.27, 1.55) forwards; /* 登場アニメーション */
+}
+@keyframes pinzoroTextPop {
+  0% { transform: scale(0.5) rotateY(90deg); opacity: 0; }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+.role-reveal-pinzoro #role-result-dice-display {
+    font-size: 6em;
+    color: gold;
+    text-shadow: 0 0 5px white, 0 0 10px gold;
+    margin-top: 10px;
+}
+
+/* --- アラシ強化 --- */
+.role-reveal-arashi #role-result-modal-body {
+    background: radial-gradient(ellipse at center, rgba(255, 120, 0, 0.3) 0%, rgba(100, 50, 0, 0) 70%),
+                repeating-conic-gradient(from 0deg, rgba(255,150,80,0.1) 0deg 10deg, rgba(255,100,50,0.15) 10deg 20deg);
+    border-radius: 10px;
+    padding: 30px 50px;
+    animation: roleRevealAppear 0.5s cubic-bezier(0.68, -0.6, 0.27, 1.55) forwards, arashiBgRotate 10s linear infinite;
+}
+@keyframes arashiBgRotate { from { background-position: 0% 0%; } to { background-position: 200% 200%; } } /* 簡単な回転 */
+
+.role-reveal-arashi #role-result-name {
+    font-family: 'RocknRoll One', sans-serif;
+    font-size: 8.5em;
+    color: #ffcc80;
+    text-shadow: 0 0 8px #ff5722, 3px 3px 6px rgba(0, 0, 0, 0.7);
+    animation: arashiTextSpin 0.5s cubic-bezier(0.68, -0.6, 0.27, 1.55) forwards;
+}
+@keyframes arashiTextSpin {
+  0% { transform: scale(0) rotate(720deg); opacity: 0; filter: blur(8px); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0px); }
+}
+.role-reveal-arashi #role-result-dice-display {
+    color: #ffcc80;
+    font-size: 4.5em;
+    text-shadow: 0 0 5px #ff5722, 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+/* --- シゴロ強化 --- */
+.role-reveal-shigoro #role-result-modal-body {
+     background: linear-gradient(135deg, rgba(255,224,130,0.1) 0%, rgba(255,152,0,0.1) 50%, rgba(255,111,0,0.1) 100%);
+     border-radius: 10px;
+     padding: 30px 40px;
+     border-bottom: 5px solid #ff9800; /* 下線を太く */
+     box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+}
+.role-reveal-shigoro #role-result-name {
+    font-family: 'Yuji Syuku', serif;
+    font-size: 7.5em;
+    color: #ffe082;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 5px #ff9800;
+    animation: shigoroTextAppear 0.6s ease-out forwards;
+}
+@keyframes shigoroTextAppear {
+  0% { letter-spacing: -0.5em; opacity: 0; }
+  40% { letter-spacing: 0.1em; } /* 少し広がる */
+  100% { letter-spacing: 0; opacity: 1; }
+}
+.role-reveal-shigoro #role-result-dice-display {
+    color: #ffe082;
+    font-size: 4.2em;
+}
+
+/* --- 目 (変更なし or 微調整) --- */
+.role-reveal-normal-eye #role-result-modal-body {
+    padding: 25px 40px;
+    background-color: rgba(40, 40, 80, 0.8);
+    border-radius: 10px;
+}
+.role-reveal-normal-eye #role-result-name {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 6.5em;
+    color: #eee;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+.role-reveal-normal-eye #role-result-dice-display {
+    color: #fff;
+    font-size: 4em;
+}
+
+/* --- ヒフミ強化 --- */
+.role-reveal-hifumi #role-result-modal-body {
+    padding: 30px 40px;
+    background-color: rgba(30, 40, 70, 0.8);
+    border-radius: 10px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+}
+.role-reveal-hifumi #role-result-name {
+    font-family: 'Yuji Syuku', serif;
+    font-size: 7em;
+    color: #b0c4de; /* 少し薄い青 */
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 5px #5882b4;
+    animation: hifumiTextDrop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes hifumiTextDrop {
+  0% { transform: translateY(-30px) rotate(5deg); opacity: 0; }
+  60% { transform: translateY(5px) rotate(-2deg); opacity: 1; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+.role-reveal-hifumi #role-result-dice-display {
+    color: #b0c4de;
+    font-size: 4.2em;
+    opacity: 0.8;
+}
+
+/* --- ションベン強化 --- */
+.role-reveal-shonben #role-result-modal-body {
+    padding: 25px 40px;
+    background: linear-gradient(rgba(50,50,50,0.6), rgba(30,30,30,0.8));
+    border-radius: 10px;
+}
+.role-reveal-shonben #role-result-name {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 5.5em;
+    color: #999;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    filter: blur(0.5px);
+    animation: shonbenTextFlicker 1s linear forwards;
+}
+@keyframes shonbenTextFlicker {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.4; }
+}
+.role-reveal-shonben #role-result-dice-display {
+    display: none; /* ションベン時はサイコロ非表示 */
+}
+
+/* --- WAVEクリア強化 --- */
+.role-reveal-wave-clear #role-result-modal-body {
+    padding: 40px 60px;
+    position: relative; /* 疑似要素のため */
+    overflow: hidden; /* 疑似要素のため */
+    border-radius: 15px;
+    box-shadow: 0 0 50px rgba(144, 238, 144, 0.8);
+    animation: waveClearBodyPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes waveClearBodyPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+/* キラキラ背景 */
+.role-reveal-wave-clear #role-result-modal-body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, rgba(144,238,144,0) 70%),
+                url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQMAAACXljzdAAAABlBMVEVVVP////8vZtJdAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAHUlEQVQ4y2NgoBpgImBqBNAyAMgwgM0IFJsKANqnHbcY5t6dAAAAAElFTkSuQmCC);
+    background-size: cover, auto;
+    animation: move-twink-back 20s linear infinite, fadeIn 1s ease-out;
+    opacity: 0.5;
+    z-index: -1;
+}
+.role-reveal-wave-clear #role-result-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 8em;
+    background: linear-gradient(45deg, #adff2f, #00ff7f, #7fffd4, #00fa9a);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 300% 300%;
+    animation: rainbowText 3s ease infinite;
+    text-shadow: 0 0 10px white, 0 0 20px #90ee90, 4px 4px 8px rgba(0,0,0,0.6);
+    filter: drop-shadow(0 0 10px #90ee90);
+    margin-bottom: 10px; /* 理由表示用スペース */
+}
+@keyframes rainbowText { 0%{background-position:0% 82%} 50%{background-position:100% 19%} 100%{background-position:0% 82%} }
+
+/* --- ゲームオーバー強化 --- */
+.role-reveal-game-over #role-result-modal-body {
+    padding: 40px 50px;
+    background: radial-gradient(ellipse at center, rgba(80, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.8) 100%);
+    border-radius: 10px;
+    border: 3px solid #8B0000;
+    box-shadow: inset 0 0 20px #000, 0 0 30px rgba(139, 0, 0, 0.7);
+    animation: screenShake 0.5s ease-in-out forwards;
+}
+.role-reveal-game-over #role-result-name {
+    font-family: 'Yuji Syuku', serif;
+    font-size: 7em;
+    color: #a52a2a; /* くすんだ赤 */
+    text-shadow: 0 0 5px black, 0 0 10px #ff0000, 2px 2px 4px rgba(0,0,0,0.9);
+    animation: gameOverFlicker 0.1s linear infinite;
+    margin-bottom: 10px; /* 理由表示用スペース */
+}
+@keyframes gameOverFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; transform: skewX(-2deg); }
 }
 
 /* ===== END OF style.css ===== */
