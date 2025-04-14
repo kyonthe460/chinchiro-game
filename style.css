@@ -2064,4 +2064,148 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     font-size: 1.1em;
 }
 
+/* ===== 役/目 結果表示モーダル ===== */
+.role-result-reveal-modal {
+    z-index: 1050; /* ダイスロールモーダルより手前、設定モーダルなどと同じくらい */
+    background-color: rgba(0, 0, 0, 0.7); /* 背景を少し暗く */
+    backdrop-filter: blur(4px);
+}
+
+.role-result-reveal-content {
+    background: none; /* 背景なし */
+    border: none; /* 枠線なし */
+    box-shadow: none; /* 影なし */
+    padding: 0; /* パディングなし */
+    max-width: 80vw; /* 幅を画面に合わせる */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* アニメーションはモーダル自体ではなく、内部要素に適用 */
+    animation: none; /* modal-content の slideDown は不要 */
+}
+
+#role-result-modal-body {
+    text-align: center;
+    /* アニメーションは役の種類によってJSでクラスを付与して制御 */
+    opacity: 0; /* 初期状態は非表示 */
+    transform: scale(0.8); /* 初期状態は少し小さい */
+}
+
+/* デフォルトの役/目テキストスタイル */
+#role-result-name {
+    font-size: 7em; /* サイズは役に応じて変更 */
+    font-weight: 800;
+    color: white;
+    text-shadow: 3px 3px 0 #444, 6px 6px 10px rgba(0, 0, 0, 0.7);
+    margin: 10px 0 0 0; /* 上マージン調整 */
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+/* サイコロ表示スタイル */
+#role-result-dice-display {
+    font-size: 4em; /* サイコロの目のサイズ */
+    font-weight: bold;
+    color: #eee;
+    letter-spacing: 0.1em;
+    margin-bottom: 15px; /* 役名との間隔 */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+}
+
+/* 役ごとのスタイル (既存の .center-role のスタイルを参考に調整) */
+/* 例: ピンゾロ */
+.role-reveal-pinzoro #role-result-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 9em;
+    color: gold;
+    text-shadow: 0 0 10px white, 0 0 20px gold, 3px 3px 5px rgba(0,0,0,0.6);
+    filter: drop-shadow(0 0 10px gold);
+}
+.role-reveal-pinzoro #role-result-dice-display {
+    font-size: 5em; /* ピンゾロ時はサイコロも大きく */
+    color: gold;
+}
+/* 例: アラシ */
+.role-reveal-arashi #role-result-name {
+    font-family: 'RocknRoll One', sans-serif;
+    font-size: 8em;
+    color: #ffcc80;
+    text-shadow: 0 0 8px #ff5722, 3px 3px 6px rgba(0, 0, 0, 0.7);
+}
+.role-reveal-arashi #role-result-dice-display {
+     color: #ffcc80;
+}
+/* 他の役 (シゴロ、ヒフミ、目、ションベン) も同様に定義... */
+.role-reveal-shigoro #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 7.5em; color: #ffe082; text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 5px #ff9800; }
+.role-reveal-shigoro #role-result-dice-display { color: #ffe082; }
+.role-reveal-normal-eye #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 6.5em; color: #eee; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+.role-reveal-normal-eye #role-result-dice-display { color: #fff; }
+.role-reveal-hifumi #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 7em; color: #cdeaff; text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 5px #5882b4; }
+.role-reveal-hifumi #role-result-dice-display { color: #cdeaff; }
+.role-reveal-shonben #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 5.5em; color: #bbb; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+.role-reveal-shonben #role-result-dice-display { color: #aaa; }
+
+/* モーダル表示アニメーション */
+.role-result-reveal-modal .role-result-reveal-content {
+   /* アニメーションはJSでクラス付与により制御 */
+}
+#role-result-modal-body.reveal-start {
+    animation: roleRevealAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes roleRevealAppear {
+    0% { transform: scale(0.7) rotate(-8deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+/* モーダル非表示アニメーション */
+#role-result-modal-body.reveal-end {
+     animation: roleRevealFadeOut 0.3s ease-out forwards;
+}
+@keyframes roleRevealFadeOut {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* ===== WAVEクリア/ゲームオーバー モーダルスタイル (既存モーダル流用) ===== */
+
+/* WAVEクリア時のスタイル */
+.role-reveal-wave-clear #role-result-modal-body {
+    /* アニメーションや背景などは後続ステップで追加 */
+}
+.role-reveal-wave-clear #role-result-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 8em; /* 既存のスタイルを流用・調整 */
+    color: #90ee90;
+    background: linear-gradient(45deg, #90ee90, #32cd32);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 15px white, 0 0 25px #90ee90, 4px 4px 8px rgba(0,0,0,0.6);
+    filter: drop-shadow(0 0 15px #90ee90);
+}
+.role-reveal-wave-clear #role-result-dice-display {
+    display: none; /* WAVEクリア時はサイコロ不要 */
+}
+
+/* ゲームオーバー時のスタイル */
+.role-reveal-game-over #role-result-modal-body {
+    /* アニメーションや背景などは後続ステップで追加 */
+}
+.role-reveal-game-over #role-result-name {
+    font-family: 'Yuji Syuku', serif;
+    font-size: 7.5em; /* 既存のスタイルを流用・調整 */
+    color: #ff7b7b;
+    text-shadow: 0 0 10px #dc143c, 3px 3px 6px rgba(0,0,0,0.8);
+}
+.role-reveal-game-over #role-result-dice-display {
+    display: none; /* ゲームオーバー時もサイコロ不要 */
+}
+
+/* (任意) モーダルに理由表示用の要素を追加する場合のスタイル */
+#role-result-reason {
+    font-size: 1.2em;
+    color: #ccc;
+    margin-top: 10px;
+}
+
 /* ===== END OF style.css ===== */
