@@ -92,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const roleResultDiceDisplayEl = document.getElementById('role-result-dice-display');
     const roleResultNameEl = document.getElementById('role-result-name');
 
+    // --- プレイヤー名入力欄 ---
+    const playerNameInput = document.getElementById('player-name-input');
+
     // --- ゲーム状態 ---
     const INITIAL_PLAYER_SCORE = 2500;
     let playerScore = INITIAL_PLAYER_SCORE;
@@ -122,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let freeRerollsAvailableThisShopVisit = 0;
     let isShowingRoleResult = false; 
     let isShowingGameResult = false; 
+    let playerName = "";
 
     // --- キャラクターデータ ---
     const characters = [
@@ -141,6 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // { id: 'char14', name: 'キャラクター14', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['lossInsurance'] }, // 画像パス修正必要なら
     ];
     let selectedCharacter = characters[0];
+    playerName = selectedCharacter.name; 
+    if(playerNameInput) playerNameInput.value = playerName; 
     let currentNpcCharacter = characters[1 % characters.length];
     let usedNpcCharacters = [];
     let previewingCharacter = null;
@@ -779,146 +785,55 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.max(0, sellPrice);
     }
 
-    // --- ゲーム初期化 ---
-    function initGame(isRestart = false) {
+     // --- ゲーム初期化 --- //
+     function initGame(isRestart = false) {
         console.log("--- initGame START ---");
-        if (!selectedCharacter) {
-            selectedCharacter = characters[0];
-            console.log("No character selected, using first available:", selectedCharacter.name);
-        }
-        if (!isRestart) {
-            permanentScoreBoost = 0;
-             playerCoins = 0;
-             playerCards = [];
-            console.log("New game started. Resetting permanentScoreBoost, coins, and player cards.");
-        } else {
-            console.log("Restarting game. Keeping permanentScoreBoost:", permanentScoreBoost);
-             playerCards = [];
-        }
-
+        if (!selectedCharacter) { selectedCharacter = characters[0]; console.log("No character selected, using first available:", selectedCharacter.name); }
+        if (!isRestart) { permanentScoreBoost = 0; playerCoins = 0; playerCards = []; console.log("New game started. Resetting permanentScoreBoost, coins, and player cards."); }
+        else { console.log("Restarting game. Keeping permanentScoreBoost:", permanentScoreBoost); playerCards = []; }
         selectNextNpc();
-
-         playerScore = INITIAL_PLAYER_SCORE + permanentScoreBoost;
-         scoreAtWaveStart = playerScore;
-
-         npcScore = NPC_START_SCORE_BASE;
-         totalScoreChange = 0;
-
+        playerScore = INITIAL_PLAYER_SCORE + permanentScoreBoost; scoreAtWaveStart = playerScore; npcScore = NPC_START_SCORE_BASE; totalScoreChange = 0;
         console.log("Player cards cleared for new game/restart.");
 
+        // プレイヤー名を設定 (入力欄の値があればそれを、なければキャラ名)
+        playerName = playerNameInput?.value.trim() || selectedCharacter.name;
+        if(playerNameInput) playerNameInput.value = playerName; // 念のため入力欄も更新
+
         if (selectedCharacter && selectedCharacter.initialCardPool && selectedCharacter.initialCardPool.length > 0) {
-           const randomCardIndex = Math.floor(Math.random() * selectedCharacter.initialCardPool.length);
-           const initialCardId = selectedCharacter.initialCardPool[randomCardIndex];
-           const initialCardDef = allCards.find(card => card.id === initialCardId);
-           if (initialCardDef) {
-               playerCards.push({ id: initialCardDef.id, level: 1 });
-               console.log(`Added initial card for ${selectedCharacter.name}: ${initialCardDef.name}`);
-           }
+           const randomCardIndex = Math.floor(Math.random() * selectedCharacter.initialCardPool.length); const initialCardId = selectedCharacter.initialCardPool[randomCardIndex]; const initialCardDef = allCards.find(card => card.id === initialCardId);
+           if (initialCardDef) { playerCards.push({ id: initialCardDef.id, level: 1 }); console.log(`Added initial card for ${selectedCharacter.name}: ${initialCardDef.name}`); }
        }
-
         currentWave = 1; defeatedCount = 0; currentBet = 0; isPlayerParent = true; playerDice = [0, 0, 0]; npcDice = [0, 0, 0]; playerHand = null; npcHand = null; playerRollCount = 0; npcRollCount = 0; isGameActive = false; gameHistory = []; baseMinBet = 50; currentMinBet = baseMinBet; consecutiveWins = 0; npcConsecutiveWins = 0; purchasedOrUpgradedInShop = []; currentRoundInWave = 0;
-        activeCardUses = {}; ignoreMinBetActive = false; shopChoicePlus1Active = false; zoroChanceUpActive = false; avoid123_456Active = false; activeCardBeingUsed = null; blessingDiceActive = false; stormWarningActive = false; stormWarningRerollsLeft = 0; blindingDiceActive = false; doubleUpBetActive = false; rewardAmplifierActive = false; giveUpEyeUsedThisTurn = false; adjustEyeUsedThisTurn = false; nextChanceUsedThisTurn = false; soulRollUsedThisTurn = false; keepParentRightUsedThisWave = 0; keepParentDiscountNextRound = false; freeRerollsAvailableThisShopVisit = 0; waitingForUserChoice = false; userChoiceResolver = null; shopConfirmationResolver = null;
-        waitingForPlayerActionAfterRoll = false;
-        drawBonusActive = false;
-        riskyBetActive = false;
-        isShowingRoleResult = false;
-        isShowingGameResult = false; // ★ 追加
-
+        activeCardUses = {}; ignoreMinBetActive = false; shopChoicePlus1Active = false; zoroChanceUpActive = false; avoid123_456Active = false; activeCardBeingUsed = null; blessingDiceActive = false; stormWarningActive = false; stormWarningRerollsLeft = 0; blindingDiceActive = false; doubleUpBetActive = false; rewardAmplifierActive = false; giveUpEyeUsedThisTurn = false; adjustEyeUsedThisTurn = false; nextChanceUsedThisTurn = false; soulRollUsedThisTurn = false; keepParentRightUsedThisWave = 0; keepParentDiscountNextRound = false; freeRerollsAvailableThisShopVisit = 0; waitingForUserChoice = false; userChoiceResolver = null; shopConfirmationResolver = null; waitingForPlayerActionAfterRoll = false; drawBonusActive = false; riskyBetActive = false; isShowingRoleResult = false; isShowingGameResult = false;
         applyPlayerCardEffects();
-        if (betMainControls) betMainControls.style.display = 'flex';
-        if (betActionContainer) betActionContainer.style.display = 'flex';
-        if (actionArea) actionArea.style.display = 'flex';
-        if (nextWaveArea) nextWaveArea.style.display = 'none';
-
-        rollButton.disabled = true; historyButton.disabled = false; playerDiceEl.textContent = '-'; npcDiceEl.textContent = '-'; diceDisplayEl.textContent = '- - -'; diceDisplayEl.style.display = 'block';
-        rollCounterEl.textContent = `0/${currentMaxRolls}回`;
-        playerHandEl.className = 'hand-display'; npcHandEl.className = 'hand-display';
+        if (betMainControls) betMainControls.style.display = 'flex'; if (betActionContainer) betActionContainer.style.display = 'flex'; if (actionArea) actionArea.style.display = 'flex'; if (nextWaveArea) nextWaveArea.style.display = 'none';
+        rollButton.disabled = true; historyButton.disabled = false; playerDiceEl.textContent = '-'; npcDiceEl.textContent = '-'; diceDisplayEl.textContent = '- - -'; diceDisplayEl.style.display = 'block'; rollCounterEl.textContent = `0/${currentMaxRolls}回`; playerHandEl.className = 'hand-display'; npcHandEl.className = 'hand-display';
         if (playerScoreEl.animationId) cancelAnimationFrame(playerScoreEl.animationId); if (npcScoreEl.animationId) cancelAnimationFrame(npcScoreEl.animationId); playerScoreEl.animationId = null; npcScoreEl.animationId = null; currentBetInfoEl.textContent = '';
-        updateUI();
-        showScreen('game-screen');
-        startBettingPhase();
-        console.log("--- initGame END ---");
+        updateUI(); showScreen('game-screen'); startBettingPhase(); console.log("--- initGame END ---");
     }
-     // --- UI更新 (変更なし) ---
+     // --- UI更新 --- // 
      function updateUI() {
-        if (waveInfoEl) {
-             const maxWaveDisplay = gameMode === 'endless' ? '∞' : MAX_WAVES;
-             const modeText = gameMode === 'normal' ? '通常' : gameMode === 'endless' ? 'エンドレス' : '準備中';
-             waveInfoEl.innerHTML = `
-                <span>MODE: <span class="mode-display">${modeText}</span></span> |
-                <span>WAVE: <span id="wave-number" class="wave-highlight">${currentWave}</span>/${maxWaveDisplay}</span> |
-                <span>ROUND: <span id="round-number" class="round-normal">${currentRoundInWave}</span></span> |
-                <span>撃破数: <span id="defeated-count">${defeatedCount}</span></span>
-                <span id="consecutive-wins-display" style="display: none;"></span>
-            `;
-            const consWinsDisplay = document.getElementById('consecutive-wins-display');
-            if (consWinsDisplay) {
-                consWinsDisplay.classList.remove('npc-losing-streak');
-                if (isPlayerParent && consecutiveWins > 1) {
-                    consWinsDisplay.textContent = ` (${consecutiveWins}連勝中!)`;
-                    consWinsDisplay.style.display = 'inline';
-                } else if (!isPlayerParent && npcConsecutiveWins > 1) {
-                    consWinsDisplay.textContent = ` (相手${npcConsecutiveWins}連勝中...)`;
-                    consWinsDisplay.classList.add('npc-losing-streak');
-                    consWinsDisplay.style.display = 'inline';
-                } else {
-                    consWinsDisplay.textContent = '';
-                    consWinsDisplay.style.display = 'none';
-                }
-            }
-        }
+        if (waveInfoEl) { const maxWaveDisplay = gameMode === 'endless' ? '∞' : MAX_WAVES; const modeText = gameMode === 'normal' ? '通常' : gameMode === 'endless' ? 'エンドレス' : '準備中'; waveInfoEl.innerHTML = ` <span>MODE: <span class="mode-display">${modeText}</span></span> | <span>WAVE: <span id="wave-number" class="wave-highlight">${currentWave}</span>/${maxWaveDisplay}</span> | <span>ROUND: <span id="round-number" class="round-normal">${currentRoundInWave}</span></span> | <span>撃破数: <span id="defeated-count">${defeatedCount}</span></span> <span id="consecutive-wins-display" style="display: none;"></span> `; const consWinsDisplay = document.getElementById('consecutive-wins-display'); if (consWinsDisplay) { consWinsDisplay.classList.remove('npc-losing-streak'); if (isPlayerParent && consecutiveWins > 1) { consWinsDisplay.textContent = ` (${consecutiveWins}連勝中!)`; consWinsDisplay.style.display = 'inline'; } else if (!isPlayerParent && npcConsecutiveWins > 1) { consWinsDisplay.textContent = ` (相手${npcConsecutiveWins}連勝中...)`; consWinsDisplay.classList.add('npc-losing-streak'); consWinsDisplay.style.display = 'inline'; } else { consWinsDisplay.textContent = ''; consWinsDisplay.style.display = 'none'; } } }
 
         const playerInfoH2 = document.querySelector('#player-info h2');
         const npcInfoH2 = document.querySelector('#npc-info h2');
-        if (playerInfoH2) playerInfoH2.innerHTML = `${selectedCharacter?.name || 'あなた'} <span id="player-parent-marker" class="parent-marker" style="display: ${isPlayerParent ? 'inline' : 'none'};">(親)</span>`;
+        const currentPlayerName = playerName || selectedCharacter?.name || 'あなた';
+        if (playerInfoH2) playerInfoH2.innerHTML = `${currentPlayerName} <span id="player-parent-marker" class="parent-marker" style="display: ${isPlayerParent ? 'inline' : 'none'};">(親)</span>`;
         if (npcInfoH2) npcInfoH2.innerHTML = `${currentNpcCharacter?.name || 'NPC'} <span id="npc-parent-marker" class="parent-marker" style="display: ${!isPlayerParent ? 'inline' : 'none'};">(親)</span>`;
         displayCharacterImages();
 
-        playerScoreEl.textContent = playerScore;
-        npcScoreEl.textContent = npcScore;
-        playerDiceEl.textContent = playerDice.every(d => d === 0) ? '-' : playerDice.join(' ');
-        playerHandEl.textContent = getHandDisplayName(playerHand);
-        npcDiceEl.textContent = npcDice.every(d => d === 0) ? '-' : npcDice.join(' ');
-        npcHandEl.textContent = getHandDisplayName(npcHand);
-
-        baseMinBet = 50 + (currentWave - 1) * MIN_BET_INCREMENT;
-        if (keepParentDiscountNextRound) { baseMinBet = Math.max(1, Math.floor(baseMinBet / 2)); }
-        currentMinBet = baseMinBet; // startBettingPhaseでモード別調整
-        const riskyBetCardCheck = playerCards.find(c => c.id === 'riskyBet');
-        if (riskyBetActive && riskyBetCardCheck?.level === 1) { currentMinBet = baseMinBet * 2; }
-        if (ignoreMinBetActive) { currentMinBet = 1; }
-        minBetDisplayEl.textContent = `最低: ${currentMinBet}`;
-
-        let maxRollsForTurn = isPlayerTurn ? currentMaxRolls : BASE_MAX_ROLLS;
-        let currentRollCountForTurn = isPlayerTurn ? playerRollCount : npcRollCount;
-        let turnText = `0/${maxRollsForTurn}回`;
-        if (isGameActive || currentRoundInWave > 0) { turnText = `${currentRollCountForTurn}/${maxRollsForTurn}回`; }
-        rollCounterEl.textContent = turnText;
-
-        if (gameCoinDisplayEl) { gameCoinDisplayEl.textContent = `${playerCoins} G`; }
-        if (shopScreen.classList.contains('active')) { updateShopUI(); }
-
+        playerScoreEl.textContent = playerScore; npcScoreEl.textContent = npcScore; playerDiceEl.textContent = playerDice.every(d => d === 0) ? '-' : playerDice.join(' '); playerHandEl.textContent = getHandDisplayName(playerHand); npcDiceEl.textContent = npcDice.every(d => d === 0) ? '-' : npcDice.join(' '); npcHandEl.textContent = getHandDisplayName(npcHand);
+        baseMinBet = 50 + (currentWave - 1) * MIN_BET_INCREMENT; if (keepParentDiscountNextRound) { baseMinBet = Math.max(1, Math.floor(baseMinBet / 2)); } currentMinBet = baseMinBet; const riskyBetCardCheck = playerCards.find(c => c.id === 'riskyBet'); if (riskyBetActive && riskyBetCardCheck?.level === 1) { currentMinBet = baseMinBet * 2; } if (ignoreMinBetActive) { currentMinBet = 1; } minBetDisplayEl.textContent = `最低: ${currentMinBet}`;
+        let maxRollsForTurn = isPlayerTurn ? currentMaxRolls : BASE_MAX_ROLLS; let currentRollCountForTurn = isPlayerTurn ? playerRollCount : npcRollCount; let turnText = `0/${maxRollsForTurn}回`; if (isGameActive || currentRoundInWave > 0) { turnText = `${currentRollCountForTurn}/${maxRollsForTurn}回`; } rollCounterEl.textContent = turnText;
+        if (gameCoinDisplayEl) { gameCoinDisplayEl.textContent = `${playerCoins} G`; } if (shopScreen.classList.contains('active')) { updateShopUI(); }
         updateBetLimits();
-
-        if (isGameActive && currentBet > 0) {
-            const parentName = isPlayerParent ? (selectedCharacter?.name || "あなた") : (currentNpcCharacter?.name || "相手");
-            currentBetInfoEl.innerHTML = `現在の賭け金: ${currentBet} 点 <span class="parent-name">(親: ${parentName})</span>`;
-        } else if (!isGameActive && currentRoundInWave > 0 && playerScore >= currentMinBet && npcScore >= currentMinBet) {
-             currentBetInfoEl.textContent = '賭け金設定中...';
-        } else {
-             currentBetInfoEl.textContent = '';
-        }
-
-        const isNpcParentTurn = !isPlayerParent && !isGameActive && !waitingForPlayerActionAfterRoll;
-        if (betMainControls) betMainControls.style.opacity = isNpcParentTurn ? '0.5' : '1';
-        if (betMainControls) betMainControls.style.pointerEvents = isNpcParentTurn ? 'none' : 'auto';
-        if (betActionContainer) betActionContainer.style.display = isNpcParentTurn ? 'none' : 'flex';
-        gameScreen.classList.toggle('npc-parent', isNpcParentTurn);
-
+        if (isGameActive && currentBet > 0) { const parentName = isPlayerParent ? currentPlayerName : (currentNpcCharacter?.name || "相手"); currentBetInfoEl.innerHTML = `現在の賭け金: ${currentBet} 点 <span class="parent-name">(親: ${parentName})</span>`; } // ★ 修正: currentPlayerName を使用
+        else if (!isGameActive && currentRoundInWave > 0 && playerScore >= currentMinBet && npcScore >= currentMinBet) { currentBetInfoEl.textContent = '賭け金設定中...'; } else { currentBetInfoEl.textContent = ''; }
+        const isNpcParentTurn = !isPlayerParent && !isGameActive && !waitingForPlayerActionAfterRoll; if (betMainControls) betMainControls.style.opacity = isNpcParentTurn ? '0.5' : '1'; if (betMainControls) betMainControls.style.pointerEvents = isNpcParentTurn ? 'none' : 'auto'; if (betActionContainer) betActionContainer.style.display = isNpcParentTurn ? 'none' : 'flex'; gameScreen.classList.toggle('npc-parent', isNpcParentTurn);
         updateCardButtonHighlight();
     }
 
-    // --- キャラクター画像表示関数 (変更なし) ---
+    // --- キャラクター画像表示関数 ---
     function displayCharacterImages() {
         const playerImageArea = document.querySelector('.character-image-area.player');
         const npcImageArea = document.querySelector('.character-image-area.npc');
@@ -2731,8 +2646,8 @@ function updateShopUI() {
                 updateUI(); checkGameEnd();
             }, SCORE_ANIMATION_DURATION + 300);
         }
-         // === ゲーム終了チェック === // ★ showGameResultModal 呼び出し追加
-    async function checkGameEnd() { // ★ async 追加
+         // === ゲーム終了チェック === 
+    async function checkGameEnd() { 
         let isGO = false, isC = false, gameOverReason = "";
         console.log(`Checking game end: Player Score=${playerScore}, NPC Score=${npcScore}, Wave=${currentWave}, CurrentMinBet=${currentMinBet}`);
 
@@ -2874,10 +2789,9 @@ function updateShopUI() {
 
      // === 履歴追加・表示 ===
      function addHistoryEntry(entry) {
-        // ★ 現在のNPC名を取得してentryオブジェクトに追加
-        entry.npcName = currentNpcCharacter?.name || 'NPC不明'; // そのラウンド時点のNPC名を保存
+        entry.npcName = currentNpcCharacter?.name || 'NPC不明'; 
         gameHistory.push(entry);
-        console.log("History entry added:", entry); // デバッグ用ログ追加
+        console.log("History entry added:", entry); 
     }
 
     function displayHistory() {
@@ -2907,16 +2821,13 @@ function updateShopUI() {
                     else { resultText = '引き分け'; resultClass = 'history-draw'; }
 
                     const scoreStr = e.scoreChange !== 0 ? ` (<span class="${e.scoreChange > 0 ? 'gain' : 'loss'}">${e.scoreChange > 0 ? '+' : ''}${e.scoreChange}</span>)` : '';
-                    // 連勝数は親だった場合のみ表示（保存されたデータに基づく）
                     const winStreakStr = e.consecutiveWins > 1 ? ` <span class="win-streak">(${e.consecutiveWins}連勝)</span>` : '';
-                    const npcWinStreakStr = e.npcConsecutiveWins > 1 ? ` <span class="npc-losing-streak">(${e.npcName || '相手'}${e.npcConsecutiveWins}連勝中...)</span>` : ''; // ★ NPC名表示
-                    // 親の名前を決定 (履歴データから)
-                    const parentName = e.parentBefore === 'Player' ? (selectedCharacter?.name || 'あなた') : (e.npcName || 'NPC不明'); // ★ 保存されたNPC名を使用
+                    const npcWinStreakStr = e.npcConsecutiveWins > 1 ? ` <span class="npc-losing-streak">(${e.npcName || '相手'}${e.npcConsecutiveWins}連勝中...)</span>` : '';
+                    const parentName = e.parentBefore === 'Player' ? (playerName || selectedCharacter?.name || 'あなた') : (e.npcName || 'NPC不明');
                     const parentStr = e.parentBefore ? `<span class="parent-info">(親: ${parentName})</span>` : '';
                     const betStr = e.betAmount > 0 ? `<span class="bet-amount">賭け金: ${e.betAmount}</span>` : '';
-                    const playerNameForHistory = selectedCharacter?.name || 'あなた';
-                    // ★★★ NPCの名前を履歴データから取得 ★★★
-                    const npcNameForHistory = e.npcName || 'NPC不明'; // 保存されたNPC名を使用
+                    const playerNameForHistory = playerName || selectedCharacter?.name || 'あなた';
+                    const npcNameForHistory = e.npcName || 'NPC不明';
 
                     li.innerHTML = `
                         <span class="wave-num"><span class="wave-highlight">WAVE ${e.wave}</span> - <span class="round-normal">ROUND ${e.round}</span> ${parentStr}</span>
@@ -3850,21 +3761,18 @@ function updateShopUI() {
 
         const charList = document.getElementById('character-list');
         if (charList) {
-             // ★ 修正: リスナーが重複しないように、既存リスナーを削除してから追加する (念のため)
              charList.removeEventListener('click', handleCharacterSelect);
              charList.addEventListener('click', handleCharacterSelect);
         } else { console.error("#character-list not found for listener."); }
 
         const confirmYesBtn = document.getElementById('confirm-character-yes');
         if (confirmYesBtn) {
-             // ★ 修正: リスナーが重複しないように、既存リスナーを削除してから追加する (念のため)
              confirmYesBtn.removeEventListener('click', confirmCharacterSelection);
              confirmYesBtn.addEventListener('click', confirmCharacterSelection);
         } else { console.error("#confirm-character-yes not found for listener."); }
 
         const confirmNoBtn = document.getElementById('confirm-character-no');
         if (confirmNoBtn) {
-            // ★ 修正: リスナーが重複しないように、既存リスナーを削除してから追加する (念のため)
             const confirmNoBtnClickHandler = () => {
                 const confirmArea = document.getElementById('character-confirm-area');
                 if (confirmArea) confirmArea.style.display = 'none';
@@ -3877,22 +3785,28 @@ function updateShopUI() {
                 if(previewPlaceholder) { previewPlaceholder.style.display = 'block'; previewPlaceholder.textContent = '← リストから選択'; }
                 const confirmMsg = document.getElementById('character-confirm-message');
                 if (confirmMsg) { confirmMsg.textContent = 'このキャラクターにしますか？'; confirmMsg.style.color = '#eee'; }
-                const previewCard = document.getElementById('character-preview-card'); // ★ 追加
-                if (previewCard) previewCard.style.display = 'none'; // ★ 追加
+                const previewCard = document.getElementById('character-preview-card'); 
+                if (previewCard) previewCard.style.display = 'none'; 
             };
             confirmNoBtn.removeEventListener('click', confirmNoBtnClickHandler);
             confirmNoBtn.addEventListener('click', confirmNoBtnClickHandler);
         } else { console.error("#confirm-character-no not found for listener."); }
     }
 
+    if (playerNameInput) {
+        playerNameInput.addEventListener('change', (e) => {
+            playerName = e.target.value.trim(); 
+            console.log("Player name updated to:", playerName);
+        });
+     }
+
     // --- キャラクター選択画面 関数 ---
     function openCharacterSelectScreen() {
          console.log("Opening character select screen...");
          showScreen('character-select-screen');
-         // populateCharacterList(); // showScreen 内で呼ばれるので不要
     }
     function populateCharacterList() {
-         const listEl = document.getElementById('character-list'); // ★ 関数内で再取得
+         const listEl = document.getElementById('character-list'); 
         if (!listEl) { console.error("Character list element not found in populateCharacterList!"); return; }
         listEl.innerHTML = ''; console.log("Populating character list with:", characters);
         characters.forEach(char => { const button = document.createElement('button'); button.textContent = char.name; button.dataset.characterId = char.id; if (selectedCharacter && char.id === selectedCharacter.id) { button.classList.add('selected'); } listEl.appendChild(button); });
@@ -3922,7 +3836,6 @@ function updateShopUI() {
         }
     }
     function displayCharacterPreview(character) {
-         // ★ 関数内で要素を再取得し、nullチェックを行う
          const previewImg = document.getElementById('character-preview-image');
          const previewPlaceholder = document.getElementById('character-preview-placeholder');
          const confirmArea = document.getElementById('character-confirm-area');
@@ -3957,21 +3870,24 @@ function updateShopUI() {
         }
         cardPreviewEl.textContent = `初期カード候補：${initialCardName}`;
         cardPreviewEl.style.display = 'block';
-        confirmArea.style.display = 'block'; // 確認エリア表示
+        confirmArea.style.display = 'block'; 
     }
 
-        function confirmCharacterSelection() {
-            if (previewingCharacter) {
-                selectedCharacter = previewingCharacter;
-                console.log("Character selected:", selectedCharacter.name);
-                if (characterConfirmMessageEl) {
-                    characterConfirmMessageEl.textContent = `「${selectedCharacter.name}」に変更しました！`;
-                    characterConfirmMessageEl.style.color = '#90ee90';
-                }
-                if(confirmCharacterYesButton) confirmCharacterYesButton.style.display = 'none';
-                if(confirmCharacterNoButton) confirmCharacterNoButton.style.display = 'none';
+    function confirmCharacterSelection() {
+        if (previewingCharacter) {
+            selectedCharacter = previewingCharacter;
+            playerName = selectedCharacter.name; 
+            if(playerNameInput) playerNameInput.value = playerName; 
+            console.log("Character selected:", selectedCharacter.name);
+            if (characterConfirmMessageEl) {
+                characterConfirmMessageEl.textContent = `「${selectedCharacter.name}」に変更しました！`;
+                characterConfirmMessageEl.style.color = '#90ee90';
             }
+            if(confirmCharacterYesButton) confirmCharacterYesButton.style.display = 'none';
+            if(confirmCharacterNoButton) confirmCharacterNoButton.style.display = 'none';
         }
+    }
+
 
         // --- 初期状態 ---
         function initializeGame() {
