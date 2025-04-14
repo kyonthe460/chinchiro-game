@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSettingsModalButton = document.getElementById('close-settings-modal');
     const settingsNavButtons = document.querySelectorAll('.settings-nav-button');
     const settingsContent = document.getElementById('settings-content');
-    const settingsCardListButton = document.getElementById('settings-card-list-button');
+    // const settingsCardListButton = document.getElementById('settings-card-list-button');
     const settingsCardListInner = document.getElementById('settings-card-list-inner'); // ★ 設定モーダル内のカード一覧表示エリア
     const cardActionModal = document.getElementById('card-action-modal'); // ★ 手札カードモーダル
     const closeCardActionModalButton = document.getElementById('close-card-action-modal');
@@ -338,6 +338,83 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getHandDisplayName(hand) { if (!hand) return '-'; if (hand.type === '役') return hand.name; if (hand.type === '目') return `目 (${hand.value})`; if (hand.type === 'ションベン') return 'ションベン'; if (hand.type === '目なし') return '目なし'; return '-'; }
+
+ // === 設定モーダル：役/目の倍率表示更新 ===
+ function updateRoleRatesDisplay() {
+    // 各倍率表示用要素を取得
+    const ratePinzoroEl = document.getElementById('role-rate-pinzoro');
+    const rateArashiEl = document.getElementById('role-rate-arashi');
+    const rateShigoroEl = document.getElementById('role-rate-shigoro');
+    const rateEye1El = document.getElementById('role-rate-eye1');
+    const rateEye6El = document.getElementById('role-rate-eye6');
+    const rateHifumiEl = document.getElementById('role-rate-hifumi');
+    const rateShonbenEl = document.getElementById('role-rate-shonben');
+
+    // 要素が存在しない場合は処理中断
+    if (!ratePinzoroEl || !rateArashiEl || !rateShigoroEl || !rateEye1El || !rateEye6El || !rateHifumiEl || !rateShonbenEl) {
+        console.error("Role rate display elements not found in settings modal.");
+        return;
+    }
+
+    // --- 基本倍率定義 (ROLES定数から取得) ---
+    let baseRatePinzoro = ROLES.PINZORO.payoutMultiplier;
+    let baseRateArashi = ROLES.ARASHI.payoutMultiplier;
+    let baseRateShigoro = ROLES.SHIGORO.payoutMultiplier;
+    let baseRateEye = ROLES.NORMAL_EYE.payoutMultiplier; // 目の基本は1倍
+    // ヒフミ/ションベンは支払い倍率 (絶対値で扱う)
+    let baseRateHifumi = Math.abs(ROLES.HIFUMI.payoutMultiplier); // 基本2倍支払い
+    let baseRateShonben = Math.abs(ROLES.SHONBEN.payoutMultiplier); // 基本1倍支払い
+
+    // --- カード効果によるボーナス/ペナルティ初期化 ---
+    let bonusArashi = 0;
+    let bonusShigoro = 0;
+    let bonusEye1 = 0;
+    let bonusEye6 = 0;
+    let reductionHifumi = 0;
+    let reductionShonben = 0;
+
+    // --- 手札カードをチェックして効果を加算/減算 ---
+    playerCards.forEach(cardData => {
+        const cardDef = allCards.find(c => c.id === cardData.id);
+        if (!cardDef) return;
+        const level = cardData.level;
+
+        switch (cardDef.effectTag) {
+            case 'arashiBonus':
+                bonusArashi += level;
+                break;
+            case 'shigoroBonus':
+                bonusShigoro += level;
+                break;
+            case 'oneEyeBonus':
+                bonusEye1 += level;
+                break;
+            case 'sixEyeBonus':
+                bonusEye6 += level;
+                break;
+            case 'hifumiHalf':
+                reductionHifumi += level;
+                break;
+            case 'shonbenHalf':
+                // ションベン軽減はレベルに関わらず効果量は同じだが、カードを持っているかどうかが重要
+                reductionShonben = 0.5; // カードがあれば0.5軽減
+                break;
+            // 他の倍率に影響するカードがあればここに追加
+        }
+    });
+
+    // --- 最終的な倍率を計算して表示 ---
+    ratePinzoroEl.textContent = baseRatePinzoro; // ピンゾロは現在ボーナスなし
+    rateArashiEl.textContent = baseRateArashi + bonusArashi;
+    rateShigoroEl.textContent = baseRateShigoro + bonusShigoro;
+    rateEye1El.textContent = baseRateEye + bonusEye1; // 1の目の場合
+    rateEye6El.textContent = baseRateEye + bonusEye6; // 6の目の場合
+    // 支払い倍率は最低0倍
+    rateHifumiEl.textContent = Math.max(0, baseRateHifumi - reductionHifumi);
+    rateShonbenEl.textContent = Math.max(0, baseRateShonben - reductionShonben);
+
+    console.log("Updated role rates display based on current cards.");
+}
 
     // === setMessage 関数の修正 ===
     function setMessage(msg, buttonType = 'none') {
@@ -685,36 +762,50 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.max(0, sellPrice);
     }
 
-    // --- ゲーム初期化 (変更なし) ---
+    // --- ゲーム初期化 ---
     function initGame(isRestart = false) {
         console.log("--- initGame START ---");
         if (!selectedCharacter) {
             selectedCharacter = characters[0];
             console.log("No character selected, using first available:", selectedCharacter.name);
         }
+        // ★ isRestart が false (新規ゲーム) の場合のみ permanentScoreBoost をリセット
+        if (!isRestart) {
+            permanentScoreBoost = 0; // 永続ブーストをリセット
+             playerCoins = 0; // コインもリセット
+             playerCards = []; // 手札もクリア (isRestart=trueでも初期化されるように下で処理)
+            console.log("New game started. Resetting permanentScoreBoost, coins, and player cards.");
+        } else {
+            console.log("Restarting game. Keeping permanentScoreBoost:", permanentScoreBoost);
+            // isRestart=true の場合でも手札はリセットする
+            // playerCards = []; // ← 下のロジックでカバーされるため不要かも？
+        }
+
         selectNextNpc(); // 先にNPCを選択
 
          // ★ 永続ブーストを初期スコアに加算
          playerScore = INITIAL_PLAYER_SCORE + permanentScoreBoost;
          scoreAtWaveStart = playerScore; // 開始時のスコアを保存
 
-         selectNextNpc();
+         // selectNextNpc(); // ★ selectNextNpc は最初の一回でOK
          npcScore = NPC_START_SCORE_BASE;
          totalScoreChange = 0;
-         if (!isRestart) { // リスタートでない場合のみリセット
-              playerCoins = 0;
-              playerCards = [];
-              permanentScoreBoost = 0; // 永続ブーストもリセット
-         }
+
          // リスタートの場合でも手札は初期化する（永続ブーストは維持）
-         if(isRestart && !playerCards.length) { // キャラ選択しなおし等の場合
-              playerCards = [];
-         }
-          // 初期カード付与 (リスタートでも初期カードは付与する)
+         // isRestart==trueでも手札はクリアされるべき
+         playerCards = []; // 手札をクリア
+         console.log("Player cards cleared for new game/restart.");
+
+         // スコアとコインの初期化 (playerScore, scoreAtWaveStart は上で設定済み)
+         npcScore = NPC_START_SCORE_BASE; // NPCも初期スコアに
+         totalScoreChange = 0; // 総得点変動をリセット
+         // playerCoins は isRestart=false の場合のみリセット済み
+
+        // 初期カード付与 (リスタートでも初期カードは付与する)
         if (selectedCharacter && selectedCharacter.initialCardPool && selectedCharacter.initialCardPool.length > 0) {
-            // すでに初期カードを持っていないか確認
-           const hasInitialCard = selectedCharacter.initialCardPool.some(cardId => playerCards.some(pc => pc.id === cardId));
-           if(!hasInitialCard) {
+            // すでに初期カードを持っていないか確認 (リスタート時に重複付与しないため)
+           // const hasInitialCard = selectedCharacter.initialCardPool.some(cardId => playerCards.some(pc => pc.id === cardId)); // playerCards は上でクリアされるので不要
+           // if(!hasInitialCard) { // ← チェック不要
                const randomCardIndex = Math.floor(Math.random() * selectedCharacter.initialCardPool.length);
                const initialCardId = selectedCharacter.initialCardPool[randomCardIndex];
                const initialCardDef = allCards.find(card => card.id === initialCardId);
@@ -722,28 +813,11 @@ document.addEventListener('DOMContentLoaded', () => {
                    playerCards.push({ id: initialCardDef.id, level: 1 });
                    console.log(`Added initial card for ${selectedCharacter.name}: ${initialCardDef.name}`);
                }
-           } else {
-                console.log(`${selectedCharacter.name} already has an initial card type.`);
-           }
+           // } else {
+           //      console.log(`${selectedCharacter.name} already has an initial card type.`);
+           // }
        }
 
-        // スコアとコインの初期化
-        npcScore = NPC_START_SCORE_BASE; // NPCも初期スコアに
-        totalScoreChange = 0; // 総得点変動をリセット
-        playerCoins = 0; // コインもリセット
-        playerCards = []; // 手札をクリア
-        scoreAtWaveStart = INITIAL_PLAYER_SCORE + permanentScoreBoost; // ★ 永続ブーストを反映
-
-        // 初期カード付与
-        if (selectedCharacter && selectedCharacter.initialCardPool && selectedCharacter.initialCardPool.length > 0) {
-            const randomCardIndex = Math.floor(Math.random() * selectedCharacter.initialCardPool.length);
-            const initialCardId = selectedCharacter.initialCardPool[randomCardIndex];
-            const initialCardDef = allCards.find(card => card.id === initialCardId);
-            if (initialCardDef) {
-                playerCards.push({ id: initialCardDef.id, level: 1 });
-                console.log(`Added initial card for ${selectedCharacter.name} (New Game/Restart): ${initialCardDef.name}`);
-            }
-        }
 
         // その他の状態リセット
         currentWave = 1; defeatedCount = 0; currentBet = 0; isPlayerParent = true; playerDice = [0, 0, 0]; npcDice = [0, 0, 0]; playerHand = null; npcHand = null; playerRollCount = 0; npcRollCount = 0; isGameActive = false; gameHistory = []; baseMinBet = 50; currentMinBet = baseMinBet; consecutiveWins = 0; npcConsecutiveWins = 0; /* roundCount = 0; */; purchasedOrUpgradedInShop = []; currentRoundInWave = 0;
@@ -2427,7 +2501,7 @@ function updateShopUI() {
     function startBetHold(amount) { stopBetHold(); betHoldAmount = amount; changeBet(betHoldAmount); betHoldTimeout = setTimeout(() => { betHoldInterval = setInterval(() => { changeBet(betHoldAmount); }, BET_HOLD_INTERVAL); }, BET_HOLD_DELAY); }
     function stopBetHold() { clearTimeout(betHoldTimeout); clearInterval(betHoldInterval); betHoldTimeout = null; betHoldInterval = null; }
 
-       // --- イベントリスナー (変更なし) ---
+       // --- イベントリスナー ---
        // モードボタンリスナー追加
        modeButtons.forEach(button => {
            button.addEventListener('click', () => {
@@ -2452,7 +2526,7 @@ function updateShopUI() {
        maxBetButton.addEventListener('click', () => { if (betInput.disabled) return; if (playerScore >= currentMinBet) { betInput.value = betInput.max; updateBetLimits(); } else { setMessage(`持ち点が最低賭け金(${currentMinBet}点)未満です。`); } });
        minBetButton.addEventListener('click', () => { if (betInput.disabled) return; betInput.value = currentMinBet; updateBetLimits(); });
 
-       // 賭け金決定ボタン (変更なし)
+       // 賭け金決定ボタン 
        setBetButton.addEventListener('click', () => {
            if (!isPlayerParent || betInput.disabled || isGameActive || waitingForPlayerActionAfterRoll) return;
            updateBetLimits();
@@ -2512,7 +2586,7 @@ function updateShopUI() {
            }
        });
 
-    // === サイコロを振るボタン (変更なし) ===
+    // === サイコロを振るボタン ===
     rollButton.addEventListener('click', async () => {
         // 基本的なガード節
         if (playerScore <= 0 || !isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll) {
@@ -2656,17 +2730,21 @@ function updateShopUI() {
        });
    });
 
-    nextWaveButton.addEventListener('click', openShop);
-    // ↓ リザルト画面ボタンリスナー修正
-    restartSameModeButton.addEventListener('click', () => { initGame(true); }); // ★ ID変更反映
-    backToTitleFromResultButton.addEventListener('click', () => { showScreen('title-screen'); }); // ★ ID変更反映
-    historyButton.addEventListener('click', () => { if (diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll) return; displayHistory(); historyModal.style.display = 'flex'; });
-    closeHistoryModalButton.addEventListener('click', () => { historyModal.style.display = 'none'; });
-    // ★ 以前のカード一覧モーダルの閉じるボタンリスナーは不要
-    // if (closeCardListModalButton) closeCardListModalButton.addEventListener('click', () => cardListModal.style.display = 'none');
-    closeDiceRollModalButton.addEventListener('click', hideDiceRollModal);
+   nextWaveButton.addEventListener('click', openShop);
+   // restartSameModeButton を押した場合も isRestart = false で初期化し、永続ブーストをリセットする
+   restartSameModeButton.addEventListener('click', () => { initGame(false); }); 
+   // タイトルに戻るボタン (リザルト画面から)
+   backToTitleFromResultButton.addEventListener('click', () => {
+       permanentScoreBoost = 0; // ★ タイトルに戻る際に永続ブーストをリセット
+       console.log("Returning to title from result. permanentScoreBoost reset.");
+       showScreen('title-screen');
+   });
 
-      // === NPCターン (変更なし) ===
+   historyButton.addEventListener('click', () => { if (diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll) return; displayHistory(); historyModal.style.display = 'flex'; });
+   closeHistoryModalButton.addEventListener('click', () => { historyModal.style.display = 'none'; });
+   closeDiceRollModalButton.addEventListener('click', hideDiceRollModal);
+
+      // === NPCターン ===
       function npcTurn() {
         if (!isGameActive || isPlayerTurn || diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll) return;
 
@@ -2735,7 +2813,7 @@ function updateShopUI() {
         });
     }
 
-   // === スキップボタン処理 (変更なし) ===
+   // === スキップボタン処理 ===
    function handleSkipAction() {
     if (!waitingForPlayerActionAfterRoll) return;
 
@@ -2811,7 +2889,7 @@ function updateShopUI() {
     }
 }
 
-    // === 親権維持確認関数 (変更なし) ===
+    // === 親権維持確認関数 ===
     async function askKeepParentRight(cardLevel) {
         const maxKeepUses = (cardLevel >= 2 ? 2 : 1);
         const usedCount = activeCardUses['keepParentalRight'] || 0;
@@ -2820,7 +2898,7 @@ function updateShopUI() {
         return useCard;
     }
 
-           // === ラウンド終了処理 (変更なし) ===
+           // === ラウンド終了処理 ===
            async function handleRoundEnd() {
             if (waitingForUserChoice || waitingForPlayerActionAfterRoll) return;
 
@@ -3184,7 +3262,7 @@ function updateShopUI() {
                 checkGameEnd();
             }, SCORE_ANIMATION_DURATION + 300 + (draw ? 0 : CENTER_RESULT_DURATION));
         }
-    // === ゲーム終了チェック (変更なし) ===
+    // === ゲーム終了チェック ===
     function checkGameEnd() {
         let isGO = false, isC = false, gameOverReason = "";
         console.log(`Checking game end: Player Score=${playerScore}, NPC Score=${npcScore}, Wave=${currentWave}, CurrentMinBet=${currentMinBet}`);
@@ -3248,7 +3326,7 @@ function updateShopUI() {
         }
     }
 
-    // --- コイン計算、獲得処理、アニメーション (変更なし) ---
+    // --- コイン計算、獲得処理、アニメーション ---
     function calculateEarnedCoins() {
         const waveBonus = currentWave * 20;
         const defeatBonus = 80;
@@ -3262,7 +3340,7 @@ function updateShopUI() {
         console.log(`Coin Calculation: Wave=${currentWave}, Rounds=${roundsTaken}, ScoreAtStart=${scoreAtWaveStart}, ScoreNow=${playerScore}, Gain=${scoreGainInWave}, WaveBonus=${waveBonus}, DefeatBonus=${defeatBonus}, ScoreGainBonus=${scoreGainBonus}, OverkillBonus=${overkillBonus}, RoundPenalty=${roundPenalty}, BaseEarned=${baseEarned}, FinalEarned=${earned}`);
         return earned;
     }
-    // === コイン獲得処理とアニメーション (変更なし) ===
+    // === コイン獲得処理とアニメーション ===
     function calculateAndAwardCoins() {
         const earned = calculateEarnedCoins();
         if (earned <= 0) return;
@@ -3300,7 +3378,7 @@ function updateShopUI() {
         }
     }
 
-    // === 結果画面表示 (変更なし) ===
+    // === 結果画面表示 ===
     function showResultScreen(isClear, currentScore, wave, reason = "") {
         // モードとクリア/ゲームオーバーで表示を分岐
         if (gameMode === 'endless' && !isClear) { // エンドレスモードでゲームオーバーの場合
@@ -3326,7 +3404,7 @@ function updateShopUI() {
         showScreen('result-screen');
     }
 
-     // === 履歴追加・表示 (変更なし) ===
+     // === 履歴追加・表示 ===
      function addHistoryEntry(entry) {
         // ★ 現在のNPC名を取得してentryオブジェクトに追加
         entry.npcName = currentNpcCharacter?.name || 'NPC不明'; // そのラウンド時点のNPC名を保存
@@ -3391,16 +3469,24 @@ function updateShopUI() {
         });
     }
 
-    // --- 設定モーダル、カード一覧関連 (修正あり) ---
+    // --- 設定モーダル、カード一覧関連 ---
     function generateSettingsCardListHtml() {
-        // ★ 設定モーダル内のカード一覧表示エリアを取得
         const settingsListContainer = document.getElementById('settings-card-list-inner');
         if (!settingsListContainer) {
              console.error("Element #settings-card-list-inner not found in generateSettingsCardListHtml!");
              return; // コンテナがない場合は処理中断
         }
         settingsListContainer.innerHTML = ''; // 内容をクリア
-        // カードをレアリティ(降順) -> タイプ -> 名前(昇順)でソート
+
+        // 親コンテナにデフォルトのフィルタクラスを設定
+        const listContentElement = document.getElementById('settings-card-list-content');
+        if (listContentElement) {
+             listContentElement.className = 'settings-tab-content active filter-all'; // デフォルトは全表示
+        } else {
+            console.error("#settings-card-list-content not found for setting default filter.");
+        }
+
+        // カードソート 
         const sortedCards = [...allCards].sort((a, b) => {
             if (a.rarity !== b.rarity) return b.rarity - a.rarity;
             if (a.type !== b.type) return a.type.localeCompare(b.type);
@@ -3409,34 +3495,36 @@ function updateShopUI() {
 
         sortedCards.forEach(card => {
             const item = document.createElement('div');
-            item.className = 'card-list-item'; // CSSクラス設定 (流用)
+            // ★ カードタイプに応じてクラスを追加
+            const isCardActive = !!card.usesPerWave;
+            const cardTypeClass = isCardActive ? 'card-type-active' : 'card-type-passive';
+            item.className = `card-list-item ${cardTypeClass}`; // タイプクラスを追加
+
             const rarityText = ['N', 'R', 'EP', 'LG'][card.rarity - 1] || 'N';
             const typeName = getCardTypeName(card.type);
-            const typeClass = `type-${card.type}`;
-            const rarityClass = `rarity-${['normal', 'rare', 'epic', 'legendary'][card.rarity - 1] || 'normal'}`;
+            const typeCssClass = `type-${card.type}`; // CSSでのタイプ色分け用クラス
+            const rarityCssClass = `rarity-${['normal', 'rare', 'epic', 'legendary'][card.rarity - 1] || 'normal'}`; // CSSでのレアリティ色分け用クラス
 
             // レベル別説明
             let effectDetailsHtml = '';
             for (let level = 1; level <= MAX_CARD_LEVEL; level++) {
-                // ★ レベル別説明のHTML構造をCSSに合わせて調整
                 effectDetailsHtml += `<div class="effect-level-title"><strong>Lv.${level}:</strong></div>`;
                 effectDetailsHtml += `<div class="effect-level-description">${getUpgradeDescription(card, level)}</div>`;
             }
 
-            // item の innerHTML を設定 (CSSに合わせて調整)
+            // item の innerHTML を設定 (CSSクラス名を修正)
             item.innerHTML = `
-                <h3> ${card.name} <span class="card-meta"><span class="${typeClass}">${typeName}</span> <span class="rarity-${rarityClass}">★${rarityText}</span></span> </h3>
+                <h3> ${card.name} <span class="card-meta"><span class="${typeCssClass}">${typeName}</span> <span class="${rarityCssClass}">★${rarityText}</span></span> </h3>
                 <p class="flavor-text">${card.flavor || '---'}</p>
                 <div class="effect-details">
                     ${effectDetailsHtml}
                 </div>`;
-            settingsListContainer.appendChild(item); // 設定モーダル内のコンテナに追加
+            settingsListContainer.appendChild(item);
         });
+        console.log("Generated settings card list with type classes.");
     }
-    // ★ 以前の showCardListModal は不要なのでコメントアウト or 削除
-    // function showCardListModal() { console.warn("showCardListModal is deprecated. Use settings modal instead."); }
 
-    // ★ 設定ボタンのイベントリスナーを修正
+    // 設定ボタンのイベントリスナーを修正
     if (settingsButton && settingsModal) {
         settingsButton.addEventListener('click', () => {
             // 他のモーダルが表示されていたら閉じる (念のため)
@@ -3456,7 +3544,6 @@ function updateShopUI() {
             settingsModal.style.display = 'none';
         });
     }
-    // ★ モーダル外クリックのイベントリスナーを修正
     window.addEventListener('click', (event) => {
         if (settingsModal && event.target === settingsModal) {
             settingsModal.style.display = 'none';
@@ -3464,8 +3551,6 @@ function updateShopUI() {
         if (historyModal && event.target === historyModal) {
              historyModal.style.display = 'none';
         }
-        // ★ 以前のカード一覧モーダルは削除
-        // if (cardListModal && event.target === cardListModal) cardListModal.style.display = 'none';
         if (discardModal && event.target === discardModal) {
              cancelDiscard();
         }
@@ -3474,7 +3559,7 @@ function updateShopUI() {
         }
         if (cardActionModal && event.target === cardActionModal) {
             cardActionModal.style.display = 'none';
-            // ★ 手札モーダルを閉じたときに、ロール後の選択待ち状態だったらメッセージを再表示
+            // 手札モーダルを閉じたときに、ロール後の選択待ち状態だったらメッセージを再表示
             if (waitingForPlayerActionAfterRoll) {
                 // メッセージ再表示ロジックは handleActiveCardUse や hideDiceChoiceOverlay 内にもあるため、
                 // ここでは冗長になる可能性があるが、念のため残しておく
@@ -3495,9 +3580,8 @@ function updateShopUI() {
        }
     });
 
-    // ★ 設定モーダルのナビゲーションボタンのイベントリスナー修正
+    // 設定モーダルのナビゲーションボタンのイベントリスナー
     settingsNavButtons.forEach(button => {
-        // ★ data-target 属性を持つボタンのみにリスナーを設定
         if (button.dataset.target) {
             button.addEventListener('click', () => {
                 switchSettingsTab(button.dataset.target);
@@ -3505,19 +3589,15 @@ function updateShopUI() {
         }
     });
 
-    // ★ 以前の settingsCardListButton のリスナーは上記でカバーされるため不要
-
-    // ★ switchSettingsTab 関数を修正
+    // switchSettingsTab 関数
     function switchSettingsTab(targetId) {
         if (!settingsContent) {
             console.error("Element #settings-content not found in switchSettingsTab!");
             return;
         }
-        // 全てのナビゲーションボタンとタブコンテンツから active クラスを削除
         settingsNavButtons.forEach(btn => btn.classList.remove('active'));
         settingsContent.querySelectorAll('.settings-tab-content').forEach(content => content.classList.remove('active'));
 
-        // 対応するナビゲーションボタンを探して active クラスを追加
         const activeButton = document.querySelector(`.settings-nav-button[data-target="${targetId}"]`);
         if (activeButton) {
             activeButton.classList.add('active');
@@ -3525,10 +3605,13 @@ function updateShopUI() {
             console.warn(`No settings navigation button found for target: ${targetId}`);
         }
 
-        // カード一覧タブが選択されたらリストを生成
+        // タブIDに応じて処理を分岐
         if (targetId === 'card-list') {
-            generateSettingsCardListHtml();
+            generateSettingsCardListHtml(); // カード一覧タブならリスト生成
+        } else if (targetId === 'roles') {
+            updateRoleRatesDisplay(); // 役と点数タブなら倍率表示更新
         }
+        // 他のタブIDの場合の処理 (現在はルールのみ)
 
         // 対応するタブコンテンツを探して active クラスを追加
         const activeContent = document.getElementById(`settings-${targetId}-content`);
@@ -3544,12 +3627,41 @@ function updateShopUI() {
                  firstTabContent.classList.add('active');
                  if(firstNavButton) firstNavButton.classList.add('active');
                  console.warn(`Falling back to first settings tab: ${firstTabContent.id}`);
+                 // ★ フォールバック時にも必要なら倍率更新などを呼ぶ
+                 if (firstTabContent.id === 'settings-roles-content') {
+                     updateRoleRatesDisplay();
+                 }
             }
         }
     }
 
-    // --- カード画面モーダル関連 (修正あり) ---
-    // ★ openCardActionModal 関数を修正
+    // 設定モーダル：カード一覧カテゴリタブのイベントリスナー
+    const filterTabContainer = document.querySelector('.card-list-filter-tabs');
+    if (filterTabContainer) {
+        filterTabContainer.addEventListener('click', (event) => {
+            if (event.target.classList.contains('filter-tab')) {
+                const filterType = event.target.dataset.filter;
+                const listContentElement = document.getElementById('settings-card-list-content');
+                const tabs = filterTabContainer.querySelectorAll('.filter-tab');
+
+                if (listContentElement && tabs) {
+                    // タブのアクティブ状態を切り替え
+                    tabs.forEach(tab => tab.classList.remove('active'));
+                    event.target.classList.add('active');
+
+                    // 親コンテナのフィルタクラスを更新
+                    listContentElement.className = `settings-tab-content active filter-${filterType}`;
+                    console.log(`Card list filter changed to: ${filterType}`);
+                } else {
+                    console.error("Required elements not found for filtering card list.");
+                }
+            }
+        });
+    } else {
+        console.error(".card-list-filter-tabs container not found.");
+    }
+
+    // --- カード画面モーダル関連 ---
     function openCardActionModal() {
         if (!cardActionModal) {
             console.error("Element #card-action-modal not found!");
@@ -3568,7 +3680,7 @@ function updateShopUI() {
         cardActionModal.style.display = 'flex'; // モーダルを表示
     }
 
-     // === カードモーダル表示 (変更なし) ===
+     // === カードモーダル表示 ===
      function displayCardsInModal() {
         const activeCardDisplay = document.getElementById('active-card-display');
         const passiveCardDisplay = document.getElementById('passive-card-display');
@@ -3678,7 +3790,7 @@ function updateShopUI() {
         }
     }
 
-    // モーダル閉じるボタンのイベントリスナー (変更なし)
+    // モーダル閉じるボタンのイベントリスナー 
     if (closeCardActionModalButton && cardActionModal) {
         closeCardActionModalButton.addEventListener('click', () => {
             cardActionModal.style.display = 'none';
@@ -3701,7 +3813,7 @@ function updateShopUI() {
         });
     }
 
-    // カード使用ボタンのイベントリスナー (変更なし)
+    // カード使用ボタンのイベントリスナー 
     const activeCardDisplayForEvent = document.getElementById('active-card-display');
     if(activeCardDisplayForEvent) { // 要素が存在すればイベントリスナーを設定
         activeCardDisplayForEvent.addEventListener('click', async (event) => { // ★ イベントリスナーの対象を activeCardDisplayForEvent に変更
@@ -3717,7 +3829,7 @@ function updateShopUI() {
         });
     }
 
-    // ★ 手札ボタン（カードアクションモーダルを開くボタン）のイベントリスナー修正
+    // 手札ボタン（カードアクションモーダルを開くボタン）のイベントリスナー
     if (cardActionButton) {
         cardActionButton.addEventListener('click', () => {
              // 他のモーダルが表示されていたら閉じる (念のため)
@@ -3732,7 +3844,7 @@ function updateShopUI() {
     }
     // ★ ロール後のカードボタンのリスナーは setMessage 内で動的に生成されるため、そちらで openCardActionModal を呼び出すように修正済み
 
-     // === アクティブカード使用処理 (変更なし) ===
+     // === アクティブカード使用処理 ===
     async function handleActiveCardUse(event) {
         let cardElement = null; let cardId = null;
         if(event && event.currentTarget && event.currentTarget.dataset.cardId){ cardElement = event.currentTarget; cardId = cardElement.dataset.cardId; }
@@ -3942,7 +4054,7 @@ function updateShopUI() {
        updateCardButtonHighlight();
    }
 
-      // === カード使用可否チェック関数 (変更なし) ===
+      // === カード使用可否チェック関数 ===
       function checkCardUsability(cardId) {
         const cardData = playerCards.find(c => c.id === cardId);
         const card = allCards.find(c => c.id === cardId);
@@ -3969,7 +4081,7 @@ function updateShopUI() {
         }
     }
 
-     // === 残り使用回数取得関数 (変更なし) ===
+     // === 残り使用回数取得関数 ===
      function getRemainingUses(cardId) {
         const cardData = playerCards.find(c => c.id === cardId);
         const card = allCards.find(c => c.id === cardId);
@@ -3980,7 +4092,7 @@ function updateShopUI() {
         return totalUses - (activeCardUses[cardId] || 0);
     }
 
-        // === ダイス選択オーバーレイ表示/非表示/選択処理 (変更なし) ===
+        // === ダイス選択オーバーレイ表示/非表示/選択処理 ===
         function showDiceChoiceOverlay(cardId) {
             if (!diceChoiceOverlay) return;
             const card = allCards.find(c => c.id === cardId);
@@ -4308,7 +4420,7 @@ function updateShopUI() {
         }
     }
 
-        // --- ショップ関連イベントリスナー (変更なし) ---
+        // --- ショップ関連イベントリスナー ---
         shopCloseButton.addEventListener('click', closeShop);
         if (shopRerollButton) shopRerollButton.addEventListener('click', handleReroll);
 
@@ -4323,20 +4435,18 @@ function updateShopUI() {
         } else { console.error(".shop-offers-container element not found for listener setup!"); }
         cancelDiscardButton.addEventListener('click', cancelDiscard);
 
-       // --- キャラクター選択画面 イベントリスナー (変更なし) ---
+       // --- キャラクター選択画面 イベントリスナー ---
        function setupCharacterSelectListeners() {
         console.log("Setting up character select listeners (Robust check)...");
 
         const selCharBtn = document.getElementById('select-character-button');
         if (selCharBtn) {
-            // ★ 修正: リスナーが重複しないように、既存リスナーを削除してから追加する (念のため)
             selCharBtn.removeEventListener('click', openCharacterSelectScreen);
             selCharBtn.addEventListener('click', openCharacterSelectScreen);
         } else { console.error("#select-character-button not found for listener."); }
 
         const backBtn = document.getElementById('back-to-title-button');
         if (backBtn) {
-             // ★ 修正: リスナーが重複しないように、既存リスナーを削除してから追加する (念のため)
              const backBtnClickHandler = () => {
                  const confirmArea = document.getElementById('character-confirm-area');
                  if (confirmArea) confirmArea.style.display = 'none';
@@ -4348,6 +4458,8 @@ function updateShopUI() {
                  if (diceChoiceOverlay && diceChoiceOverlay.style.display !== 'none') { hideDiceChoiceOverlay(); }
                  const gameScr = document.getElementById('game-screen');
                  if(gameScr) gameScr.classList.remove('dimmed');
+                 permanentScoreBoost = 0; 
+                 console.log("Returning to title from character select. permanentScoreBoost reset.");
                  showScreen('title-screen');
              };
              backBtn.removeEventListener('click', backBtnClickHandler);
@@ -4391,7 +4503,7 @@ function updateShopUI() {
         } else { console.error("#confirm-character-no not found for listener."); }
     }
 
-    // --- キャラクター選択画面 関数 (変更なし) ---
+    // --- キャラクター選択画面 関数 ---
     function openCharacterSelectScreen() {
          console.log("Opening character select screen...");
          showScreen('character-select-screen');
@@ -4482,8 +4594,6 @@ function updateShopUI() {
         // --- 初期状態 ---
         function initializeGame() {
             console.log("Initializing game setup...");
-            // ↓ 難易度設定を削除
-            // setDifficulty(difficulty);
             const hideAllModalsAndOverlays = () => {
                 console.log("Hiding all modals and overlays...");
                 const modals = document.querySelectorAll('.modal');
@@ -4499,12 +4609,13 @@ function updateShopUI() {
             };
             document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
             hideAllModalsAndOverlays();
+            permanentScoreBoost = 0; // ★ 初期化時にも念のためリセット
+            console.log("Initializing game. permanentScoreBoost reset.");
             showScreen('title-screen');
             console.log("Game setup initialized. Showing title screen.");
-            // initializeGame(); // ★ 修正 ★ 不要な再帰呼び出しを削除済み
         }
-        initializeGame(); // ゲーム読み込み時に初期化実行
-        setupCharacterSelectListeners(); // ★ 修正 ★ 初期化後にリスナー設定関数を呼び出す
+        initializeGame();
+        setupCharacterSelectListeners();
 
     }); // === DOMContentLoaded END ===
     // ===== END OF script.js =====

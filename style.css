@@ -995,6 +995,101 @@ button:disabled { background-color: #555 !important; background-image: none !imp
     color: rgba(255, 255, 255, 1);
 }
 
+/* ===== 設定モーダル カード一覧カテゴリタブ ===== */
+.card-list-filter-tabs {
+    display: flex;
+    justify-content: flex-start; /* 左寄せ */
+    gap: 5px; /* タブ間の隙間 */
+    margin-bottom: 15px; /* リストとの間隔 */
+    padding-left: 5px; /* 左に少しパディング */
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1); /* 下線 */
+}
+
+.filter-tab {
+    padding: 8px 15px;
+    font-size: 0.9em;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #aaa;
+    border: none; /* 下以外のボーダーなし */
+    border-top-left-radius: 6px; /* 上の角を丸める */
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    position: relative; /* activeの下線用 */
+    bottom: -2px; /* 下線と重なるように少し下げる */
+    border-bottom: 2px solid transparent; /* 非アクティブ時の下線 */
+    font-weight: 500;
+    box-shadow: none;
+}
+
+.filter-tab:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+}
+
+.filter-tab.active {
+    background-color: #2a2a3a; /* モーダル背景色と同じにして繋がっているように見せる */
+    color: #ffeb3b; /* アクティブ時の文字色 */
+    border-bottom: 2px solid #ffeb3b; /* アクティブ時の下線 */
+    font-weight: bold;
+    transform: translateY(1px); /* わずかに上に */
+}
+
+/* ===== カード一覧 フィルタリング用CSS ===== */
+
+/* アクティブフィルタ時 */
+#settings-card-list-content.filter-active .card-type-passive {
+    display: none;
+}
+
+/* パッシブフィルタ時 */
+#settings-card-list-content.filter-passive .card-type-active {
+    display: none;
+}
+
+/* カードリストアイテムにタイプ別クラスを追加するための準備 (既存スタイルに追加) */
+.card-list-item {
+    /* ... 既存のスタイル ... */
+    transition: opacity 0.3s ease, max-height 0.3s ease; /* 非表示アニメーション用 (任意) */
+    overflow: hidden; /* 非表示アニメーション用 */
+}
+/* 非表示時のスタイル (任意 - アニメーション用) */
+/*.filter-active .card-type-passive,
+.filter-passive .card-type-active {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-width: 0;
+}*/
+#settings-card-list-content { max-height: 60vh; overflow-y: auto; text-align: left; padding-right: 10px; }
+#settings-card-list-inner { margin-top: 10px; /* タブの下にスペース */ }
+
+/* レアリティの色指定 (No.3対応) */
+.card-list-item h3 .rarity-normal { color: #bdbdbd; } /* 灰色 */
+.card-list-item h3 .rarity-rare { color: #64b5f6; } /* 水色 */
+.card-list-item h3 .rarity-epic { color: #ba68c8; } /* 紫色 */
+.card-list-item h3 .rarity-legendary { color: #ffb74d; } /* オレンジ色 */
+
+/* カードメタ情報の太字解除 */
+.card-list-item h3 .card-meta span {
+    font-weight: normal; /* 太字解除 */
+}
+/* タイプ名は少し太くても良いかも */
+.card-list-item h3 .card-meta .type-support,
+.card-list-item h3 .card-meta .type-dice,
+.card-list-item h3 .card-meta .type-score {
+    font-weight: 500; /* 少し太く */
+}
+/* レアリティ記号は太字でも良いかも */
+.card-list-item h3 .card-meta .rarity-normal,
+.card-list-item h3 .card-meta .rarity-rare,
+.card-list-item h3 .card-meta .rarity-epic,
+.card-list-item h3 .card-meta .rarity-legendary {
+   font-weight: bold; /* 星とレアリティ文字は太字 */
+}
+
 /* カード一覧モーダル */
 .card-list-modal-content { max-width: 800px; }
 #card-list-content { list-style: none; padding: 0 10px 0 0; max-height: 70vh; overflow-y: auto; margin-top: 15px; text-align: left; }
@@ -1012,6 +1107,39 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 .card-list-item p { margin: 5px 0; line-height: 1.5; font-size: 0.95em; }
 .card-list-item .flavor-text { font-style: italic; color: #bbb; font-size: 0.9em; margin-bottom: 8px; }
 .card-list-item .effect-details { font-size: 0.9em; color: #e0e0e0; background-color: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; margin-top: 8px; }
+
+/* ===== 設定モーダル ゲームルール表示調整 ===== */
+#settings-rules-content h4 {
+    font-size: 1.1em;
+    color: #87CEFA; /* 少し明るい青系 */
+    margin-top: 20px; /* 前のセクションとの間隔 */
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dotted rgba(135, 206, 250, 0.5); /* 点線の下線 */
+    font-weight: bold; /* 太字にする */
+}
+#settings-rules-content h4:first-of-type {
+    margin-top: 0; /* 最初のh4の上マージンは不要 */
+}
+
+#settings-rules-content ul {
+    padding-left: 25px; /* インデントを少し深く */
+    margin-bottom: 15px; /* リスト下のマージン */
+    list-style-type: '🎲 '; /* 絵文字リストマーカー */
+}
+
+#settings-rules-content li {
+    margin-bottom: 10px; /* 各項目の間隔 */
+    line-height: 1.8; /* 行間を広げる */
+    color: #d8d8d8; /* 文字色を少し明るく */
+}
+
+/* 強調表示のスタイル */
+#settings-rules-content strong {
+    color: #ffeb3b; /* 黄色 */
+    font-weight: bold; /* 太字を維持 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* 少し影付け */
+}
 
 /* ===== 設定モーダル ===== */
 .settings-modal-content {
@@ -1789,6 +1917,151 @@ button:disabled { background-color: #555 !important; background-image: none !imp
 /* 最初のレベル(Lv.1)の上マージンは不要な場合 */
 .effect-details .effect-level-title:first-of-type {
     margin-top: 0;
+}
+
+/* ===== アイテム獲得演出モーダル ===== */
+.item-reveal-modal { /* 基本的なモーダルスタイルを継承 */
+    z-index: 1100; /* 他のモーダルより手前に */
+    backdrop-filter: blur(8px) brightness(0.7); /* 背景効果を少し強く */
+}
+
+.item-reveal-content {
+    background: radial-gradient(ellipse at center, rgba(60, 60, 90, 0.95) 0%, rgba(30, 30, 50, 0.98) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    max-width: 450px; /* モーダル幅 */
+    text-align: center;
+    padding: 35px;
+    position: relative;
+    overflow: hidden; /* 輝きエフェクト用 */
+    /* レアリティに応じた枠線のためにクラスを追加可能にする */
+    transition: border-color 0.5s ease;
+    animation: itemRevealAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes itemRevealAppear {
+    from { transform: scale(0.7) rotate(-5deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* レアリティに応じた輝きと枠線 */
+.item-reveal-content.rarity-normal { border-color: #aaa; }
+.item-reveal-content.rarity-rare { border-color: #64b5f6; box-shadow: 0 0 20px rgba(100, 181, 246, 0.6), 0 10px 40px rgba(0, 0, 0, 0.7); }
+.item-reveal-content.rarity-epic { border-color: #ba68c8; box-shadow: 0 0 30px rgba(186, 104, 200, 0.7), 0 10px 40px rgba(0, 0, 0, 0.7); }
+.item-reveal-content.rarity-legendary { border-color: #ffb74d; box-shadow: 0 0 40px rgba(255, 183, 77, 0.8), 0 10px 40px rgba(0, 0, 0, 0.7); animation: legendaryShine 2s infinite linear, itemRevealAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+@keyframes legendaryShine {
+    0%, 100% { box-shadow: 0 0 40px rgba(255, 183, 77, 0.8), 0 10px 40px rgba(0, 0, 0, 0.7); }
+    50% { box-shadow: 0 0 55px rgba(255, 183, 77, 1.0), 0 10px 40px rgba(0, 0, 0, 0.7); }
+}
+
+
+#item-reveal-title { /* アイテム獲得！ or パックから出現！ */
+    color: #ffcc70;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    font-family: 'Yuji Syuku', serif;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+#item-reveal-body {
+    display: flex;
+    flex-direction: column; /* 縦積み */
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+#item-reveal-image-container {
+    width: 150px; /* 画像コンテナサイズ */
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#item-reveal-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: none; /* 初期非表示 */
+}
+
+#item-reveal-placeholder {
+    color: #888;
+    font-size: 0.9em;
+    display: block; /* 初期表示 */
+}
+
+#item-reveal-details {
+    text-align: center;
+}
+
+#item-reveal-name { /* カード名 */
+    font-size: 1.5em;
+    color: #ffeb3b;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+
+#item-reveal-meta { /* レアリティとタイプ */
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+#item-reveal-meta .rarity-badge,
+#item-reveal-meta .type-badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+}
+/* レアリティバッジ色 */
+#item-reveal-meta .rarity-normal { background-color: #bdbdbd; color: #333; }
+#item-reveal-meta .rarity-rare { background-color: #64b5f6; color: #fff; }
+#item-reveal-meta .rarity-epic { background-color: #ba68c8; color: #fff; }
+#item-reveal-meta .rarity-legendary { background-color: #ffb74d; color: #fff; }
+/* タイプバッジ色 */
+#item-reveal-meta .type-support { background-color: #81b7f3; color: #fff; }
+#item-reveal-meta .type-dice { background-color: #f18a8a; color: #fff; }
+#item-reveal-meta .type-score { background-color: #77cc87; color: #fff; }
+
+#item-reveal-description { /* 説明文 */
+    font-size: 0.95em;
+    color: #e0e0e0;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    max-height: 100px; /* 説明文の最大高さ */
+    overflow-y: auto; /* 長い場合にスクロール */
+    text-align: left;
+}
+
+#item-reveal-level { /* Lv表示 (アップグレード時) */
+    font-size: 1.1em;
+    color: #90ee90; /* 緑色系 */
+    font-weight: bold;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
+#confirm-item-reveal-button { /* 確認ボタン */
+    padding: 10px 30px;
+    font-size: 1.1em;
 }
 
 /* ===== END OF style.css ===== */

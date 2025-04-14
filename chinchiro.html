@@ -158,7 +158,7 @@
                     </div>
                 </div>
                 <div class="shop-section">
-                    <h4 class="shop-section-title">永続強化</h4>
+                    <h4 class="shop-section-title">持ち点増強</h4>
                     <div id="boost-offers" class="shop-item-row">
                         <!-- JSで追加持ち点アイテムがここに挿入される -->
                          <span class="shop-empty-message">(オファーなし)</span>
@@ -264,21 +264,54 @@
                 <!-- ゲームルール -->
                 <div id="settings-rules-content" class="settings-tab-content active">
                     <h3>ゲームルール</h3>
+
+                    <!-- ★ ルールをセクション分け -->
+                    <h4>▼ 基本</h4>
                     <ul>
-                        <li>CPUのキャラクターを相手に、日本の伝統的なサイコロゲーム「チンチロ」で勝負するゲームです。</li>
-                        <li>各WAVEの開始時、どちらかが「親」となり、もう一方が「子」となります（最初はプレイヤーが親）。</li>
-                        <li>「親」は、各ラウンドの開始時に「賭け金」を設定します。子は親が設定した賭け金で勝負を受けます。</li>
-                        <li>サイコロは3個同時に振り、出た目の組み合わせで「役」が決まります。3回まで振り直せますが、役が出たらその時点で確定です（一部の強い役を除く）。</li>
-                        <li>基本的には、「親」が先にサイコロを振り、その後「子」が振ります。役の強さで勝敗が決まります。</li>
-                        <li>強い役で勝つと、賭け金が多くもらえます。逆に特定の役（ヒフミなど）を出すと負けとなり、賭け金を多く支払います。</li>
-                        <li>「ションベン」（特定の出目）を出すと、その場で負けとなります。3回振っても役も目も出ない「目なし」もションベン扱いです。</li>
-                        <li>勝負に勝った方が点数を獲得し、負けた方は点数を失います。親が勝つと連勝となり、獲得点数にボーナスがつきます！</li>
-                        <li>親が勝負に負けると、次のラウンドから「親」と「子」が交代します（カード効果で交代を防げる場合もあります）。</li>
-                        <li>相手キャラクターの持ち点を0にするか、相手が最低賭け金を払えなくなるとWAVEクリア！</li>
-                        <li>WAVEをクリアすると「ショップ」が開き、獲得した「コイン」を使って「カード」を購入・強化できます。</li>
-                        <li>カードには、サイコロの目を操作したり、点数を増やしたり、様々な有利な効果があります。手札は最大8枚(アクティブ4/パッシブ4)まで持てます。</li> <!-- ★ 手札上限表示を修正 -->
-                        <li>WAVEが進むごとに相手は強くなり、最低賭け金も上がっていきます。</li>
-                        <li>プレイヤーの持ち点が0になるか、最低賭け金が払えなくなるとゲームオーバーです。全WAVEクリアを目指しましょう！</li>
+                        <li>CPUキャラクターを相手に、日本の伝統的なサイコロゲーム<strong>「チンチロ」</strong>で勝負するゲームです。</li>
+                        <li>各<strong>WAVE</strong>の開始時、どちらかが<strong>「親」</strong>となり、もう一方が<strong>「子」</strong>となります（最初はプレイヤーが親）。</li>
+                        <li>「親」は、各ラウンドの開始時に<strong>「賭け金」</strong>を設定します。子は親が設定した賭け金で勝負を受けます。</li>
+                    </ul>
+
+                    <h4>▼ サイコロと役</h4>
+                    <ul>
+                        <li>サイコロは<strong>3個</strong>同時に振り、出た目の組み合わせで<strong>「役」</strong>が決まります。</li>
+                        <li><strong>3回</strong>まで振り直せますが、役（ピンゾロ、アラシ、シゴロ、通常の目）が出たらその時点で確定です。</li>
+                        <li><strong>「ヒフミ」(1,2,3)</strong> は役ですが、出ると基本的には**負け**となり、<strong>2倍</strong>の点数を支払います。</li>
+                        <li><strong>「ションベン」</strong>（サイコロが器の外に出るなど）は、その場で**負け**となり、<strong>1倍</strong>の点数を支払います。</li>
+                        <li>3回振っても役も目も出ない<strong>「目なし」</strong>も、最終的に<strong>ションベン扱い</strong>となります。</li>
+                        <li>3つのサイコロの数字が全てバラバラで役でもない場合（例: 1,3,5）はペナルティなく<strong>再度振り直せます</strong>（ロール回数内）。</li>
+                     </ul>
+
+                    <h4>▼ 勝敗とスコア</h4>
+                     <ul>
+                        <li>基本的には、「親」が先にサイコロを振り、その後「子」が振ります。役の強さで勝敗が決まります（強い順：ピンゾロ > アラシ(6>...>2) > シゴロ > 目(6>...>1) > ヒフミ > 目なし > ションベン）。</li>
+                        <li><strong>強い役</strong>で勝つと、賭け金が多くもらえます（ピンゾロ:5倍, アラシ:3倍, シゴロ:2倍, 目:1倍）。</li>
+                        <li>勝負に勝った方が点数を獲得し、負けた方は点数を失います。</li>
+                        <li>親が勝つと連勝となり、<strong>連勝ボーナス</strong>として獲得/支払い得点が増加します！</li>
+                        <li>相手と同じ強さの役・目を出した場合は<strong>「引き分け」</strong>となり、基本的には得点変動はありません（カード効果でボーナスあり）。</li>
+                    </ul>
+
+                    <h4>▼ 親交代</h4>
+                    <ul>
+                        <li>親が勝負に<strong>負けた</strong>場合、次のラウンドから「親」と「子」が交代します。</li>
+                        <li>ただし、<strong>「親権維持」</strong>カードを使用することで、負けても親を継続できる場合があります。</li>
+                    </ul>
+
+                    <h4>▼ WAVE進行とゲーム終了</h4>
+                     <ul>
+                        <li>相手キャラクターの持ち点を<strong>0</strong>にするか、相手が<strong>最低賭け金</strong>を払えなくなると<strong>WAVEクリア</strong>です！</li>
+                        <li>WAVEが進むごとに相手は強くなり、<strong>最低賭け金</strong>も上がっていきます。</li>
+                        <li>プレイヤーの持ち点が<strong>0</strong>になるか、最低賭け金が払えなくなると<strong>ゲームオーバー</strong>です。</li>
+                        <li>通常モードでは全10WAVEクリア、エンドレスモードでは限界までのWAVEクリアを目指しましょう！</li>
+                    </ul>
+
+                    <h4>▼ ショップとカード</h4>
+                    <ul>
+                        <li>WAVEをクリアすると<strong>「ショップ」</strong>が開き、獲得した<strong>「コイン」</strong>を使って<strong>「カード」</strong>を購入・強化できます。</li>
+                        <li>カードには、サイコロの目を操作したり、点数を増やしたり、様々な有利な効果があります。</li>
+                        <li>カードは<strong>「アクティブ」</strong>（WAVE中使用回数制限あり）と<strong>「パッシブ」</strong>（常時効果発動）の2種類に大別されます。</li>
+                        <li>手札は最大<strong>8枚</strong>(アクティブ4枚、パッシブ4枚)まで持てます。上限を超えて購入したい場合は、既存のカードを売却する必要があります。</li>
                         <li>詳しい役の種類や点数、カードの効果は、それぞれのタブで確認できます。</li>
                     </ul>
                 </div>
@@ -324,9 +357,15 @@
                         <dd>親が勝負に<strong class="payout-lose">負けた</strong>場合、次のラウンドから親と子が交代します。（カード効果で維持できる場合あり）</dd>
                     </dl>
                 </div>
-                <!-- ★ カード一覧タブのコンテンツエリアを追加 ★ -->
-                <div id="settings-card-list-content" class="settings-tab-content">
+                <!-- カード一覧タブ -->
+                <div id="settings-card-list-content" class="settings-tab-content filter-all"> <!-- ★ filter-all クラスを追加 -->
                     <h3>カード一覧</h3>
+                    <!-- カテゴリ選択タブを追加 -->
+                    <div class="card-list-filter-tabs">
+                        <button class="filter-tab active" data-filter="all">全カード</button>
+                        <button class="filter-tab" data-filter="active">アクティブ</button>
+                        <button class="filter-tab" data-filter="passive">パッシブ</button>
+                    </div>
                     <div id="settings-card-list-inner">
                         <!-- JSでカードリストが生成される -->
                     </div>
@@ -360,6 +399,30 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+     <!-- ===== アイテム獲得演出モーダル ===== -->
+     <div id="item-reveal-modal" class="modal item-reveal-modal">
+        <div class="modal-content item-reveal-content">
+            <span id="close-item-reveal-modal" class="close-button">×</span>
+            <h2 id="item-reveal-title">アイテム獲得！</h2>
+            <div id="item-reveal-body">
+                <div id="item-reveal-image-container">
+                    <img id="item-reveal-image" src="" alt="アイテム画像">
+                    <div id="item-reveal-placeholder">画像なし</div>
+                </div>
+                <div id="item-reveal-details">
+                    <h3 id="item-reveal-name">カード名</h3>
+                    <p id="item-reveal-meta">
+                        <span id="item-reveal-rarity" class="rarity-badge">レアリティ</span>
+                        <span id="item-reveal-type" class="type-badge">タイプ</span>
+                    </p>
+                    <p id="item-reveal-description">カードの説明文...</p>
+                    <p id="item-reveal-level" style="display: none;">Lv. X</p> <!-- アップグレード時に表示 -->
+                </div>
+            </div>
+            <button id="confirm-item-reveal-button" class="button-pop">確認</button>
         </div>
     </div>
 
