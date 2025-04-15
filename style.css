@@ -200,8 +200,90 @@ body {
 #dice-display.settled .dice-num { animation: diceSettle 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes diceSettle { 0% { transform: scale(1.1) rotate(-2deg); } 60% { transform: scale(0.97) rotate(2deg); } 100% { transform: scale(1); } }
 .roll-counter-top-right { position: absolute; top: 10px; right: 15px; font-size: 0.9em; color: rgba(255, 255, 255, 0.6); background-color: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; z-index: 5; }
-.character-image-area { width: 250px; height: 300px; background-color: rgba(80, 80, 110, 0.7); border: 1px dashed rgba(255, 255, 255, 0.3); border-radius: 8px; display: flex; justify-content: center; align-items: center; color: #aaa; font-size: 0.9em; text-align: center; align-self: center; flex-shrink: 0; overflow: hidden; } /* ★ overflow: hidden 追加 */
-.character-image-area img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; }
+.character-image-area {
+    width: 250px;
+    height: 300px;
+    border-radius: 12px; /* ★ 角を少し丸くする */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #aaa;
+    font-size: 0.9em;
+    text-align: center;
+    align-self: center;
+    flex-shrink: 0;
+    overflow: hidden; /* 疑似要素がはみ出ないように */
+    position: relative; /* ★ 疑似要素の基準位置 */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5); /* ★ 内側の影を追加 */
+    background: rgba(20, 20, 40, 0.7); /* ★ 暗めの背景色 */
+}
+.character-image-area::before {
+    content: '';
+    position: absolute;
+    top: -3px; left: -3px; right: -3px; bottom: -3px; /* 枠線の太さに合わせて調整 */
+    border-radius: 14px; /* 親要素より少し大きい角丸 */
+    z-index: -1; /* 画像の後ろに配置 */
+    background: conic-gradient(
+        from var(--angle, 0deg),
+        transparent 0%,
+        transparent 40%, /* 光らない部分 */
+        var(--neon-color-light) 50%, /* 光の中心 */
+        transparent 60%, /* 光らない部分 */
+        transparent 100%
+    );
+    animation: rotateNeonBorder 4s linear infinite;
+    filter: blur(3px); /* 光をぼかす */
+    opacity: 0.8; /* 少し透明度を下げる */
+}
+.character-image-area.player {
+    /* ★ 青系の色をカスタムプロパティで定義 */
+    --neon-color: #0af; /* 明るい青 */
+    --neon-color-light: #6cf; /* さらに明るい青 */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 170, 255, 0.5); /* 外側の光を追加 */
+}
+.character-image-area.player::before {
+    /* ★ 青系の色を使用 */
+     background: conic-gradient(
+        from var(--angle, 0deg),
+        transparent 0%, transparent 40%,
+        var(--neon-color-light) 50%, /* 明るい青 */
+        transparent 60%, transparent 100%
+    );
+}
+.character-image-area.npc {
+    /* ★ 赤系の色をカスタムプロパティで定義 */
+    --neon-color: #f44; /* 明るい赤 */
+    --neon-color-light: #f88; /* さらに明るい赤 */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 68, 68, 0.5); /* 外側の光を追加 */
+}
+.character-image-area.npc::before {
+     /* ★ 赤系の色を使用 */
+     background: conic-gradient(
+        from var(--angle, 0deg),
+        transparent 0%, transparent 40%,
+        var(--neon-color-light) 50%, /* 明るい赤 */
+        transparent 60%, transparent 100%
+    );
+}
+@keyframes rotateNeonBorder {
+    from {
+        --angle: 0deg;
+    }
+    to {
+        --angle: 360deg;
+    }
+}
+.character-image-area img {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px; /* ★ 内側の画像の角丸 */
+    display: block;
+    position: relative; /* ★ z-index を有効にするため */
+    z-index: 1; /* ★ ネオンラインより手前に */
+}
 .character-image-area.npc img { transform: scaleX(-1); }
 #message-button-container { display: flex; gap: 10px; margin-top: 8px; }
 #bottom-spacer { height: 150px; flex-shrink: 0; }
@@ -254,12 +336,17 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4);
 }
-#set-bet-button { background: linear-gradient(180deg, #ffeb3b, #ffc107); color: #333; font-weight: bold; }
+#set-bet-button {
+    background: linear-gradient(180deg, #ffeb3b, #ffc107);
+    color: #fff; /* ★ テキスト色 白に変更 */
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4); /* ★ 影を調整 */
+}
 #set-bet-button:hover:not(:disabled) { background: linear-gradient(180deg, #fff06b, #ffd24d); transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
 #max-bet-button {
     background: linear-gradient(180deg, #90ee90, #28a745); /* 黄緑系 */
-    color: #333; /* 暗い文字色 */
-    text-shadow: 0px 1px 1px rgba(255,255,255,0.5); /* 明るい影 */
+    color: #fff; 
+    text-shadow: 0px 1px 1px rgba(0,0,0,0.4); /* ★ 影を調整 */
 }
 #max-bet-button:hover:not(:disabled) {
     background: linear-gradient(180deg, #a0f0a0, #30c050);
@@ -272,7 +359,7 @@ body {
 #game-screen.npc-parent .bet-action-container { display: none; }
 #game-screen.npc-parent .bet-input-container label, #game-screen.npc-parent .bet-input-container span { opacity: 0.7; }
 #game-screen.npc-parent #bet-input { background-color: rgba(50, 50, 70, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: none; }
-#next-wave-area { display: none; justify-content: center; }
+#next-wave-area { display: none; justify-content: center;  margin-top: 10px; }
 button { padding: 10px 18px; font-size: 1em; cursor: pointer; border: none; border-radius: 20px; color: #333; font-weight: bold; transition: all 0.2s ease; text-shadow: 0px 1px 1px rgba(255,255,255,0.3); box-shadow: 0 3px 5px rgba(0,0,0,0.3); }
 button:disabled {
     background-color: #555 !important; /* !importantで確実に上書き */
@@ -295,7 +382,11 @@ button:disabled {
     text-shadow: none;
     transform: none !important;
 }
-#roll-button { background: linear-gradient(180deg, #ffeb3b, #ffc107); }
+#roll-button {
+    background: linear-gradient(180deg, #ffeb3b, #ffc107);
+    color: #fff; /* ★ テキスト色 白に変更 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4); /* ★ 影を調整 */
+}
 #roll-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
 /* ロールボタンアニメーション */
 #roll-button:not(:disabled) {
@@ -307,8 +398,34 @@ button:disabled {
     0%, 100% { transform: scale(1); box-shadow: 0 0 12px 2px gold, 0 3px 5px rgba(0,0,0,0.3); }
     50% { transform: scale(1.05); box-shadow: 0 0 20px 5px gold, 0 3px 5px rgba(0,0,0,0.3); }
 }
-#next-wave-button, #restart-same-mode-button, #confirm-character-yes { background: linear-gradient(180deg, #ffeb3b, #ffc107); }
-#next-wave-button:hover:not(:disabled), #restart-same-mode-button:hover, #confirm-character-yes:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
+#next-wave-button {
+    background: linear-gradient(180deg, #ffeb3b, #ffc107); /* 背景色は維持 */
+    padding: 12px 30px; /* ★ パディングを少し増やす */
+    font-size: 1.2em; /* ★ フォントサイズを少し大きく */
+    color: #fff; /* ★ テキスト色を白に */
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* ★ 白文字に合うように影調整 */
+    /* ★ ハイライト用スタイル追加 */
+    border: 1px solid gold;
+    box-shadow: 0 0 12px 2px gold, 0 3px 5px rgba(0,0,0,0.3);
+    animation: nextWavePulse 1.5s infinite ease-in-out;
+}
+#restart-same-mode-button, #confirm-character-yes { background: linear-gradient(180deg, #ffeb3b, #ffc107); }
+#next-wave-button:hover:not(:disabled) { /* ホバー効果も少し調整 */
+    transform: translateY(-2px) scale(1.02); /* 少し拡大 */
+    box-shadow: 0 0 18px 4px gold, 0 5px 10px rgba(255, 200, 0, 0.4);
+}
+@keyframes nextWavePulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 12px 2px gold, 0 3px 5px rgba(0,0,0,0.3);
+    }
+    50% {
+        transform: scale(1.03); /* 少しだけ拡大 */
+        box-shadow: 0 0 18px 4px gold, 0 3px 5px rgba(0,0,0,0.3);
+    }
+}
+#restart-same-mode-button:hover, #confirm-character-yes:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4); }
 #history-button {
     background: linear-gradient(180deg, #5bc0de, #31b0d5); /* 青緑系 */
     color: white;
@@ -319,17 +436,19 @@ button:disabled {
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(49, 176, 213, 0.4);
 }
-#card-action-button {
-    background: linear-gradient(180deg, #6fa8dc, #4a90e2); /* 水色系 */
-    color: white;
+#card-action-button, /* 通常カードボタン */
+#post-roll-card-button /* アナウンス欄カードボタン */ {
+    background: linear-gradient(180deg, #5bc0de, #31b0d5);
+    color: white; /* ★ テキスト色 白 */
     text-shadow: 0px -1px 1px rgba(0,0,0,0.4);
     position: relative;
     overflow: hidden;
 }
-#card-action-button:hover:not(:disabled) {
-    background: linear-gradient(180deg, #81b7f3, #5aa1e9);
+#card-action-button:hover:not(:disabled),
+#post-roll-card-button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #70cce6, #4ac0e0);
     transform: translateY(-2px);
-    box-shadow: 0 5px 10px rgba(74, 144, 226, 0.4);
+    box-shadow: 0 5px 10px rgba(49, 176, 213, 0.4);
 }
 /* カードボタンハイライト */
 #card-action-button.highlight-card-button,
@@ -352,6 +471,16 @@ button:disabled {
 .button-subtle, #back-to-title-from-result-button, /*#history-button,*/ #settings-button, #back-to-title-button, #confirm-character-no { background: linear-gradient(180deg, #8a94a8, #6c757d); color: white; text-shadow: 0px -1px 1px rgba(0,0,0,0.4); }
 .button-subtle:hover:not(:disabled), #back-to-title-from-result-button:hover, /*#history-button:hover:not(:disabled),*/ #settings-button:hover:not(:disabled), #back-to-title-button:hover:not(:disabled), #confirm-character-no:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(108, 117, 125, 0.4); }
 .temp-choice-button { margin: 0 5px; padding: 8px 16px; font-size: 0.95em; }
+.skip-button {
+    background: linear-gradient(180deg, #f0ad4e, #ec971f); /* オレンジ系 */
+    color: white; /* テキスト白 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4); /* 影 */
+}
+.skip-button:hover:not(:disabled) {
+    background: linear-gradient(180deg, #f3bc70, #f0a540);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4);
+}
 .score-change-popup { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 1.3em; font-weight: bold; padding: 2px 8px; border-radius: 5px; z-index: 10; pointer-events: none; opacity: 0; white-space: nowrap; animation: scorePopup 1.5s ease-out forwards; }
 .score-change-popup.gain { color: #fff; background-color: rgba(40, 167, 69, 0.9); text-shadow: 0 0 3px #000; }
 .score-change-popup.loss { color: #fff; background-color: rgba(220, 53, 69, 0.9); text-shadow: 0 0 3px #000; }
@@ -496,7 +625,119 @@ button:disabled {
 @keyframes fadeInShop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
 /* ヘッダー内の要素 */
-.shop-title { color: #ffcc70; margin-top: 0; margin-bottom: 2px; font-size: 2.5em; font-family: 'Yuji Syuku', serif; text-shadow: 2px 2px 5px rgba(0,0,0,0.6); }
+.shop-title { 
+color: #ffcc70; margin-top: 0; margin-bottom: 15px; font-size: 3em; font-family: 'Yuji Syuku', serif;
+color: #0ff; /* 基本の文字色 (シアン系) */
+position: relative; /* 疑似要素を使う場合のため */
+color: #0ff;
+animation:
+        neonFlicker 4s infinite alternate,
+        textGlow 2s infinite alternate,
+        neonSway 8s infinite ease-in-out; /* ★ ゆっくり左右に揺れるアニメーション追加 */
+    transform-origin: bottom center; /* ★ 回転の中心をテキストの下部中央に */}
+.shop-title .neon-yellow {
+    /* 黄色系ネオンの色とアニメーション */
+    color: #ff0; /* 基本色 (黄色) */
+    animation: neonFlickerYellow 3.5s infinite alternate, textGlowYellow 2.5s infinite alternate;
+}
+.shop-title .neon-pink {
+    color: #f0f; /* 基本色 (マゼンタ/ピンク) */
+    /* ★ ピンク用のネオンアニメーションを適用 */
+    animation: neonFlickerPink 4.5s infinite alternate, textGlowPink 2.2s infinite alternate;
+}
+@keyframes neonFlicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+      text-shadow:
+        0 0 4px #fff, 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff,
+        0 0 80px #0ff, 0 0 90px #0ff, 0 0 100px #0ff, 0 0 150px #0ff;
+      opacity: 1;
+    }
+    20%, 24%, 55% { text-shadow: none; opacity: 0.4; }
+    /* ピンク点滅部分は削除してもOK */
+    /* 28%, 33% { ... } */
+    /* 30%, 35% { ... } */
+    50% { /* 中間での強い光 */
+      text-shadow:
+        0 0 5px #fff, 0 0 15px #0ff, 0 0 25px #0ff, 0 0 50px #0ff,
+        0 0 90px #0ff, 0 0 110px #0ff, 0 0 130px #0ff, 0 0 180px #0ff;
+      opacity: 1;
+    }
+  }
+  
+  /* テキスト自体のわずかな光り方 (基本: シアン) */
+@keyframes textGlow { from { color: #0ff; } to { color: #5ffffc; } }
+  
+  /* 黄色系ネオン用の点滅アニメーション */
+@keyframes neonFlickerYellow {
+    0%, 15%, 20%, 28%, 60%, 68%, 100% {
+      /* 点灯状態 (黄色) */
+      text-shadow:
+        0 0 4px #fff,
+        0 0 10px #ff0, /* 黄色 */
+        0 0 20px #ff0,
+        0 0 35px #ff0,
+        0 0 50px #ff0;
+      opacity: 0.95; /* 常に完全には光らない感じ */
+    }
+    17%, 25%, 65% {
+      /* 消えかけ */
+      text-shadow: none;
+      opacity: 0.3;
+    }
+    /* ★ ランダム感を出すため、消えるタイミングをずらす */
+    40%, 45% {
+        text-shadow: none;
+        opacity: 0.5;
+    }
+     80%, 85% {
+         text-shadow: 0 0 4px #fff, 0 0 8px #ff0; /* 弱めに光る */
+         opacity: 0.7;
+     }
+  }
+  /* 黄色系ネオン用のテキスト色変化 */
+@keyframes textGlowYellow {
+      from { color: #ff0; }
+      to { color: #fff08f; } /* 少し明るい黄色 */
+  }
+@keyframes neonSway {
+    0%, 100% {
+      transform: rotate(-1deg); /* 開始/終了位置 (少し左傾き) */
+    }
+    50% {
+      transform: rotate(1deg); /* 中間位置 (少し右傾き) */
+    }
+  }
+  @keyframes neonFlickerPink {
+    0%, 16%, 23%, 29%, 51%, 59%, 100% {
+      /* 点灯状態 (ピンク) */
+      text-shadow:
+        0 0 5px #fff,
+        0 0 12px #f0f, /* ピンク */
+        0 0 22px #f0f,
+        0 0 45px #f0f,
+        0 0 70px #f0f;
+      opacity: 1;
+    }
+    19%, 26%, 55% {
+      /* 消えかけ */
+      text-shadow: none;
+      opacity: 0.35;
+    }
+    /* ★ 別のタイミングで弱く光る */
+    70%, 77% {
+         text-shadow: 0 0 5px #fff, 0 0 10px #f0f;
+         opacity: 0.6;
+    }
+    73%, 80% {
+        text-shadow: none;
+        opacity: 0.2;
+    }
+  }
+  /* ピンク系ネオン用のテキスト色変化 */
+@keyframes textGlowPink {
+      from { color: #f0f; } /* マゼンタ */
+      to { color: #ff79ff; } /* 明るいピンク */
+  }
 #player-status { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; background-color: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px; flex-wrap: wrap; gap: 10px 20px; }
 #coin-display { font: size 1.5em; color: #ffeb3b; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); text-align: left; flex-basis: auto; }
 #coin-display #player-coins { font-size: 1.5em; }
@@ -915,6 +1156,113 @@ button:disabled {
     .modal-content { max-height: 90vh; } #history-log { max-height: 70vh; }
     .card-list-modal-content { padding: 20px 15px; } #card-list-content { max-height: 75vh; font-size: 0.85em;} .card-list-item h3 { font-size: 1.05em; } .card-list-item .card-meta { font-size: 0.7em; }
     .dice-roll-modal-content { max-width: 95vw; width: 95vw; }
+}
+/* 喜びアニメーション */
+@keyframes shake-happy {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0); /* 開始/終了は元の位置 */
+    }
+    25% {
+      transform: translate(-5px, -8px) rotate(-3deg); /* 左上に移動して少し傾ける */
+    }
+    50% {
+       transform: translate(0, 0) rotate(0); /* 一旦中央に戻る */
+    }
+    75% {
+      transform: translate(5px, -8px) rotate(3deg); /* 右上に移動して反対に傾ける */
+    }
+  }
+  
+  /* ダメージアニメーション */
+  @keyframes shake-damage {
+    0%, 100% { transform: translateX(0); box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5); } /* 通常の影に戻す */
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+    /* 一瞬赤く光る表現 */
+    5%, 25%, 45%, 65%, 85% {
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 15px 5px rgba(255, 0, 0, 0.7);
+    }
+  }
+  
+  /* アニメーションを適用するクラス */
+  .character-image-area.shake-happy {
+    animation: shake-happy 1.5s cubic-bezier(.36,.07,.19,.97) both; /* bothで終了状態維持 */
+  }
+  
+  .character-image-area.shake-damage {
+    animation: shake-damage 1s linear both;
+  }
+  /* ===== 勝敗インジケーター (キャラクターエリア内) ===== */
+.win-lose-indicator {
+    position: absolute; /* キャラクターエリア基準で配置 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8); /* 中央配置 & 初期は少し小さく */
+    font-size: 4em; /* 文字サイズ (調整可) */
+    font-weight: 800;
+    font-family: 'RocknRoll One', sans-serif; /* 目立つフォント */
+    padding: 10px 20px;
+    border-radius: 10px;
+    opacity: 0; /* 初期は非表示 */
+    pointer-events: none; /* クリックを妨げない */
+    z-index: 100; /* 画像より手前 */
+    text-align: center;
+    white-space: nowrap;
+    visibility: hidden;
+}
+
+/* WIN スタイルとアニメーション */
+.win-lose-indicator.indicator-win {
+    color: #ffeb3b; /* 明るい黄色 */
+    background-color: rgba(40, 167, 69, 0.7); /* 緑背景 */
+    text-shadow: 0 0 5px #fff, 0 0 10px #ffeb3b, 0 0 15px #ffc107;
+    border: 2px solid #ffeb3b;
+    box-shadow: 0 0 15px rgba(255, 235, 59, 0.7);
+    animation: win-appear 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    visibility: visible; /* 表示 */
+    opacity: 1;
+}
+
+@keyframes win-appear {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5) rotate(-15deg);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0);
+    opacity: 1; /* 表示維持 (JSで消す) */
+  }
+}
+
+/* LOSE スタイルとアニメーション */
+.win-lose-indicator.indicator-lose {
+    color: #ff7b7b; /* 暗めの赤 */
+    background-color: rgba(139, 0, 0, 0.7); /* 暗赤背景 */
+    text-shadow: 0 0 3px #000, 0 0 6px #ff0000;
+    border: 2px solid #dc143c;
+    box-shadow: 0 0 10px rgba(220, 20, 60, 0.6);
+    animation: lose-appear 0.6s ease-out forwards;
+    visibility: visible; /* 表示 */
+    opacity: 1;
+}
+
+@keyframes lose-appear {
+   0% {
+      transform: translate(-50%, -70%) scale(1.2); /* 上から落ちてくる */
+      opacity: 0;
+   }
+   50% {
+       transform: translate(-50%, -48%) scale(0.95); /* 少しバウンド */
+       opacity: 1;
+   }
+   100% {
+       transform: translate(-50%, -50%) scale(1); /* 定位置 */
+       opacity: 1; /* 表示維持 (JSで消す) */
+   }
 }
 
 /* ===== END OF style.css ===== */

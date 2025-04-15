@@ -52,14 +52,20 @@
                     <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;"></div>
                     <div id="game-area">
                         <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
-                        <div class="character-image-area player"></div>
+                        <div class="character-image-area player">
+                            <!-- プレイヤー用インジケーター追加 -->
+                            <div class="win-lose-indicator"></div>
+                        </div>
                         <div id="dice-area">
                             <div id="dice-display">- - -</div>
                             <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
                             <div id="center-role-announcement" class="center-role"></div>
                             <div id="dice-choice-overlay" class="overlay"></div>
                         </div>
-                        <div class="character-image-area npc"></div>
+                        <div class="character-image-area npc">
+                             <!-- NPC用インジケーター追加 -->
+                            <div class="win-lose-indicator"></div>
+                        </div>
                         <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
                     </div>
                     <div id="message-area">
@@ -106,11 +112,9 @@
 
     <!-- ===== ショップ画面 ===== -->
     <div id="shop-screen" class="screen">
-        <!-- ★ 全体をラップするコンテナを追加 -->
         <div class="shop-outer-container">
-            <!-- 固定上部エリア -->
             <div class="shop-header">
-                <h2 class="shop-title">カードショップ</h2>
+                <h2 class="shop-title">カ<span class="neon-pink">ー</span><span class="neon-yellow">ド</span>ショ<span class="neon-yellow">ッ</span><span class="neon-pink">プ</span></h2>
                 <div id="player-status">
                     <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
                     <div id="shop-player-score">持ち点: <span id="shop-player-score-value">0</span> 点</div>
@@ -121,8 +125,6 @@
                 </div>
                 <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
             </div>
-
-            <!-- スクロール可能中央エリア -->
             <div id="shop-scrollable-offers">
                 <div class="shop-offers-container">
                     <div class="shop-section">
@@ -151,8 +153,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- 固定下部エリア -->
             <div class="shop-footer">
                 <div id="shop-actions" class="shop-actions">
                     <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
@@ -161,22 +161,7 @@
                  <div id="shop-confirmation-buttons" class="shop-actions" style="display: none;">
                  </div>
             </div>
-        </div> 
-
-        <!-- 破棄モーダル (変更なし) -->
-        <div id="discard-modal" class="modal" style="display: none;">
-            <div class="modal-content discard-modal-content">
-                <h3>手札がいっぱいです！</h3>
-                <p>新しいカードを追加するために、売却するカードを選んでください。(売却額: (初期コスト+強化コスト合計)の半額)</p>
-                <div id="discard-options"></div>
-                <button id="cancel-discard-button" class="button-subtle">キャンセル</button>
-            </div>
         </div>
-        <div class="stars"></div>
-        <div class="twinkling"></div>
-    </div>
-
-        <!-- 破棄モーダル (変更なし) -->
         <div id="discard-modal" class="modal" style="display: none;">
             <div class="modal-content discard-modal-content">
                 <h3>手札がいっぱいです！</h3>

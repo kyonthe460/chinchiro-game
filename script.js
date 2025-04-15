@@ -190,15 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- パック定義 ---
 const packDefinitions = [
     {
-        id: 'pack_dice', name: '出目操作パック', description: '出目を操作するカードが出やすいパック。', image: './Card Image/Pack_Dice.png', // ★ パス確認済み
+        id: 'pack_dice', name: '出目操作パック', description: '出目を操作するカードが出やすいパック。', image: './Card Image/Pack_Dice.png', 
         cardPool: ['changeToOne', 'changeToSix', 'zoroChanceUp', 'avoid123_456', 'blessingDice', 'adjustEye', 'nextChance', 'blindingDice'], costCalculation: 'average', baseCost: 100, type: 'pack'
     },
     {
-        id: 'pack_score', name: '点数強化パック', description: 'スコアに関連するカードが出やすいパック。', image: './Card Image/Pack_Score.png', // ★ パス確認済み
+        id: 'pack_score', name: '点数強化パック', description: 'スコアに関連するカードが出やすいパック。', image: './Card Image/Pack_Score.png', 
         cardPool: ['shonbenHalf', 'sixEyeBonus', 'oneEyeBonus', 'arashiBonus', 'shigoroBonus', 'hifumiHalf', 'betBoost', 'fightingSpirit', 'rewardAmplifier', 'doubleUpBet', 'lossInsurance'], costCalculation: 'average', baseCost: 120, type: 'pack'
     },
     {
-        id: 'pack_support', name: '補助パック', description: 'ゲーム進行を助けるカードが出やすいパック。', image: './Card Image/Pack_Support.png', // ★ パス確認済み
+        id: 'pack_support', name: '補助パック', description: 'ゲーム進行を助けるカードが出やすいパック。', image: './Card Image/Pack_Support.png', 
         cardPool: ['reroll1', 'ignoreMinBet', 'shopChoicePlus1', 'drawBonus', 'keepParentalRight', 'handExchange', 'soulRoll', 'riskyBet', 'giveUpEye'], costCalculation: 'average', baseCost: 90, type: 'pack'
     }
 ];
@@ -206,11 +206,11 @@ const packDefinitions = [
 // --- 追加持ち点アイテム定義 ---
 const boostItems = [
     {
-        id: 'boost_500', name: '+500点永続強化', description: 'ゲーム終了まで開始時の持ち点が永続的に500点増加します。', image: './Card Image/Boost_500.png', // ★ パス確認済み
+        id: 'boost_500', name: '+500点持ち点増強', description: 'ゲーム終了まで開始時の持ち点が永続的に500点加算されます。', image: './Card Image/Boost_500.png', 
         boostAmount: 500, cost: 400, type: 'boost', rarity: 2
     },
     {
-        id: 'boost_1000', name: '+1000点永続強化', description: 'ゲーム終了まで開始時の持ち点が永続的に1000点増加します。', image: './Card Image/Boost_1000.png', // ★ パス確認済み
+        id: 'boost_1000', name: '+1000点持ち点増強', description: 'ゲーム終了まで開始時の持ち点が永続的に1000点加算されます。', image: './Card Image/Boost_1000.png', 
         boostAmount: 1000, cost: 750, type: 'boost', rarity: 3
     }
 ];
@@ -1400,8 +1400,6 @@ async function handleSellCard(event) {
           async function handleRoundEnd() {
             if (waitingForUserChoice || waitingForPlayerActionAfterRoll || isShowingRoleResult || isShowingGameResult) return;
             isGameActive = false; rollButton.disabled = true; historyButton.disabled = false;
-            // ★ アクティブカード効果フラグのリセットは startBettingPhase に集約
-            // zoroChanceUpActive = false; avoid123_456Active = false; blessingDiceActive = false; blindingDiceActive = false; rewardAmplifierActive = false; adjustEyeUsedThisTurn = false; nextChanceUsedThisTurn = false; soulRollUsedThisTurn = false; doubleUpBetActive = false; riskyBetActive = false;
             let pWin = false, nWin = false, draw = false; let msg = "", sc = 0, rClass = 'draw'; let parentChanged = false; let preventParentChange = false; let parentKeptByCard = false; const parentBefore = isPlayerParent ? 'Player' : 'NPC'; const playerInitialScore = playerScore; const npcInitialScore = npcScore; const playerName = selectedCharacter?.name || 'あなた'; const npcName = currentNpcCharacter?.name || '相手';
             let baseMultiplier = 1.0; let multiplierBonus = 0; let streakBonusRate = 0.0; let paymentRateModifier = 1.0; let isHifumiLoss = false; let effectiveMultiplier = 0; let finalAmount = 0; let insuranceApplied = false;
              if (playerHand?.type === 'ションベン') nWin = true; else if (npcHand?.type === 'ションベン') pWin = true;
@@ -1428,15 +1426,93 @@ async function handleSellCard(event) {
                 else { if (giveUpEyeUsedThisTurn) { msg = `見切り使用で敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`; } else if (isHifumiLoss) { msg = `ヒフミ扱いで敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`; } else if (loserHand?.type === 'ションベン') { msg = "ションベンで敗北..."; } else { msg = `敗北... (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`; } if (insuranceApplied) { msg += " (一撃保険適用)"; } if (!isPlayerParent && npcConsecutiveWins > 1) msg += ` (${npcName}${npcConsecutiveWins}連勝中...)`; rClass = 'lose'; }
            }
         console.log(`[DEBUG] Final sc value before score update: ${sc}`); const psEnd = Math.max(0, playerInitialScore + sc); const nsEnd = Math.max(0, npcInitialScore - sc); console.log(`[DEBUG] Updating scores: Player ${playerInitialScore} + ${sc} = ${psEnd}, NPC ${npcInitialScore} - ${sc} = ${nsEnd}`); playerScore = psEnd; npcScore = nsEnd; totalScoreChange += sc;
-        if (sc !== 0) { showScoreChangePopup(playerScoreContainer, sc); showScoreChangePopup(npcScoreContainer, -sc); }
-        animateScore(playerScoreEl, playerInitialScore, psEnd, SCORE_ANIMATION_DURATION); animateScore(npcScoreEl, npcInitialScore, nsEnd, SCORE_ANIMATION_DURATION);
-            addHistoryEntry({ wave: currentWave, round: currentRoundInWave, playerDice: playerDice.join(','), playerHandName: getHandDisplayName(playerHand), npcDice: npcDice.join(','), npcHandName: getHandDisplayName(npcHand), result: rClass, scoreChange: sc, betAmount: currentBet, consecutiveWins: isPlayerParent ? consecutiveWins : 0, npcConsecutiveWins: !isPlayerParent ? npcConsecutiveWins : 0, parentBefore: parentBefore });
-            setTimeout(() => {
-                let finalMsg = `${msg} ${sc !== 0 ? (sc > 0 ? `+${sc}` : sc) + '点' : ''}`; if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? playerName : npcName}が親です。`; } else if (parentKeptByCard) { finalMsg += ` (${playerName}が親権維持発動！)`; } setMessage(finalMsg);
-                if (giveUpEyeUsedThisTurn) { giveUpEyeUsedThisTurn = false; console.log("Resetting giveUpEyeUsedThisTurn flag after round end processing."); }
-                updateUI(); checkGameEnd();
-            }, SCORE_ANIMATION_DURATION + 300);
+        // キャラクターエリアの揺れアニメーション
+        const playerImageArea = document.querySelector('.character-image-area.player');
+        const npcImageArea = document.querySelector('.character-image-area.npc');
+        const playerIndicator = playerImageArea ? playerImageArea.querySelector('.win-lose-indicator') : null;
+        const npcIndicator = npcImageArea ? npcImageArea.querySelector('.win-lose-indicator') : null;
+        const animationDuration = 1500; // アニメーション時間 (ms)
+        const indicatorDisplayDuration = 1200; // インジケーター表示時間 (アニメーションより少し短く)
+
+        console.log("Player Indicator Element:", playerIndicator); // デバッグログ
+        console.log("NPC Indicator Element:", npcIndicator); // デバッグログ
+
+        // --- クラスリセットとリフロー ---
+        if (playerIndicator) playerIndicator.className = 'win-lose-indicator'; // クラス全リセット
+        if (npcIndicator) npcIndicator.className = 'win-lose-indicator';
+        if (playerImageArea) playerImageArea.classList.remove('shake-damage', 'shake-happy');
+        if (npcImageArea) npcImageArea.classList.remove('shake-damage', 'shake-happy');
+        void document.body.offsetWidth; // Reflow trick で再描画を促す
+
+        // --- スコアに応じたクラス付与 ---
+        if (sc > 0 || (pWin && !draw)) { // プレイヤーWIN
+            console.log("Applying WIN effects");
+            if (playerImageArea) playerImageArea.classList.add('shake-happy');
+            if (playerIndicator) {
+                playerIndicator.textContent = "WIN!";
+                playerIndicator.classList.add('indicator-win'); // WINクラス付与
+                console.log("Player indicator class added:", playerIndicator.className);
+                setTimeout(() => {
+                     if (playerIndicator) playerIndicator.className = 'win-lose-indicator';
+                }, indicatorDisplayDuration + 200); // 少し長く
+            }
+            if (npcImageArea) npcImageArea.classList.add('shake-damage');
+            if (npcIndicator) {
+                npcIndicator.textContent = "LOSE...";
+                npcIndicator.classList.add('indicator-lose');
+                console.log("NPC indicator class added:", npcIndicator.className);
+                setTimeout(() => {
+                    if (npcIndicator) npcIndicator.className = 'win-lose-indicator';
+                }, indicatorDisplayDuration + 200); // 少し長く
+            }
+        } else if (sc < 0 || (nWin && !draw)) { // プレイヤーLOSE
+             console.log("Applying LOSE effects");
+            if (playerImageArea) playerImageArea.classList.add('shake-damage');
+            if (playerIndicator) {
+                playerIndicator.textContent = "LOSE...";
+                playerIndicator.classList.add('indicator-lose');
+                console.log("Player indicator class added:", playerIndicator.className);
+                setTimeout(() => {
+                     if (playerIndicator) playerIndicator.className = 'win-lose-indicator';
+                }, indicatorDisplayDuration + 200); // 少し長く
+            }
+            if (npcImageArea) npcImageArea.classList.add('shake-happy');
+            if (npcIndicator) {
+                npcIndicator.textContent = "WIN!";
+                npcIndicator.classList.add('indicator-win');
+                 console.log("NPC indicator class added:", npcIndicator.className);
+                setTimeout(() => {
+                     if (npcIndicator) npcIndicator.className = 'win-lose-indicator';
+                }, indicatorDisplayDuration + 200); // 少し長く
+            }
         }
+
+        // 揺れアニメーションのリセット (タイミング調整)
+        if (playerImageArea && (playerImageArea.classList.contains('shake-happy') || playerImageArea.classList.contains('shake-damage'))) {
+             setTimeout(() => {
+                 if (playerImageArea) playerImageArea.classList.remove('shake-happy', 'shake-damage')
+             }, animationDuration);
+        }
+        if (npcImageArea && (npcImageArea.classList.contains('shake-happy') || npcImageArea.classList.contains('shake-damage'))) {
+             setTimeout(() => {
+                  if (npcImageArea) npcImageArea.classList.remove('shake-happy', 'shake-damage')
+             }, animationDuration);
+        }
+        // スコア表示更新とポップアップ
+        if (sc !== 0) { showScoreChangePopup(playerScoreContainer, sc); showScoreChangePopup(npcScoreContainer, -sc); }
+        animateScore(playerScoreEl, playerInitialScore, psEnd, SCORE_ANIMATION_DURATION);
+        animateScore(npcScoreEl, npcInitialScore, nsEnd, SCORE_ANIMATION_DURATION);
+
+        addHistoryEntry({ wave: currentWave, round: currentRoundInWave, playerDice: playerDice.join(','), playerHandName: getHandDisplayName(playerHand), npcDice: npcDice.join(','), npcHandName: getHandDisplayName(npcHand), result: rClass, scoreChange: sc, betAmount: currentBet, consecutiveWins: isPlayerParent ? consecutiveWins : 0, npcConsecutiveWins: !isPlayerParent ? npcConsecutiveWins : 0, parentBefore: parentBefore });
+
+        // メッセージ表示とゲーム終了チェック
+        setTimeout(() => {
+            let finalMsg = `${msg} ${sc !== 0 ? (sc > 0 ? `+${sc}` : sc) + '点' : ''}`; if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? playerName : npcName}が親です。`; } else if (parentKeptByCard) { finalMsg += ` (${playerName}が親権維持発動！)`; } setMessage(finalMsg);
+            if (giveUpEyeUsedThisTurn) { giveUpEyeUsedThisTurn = false; console.log("Resetting giveUpEyeUsedThisTurn flag after round end processing."); }
+            updateUI();
+            checkGameEnd(); // ゲーム終了チェック or 次のベットフェーズへ
+        }, Math.max(SCORE_ANIMATION_DURATION, indicatorDisplayDuration) + 300); // スコアアニメーションとインジケーター表示の両方が終わるのを待つ
+    }
 
     async function checkGameEnd() {
         let isGO = false, isC = false, gameOverReason = "";
