@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>チンチロりん♪</title>
-    <link rel="stylesheet" href="style.css"> <!-- ★ パスが正しいか確認 -->
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap" rel="stylesheet">
@@ -16,14 +16,12 @@
     <div id="title-screen" class="screen active">
         <div class="title-content">
             <h1 class="game-title">チンチロりん♪</h1>
-            <!-- ↓ 難易度選択を削除し、モード選択を追加 ↓ -->
             <div class="mode-selector">
                 <p>モード選択:</p>
                 <button class="mode-button button-pop selected" data-mode="normal">通常</button>
                 <button class="mode-button button-pop" data-mode="endless">エンドレス</button>
                 <button class="mode-button button-pop" data-mode="pvp">対人戦 (準備中)</button>
             </div>
-            <!-- ↑ モード選択を追加 ↑ -->
             <button id="start-game-button" class="button-pop">ゲーム開始</button>
             <button id="select-character-button" class="button-subtle">キャラクター選択</button>
             <div class="player-name-input-container" style="margin-top: 20px;">
@@ -38,37 +36,26 @@
     </div>
 
     <!-- ===== ゲーム画面 ===== -->
-    <div id="game-screen" class="screen"> <!-- ★ 初期は active ではない -->
-        <!-- NEW: 上部固定ヘッダー -->
+    <div id="game-screen" class="screen">
         <header id="game-header">
             <div id="game-coin-info"><h3>所持コイン</h3><p id="game-coin-display">0 G</p></div>
             <div id="settings-button-container">
                  <button id="settings-button" class="button-subtle" style="padding: 5px 10px; font-size: 1.2em;">⚙️</button>
             </div>
         </header>
-
-        <!-- メインコンテナ構造 -->
         <div id="game-main-area">
-            <!-- スクロール可能エリア -->
             <div id="game-scrollable-area">
                 <div id="game-container">
-                    <!-- WAVE情報 -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative;">
-                        <div id="wave-info">
-                            <!-- JSで内容が表示される -->
-                        </div>
+                        <div id="wave-info"></div>
                     </div>
-                    <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;">
-                        <!-- JSで内容が表示される -->
-                    </div>
+                    <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;"></div>
                     <div id="game-area">
                         <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
                         <div class="character-image-area player"></div>
                         <div id="dice-area">
-                            <!-- 通常時のダイス表示（モーダル表示時は隠す） -->
                             <div id="dice-display">- - -</div>
                             <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
-                            <!-- 中央アナウンス -->
                             <div id="center-role-announcement" class="center-role"></div>
                             <div id="dice-choice-overlay" class="overlay"></div>
                         </div>
@@ -77,17 +64,13 @@
                     </div>
                     <div id="message-area">
                         <p id="message">ゲーム開始！</p>
-                        <div id="message-button-container"></div> <!-- ボタン用のコンテナ -->
+                        <div id="message-button-container"></div>
                     </div>
                 </div>
-                 <!-- 下部コントロールバーのための余白 (CSSで調整) -->
                  <div id="bottom-spacer"></div>
             </div>
-
-             <!-- 下部固定操作エリア -->
              <div id="bottom-control-bar">
                  <div id="control-area">
-                     <!-- 一段目: 入力欄と調整ボタン -->
                      <div class="bet-main-controls">
                          <div class="bet-adjust-container">
                             <button class="bet-adjust-button minus" data-amount="-100">-100</button>
@@ -103,19 +86,16 @@
                             <button class="bet-adjust-button plus" data-amount="100">+100</button>
                          </div>
                      </div>
-                     <!-- 二段目: MIN/決定/MAXボタン (順序変更＆MIN追加) -->
                      <div class="bet-action-container">
-                        <button id="min-bet-button" class="button-pop min-bet">MIN</button> <!-- MINボタン追加 -->
+                        <button id="min-bet-button" class="button-pop min-bet">MIN</button>
                         <button id="set-bet-button" class="button-pop set-bet">賭け金決定</button>
-                        <button id="max-bet-button" class="button-pop max-bet">MAX</button> <!-- MAXボタンを最後に -->
+                        <button id="max-bet-button" class="button-pop max-bet">MAX</button>
                      </div>
-                     <!-- アクションボタン -->
                      <div id="action-controls">
                         <button id="card-action-button" class="button-subtle">カード</button>
                         <button id="roll-button" class="button-pop" disabled>サイコロを振る</button>
                         <button id="history-button" class="button-subtle">履歴</button>
                     </div>
-                     <!-- 次WAVEボタン -->
                      <div id="next-wave-area" style="display: none;">
                          <button id="next-wave-button" class="button-pop">ショップへ</button>
                      </div>
@@ -124,59 +104,79 @@
         </div>
     </div>
 
-       <!-- ===== ショップ画面 ===== -->
+    <!-- ===== ショップ画面 ===== -->
     <div id="shop-screen" class="screen">
-        <div class="shop-content">
-            <h2 class="shop-title">カードショップ</h2>
-            <div id="player-status">
-                <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
-                <div id="shop-player-hand" class="player-hand-display">
-                     手札 (<span id="hand-count">0</span>/8):
-                     <ul id="hand-cards"></ul>
-                </div>
-            </div>
-            <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
-
-            <!-- ↓ #card-offers を削除し、4つのセクションコンテナに変更 ↓ -->
-            <div class="shop-offers-container">
-                <div class="shop-section">
-                    <h4 class="shop-section-title">アクティブカード (使用カード)</h4>
-                    <div id="active-card-offers" class="shop-item-row">
-                        <!-- JSでアクティブカードがここに挿入される -->
-                        <span class="shop-empty-message">(オファーなし)</span> <!-- 初期メッセージ -->
+        <!-- ★ 全体をラップするコンテナを追加 -->
+        <div class="shop-outer-container">
+            <!-- 固定上部エリア -->
+            <div class="shop-header">
+                <h2 class="shop-title">カードショップ</h2>
+                <div id="player-status">
+                    <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
+                    <div id="shop-player-score">持ち点: <span id="shop-player-score-value">0</span> 点</div>
+                    <div id="shop-player-hand" class="player-hand-display">
+                         手札 (<span id="hand-count">0</span>/8):
+                         <ul id="hand-cards"></ul>
                     </div>
                 </div>
-                <div class="shop-section">
-                    <h4 class="shop-section-title">パッシブカード (装備カード)</h4>
-                    <div id="passive-card-offers" class="shop-item-row">
-                        <!-- JSでパッシブカードがここに挿入される -->
-                         <span class="shop-empty-message">(オファーなし)</span>
-                    </div>
-                </div>
-                <div class="shop-section">
-                    <h4 class="shop-section-title">パック</h4>
-                    <div id="pack-offers" class="shop-item-row">
-                        <!-- JSでパックがここに挿入される -->
-                         <span class="shop-empty-message">(オファーなし)</span>
-                    </div>
-                </div>
-                <div class="shop-section">
-                    <h4 class="shop-section-title">持ち点増強</h4>
-                    <div id="boost-offers" class="shop-item-row">
-                        <!-- JSで追加持ち点アイテムがここに挿入される -->
-                         <span class="shop-empty-message">(オファーなし)</span>
-                    </div>
-                </div>
+                <p class="shop-message">好きなカードを購入して手札を強化しよう！</p>
             </div>
 
-            <div id="shop-actions" class="shop-actions">
-                <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
-                <button id="close-shop-button" class="button-subtle">お店を出る</button>
+            <!-- スクロール可能中央エリア -->
+            <div id="shop-scrollable-offers">
+                <div class="shop-offers-container">
+                    <div class="shop-section">
+                        <h4 class="shop-section-title">アクティブカード (使用カード)</h4>
+                        <div id="active-card-offers" class="shop-item-row">
+                            <span class="shop-empty-message">(オファーなし)</span>
+                        </div>
+                    </div>
+                    <div class="shop-section">
+                        <h4 class="shop-section-title">パッシブカード (装備カード)</h4>
+                        <div id="passive-card-offers" class="shop-item-row">
+                             <span class="shop-empty-message">(オファーなし)</span>
+                        </div>
+                    </div>
+                    <div class="shop-section">
+                        <h4 class="shop-section-title">パック</h4>
+                        <div id="pack-offers" class="shop-item-row">
+                             <span class="shop-empty-message">(オファーなし)</span>
+                        </div>
+                    </div>
+                    <div class="shop-section">
+                        <h4 class="shop-section-title">持ち点増強</h4>
+                        <div id="boost-offers" class="shop-item-row">
+                             <span class="shop-empty-message">(オファーなし)</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-             <div id="shop-confirmation-buttons" class="shop-actions" style="display: none;">
-                 <!-- JSで売却確認ボタンがここに追加される -->
-             </div>
+
+            <!-- 固定下部エリア -->
+            <div class="shop-footer">
+                <div id="shop-actions" class="shop-actions">
+                    <button id="reroll-button" class="button-subtle"><span class="reroll-icon">↻</span> リロール (<span id="reroll-cost">20</span> G)</button>
+                    <button id="close-shop-button" class="button-subtle">お店を出る</button>
+                </div>
+                 <div id="shop-confirmation-buttons" class="shop-actions" style="display: none;">
+                 </div>
+            </div>
+        </div> 
+
+        <!-- 破棄モーダル (変更なし) -->
+        <div id="discard-modal" class="modal" style="display: none;">
+            <div class="modal-content discard-modal-content">
+                <h3>手札がいっぱいです！</h3>
+                <p>新しいカードを追加するために、売却するカードを選んでください。(売却額: (初期コスト+強化コスト合計)の半額)</p>
+                <div id="discard-options"></div>
+                <button id="cancel-discard-button" class="button-subtle">キャンセル</button>
+            </div>
         </div>
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+    </div>
+
+        <!-- 破棄モーダル (変更なし) -->
         <div id="discard-modal" class="modal" style="display: none;">
             <div class="modal-content discard-modal-content">
                 <h3>手札がいっぱいです！</h3>
@@ -190,27 +190,26 @@
     </div>
 
     <!-- ===== リザルト画面 ===== -->
-    <div id="result-screen" class="screen"> <!-- ★ 初期は active ではない -->
+    <div id="result-screen" class="screen">
         <div class="result-content">
             <h2 id="result-title">ゲームオーバー</h2>
             <p id="result-message">残念！</p>
             <p id="final-score">最終スコア: 0</p>
             <div class="result-actions">
-                <button id="restart-same-mode-button" class="button-pop">もう一度遊ぶ</button> <!-- ★ ID変更 -->
-                <button id="back-to-title-from-result-button" class="button-subtle">タイトルに戻る</button> <!-- ★ IDとテキスト変更 -->
+                <button id="restart-same-mode-button" class="button-pop">もう一度遊ぶ</button>
+                <button id="back-to-title-from-result-button" class="button-subtle">タイトルに戻る</button>
             </div>
         </div>
         <div class="stars"></div>
         <div class="twinkling"></div>
     </div>
 
-    <!-- ===== キャラクター選択画面 (新規追加) ===== -->
+    <!-- ===== キャラクター選択画面 ===== -->
     <div id="character-select-screen" class="screen">
-        <div class="character-select-content"> <!-- コンテンツ用ラッパー追加 -->
+        <div class="character-select-content">
             <h2>キャラクター選択</h2>
             <div class="character-select-body">
                 <div id="character-list">
-                    <!-- JSでキャラクターリスト生成 -->
                     <p>キャラクターを選んでください</p>
                 </div>
                 <div id="character-preview">
@@ -229,10 +228,8 @@
         <div class="stars"></div>
         <div class="twinkling"></div>
     </div>
-    <!-- ===== キャラクター選択画面 ここまで ===== -->
 
-
-    <!-- 履歴モーダル -->
+    <!-- ===== モーダル ===== -->
     <div id="history-modal" class="modal">
         <div class="modal-content">
             <span id="close-history-modal" class="close-button">×</span>
@@ -240,173 +237,88 @@
             <ul id="history-log"></ul>
         </div>
     </div>
-
-    <!-- カード一覧モーダル (廃止、設定モーダルに統合) -->
-    <!-- <div id="card-list-modal" class="modal"> ... </div> -->
-
-    <!-- サイコロロールモーダル -->
     <div id="dice-roll-modal" class="modal dice-roll-modal">
         <div class="dice-roll-modal-content">
             <span id="close-dice-roll-modal" class="close-button">×</span>
             <div id="dice-roll-modal-display"></div>
         </div>
     </div>
-
-    <!-- ===== 設定モーダル ===== -->
     <div id="settings-modal" class="modal">
-        <div class="modal-content settings-modal-content"> <!-- 新しいクラスを追加 -->
+        <div class="modal-content settings-modal-content">
             <span id="close-settings-modal" class="close-button">×</span>
             <h2>設定・情報</h2>
             <div class="settings-navigation">
                 <button class="settings-nav-button active" data-target="rules">ゲームルール</button>
                 <button class="settings-nav-button" data-target="roles">役と点数</button>
-                <button id="settings-card-list-button" class="settings-nav-button" data-target="card-list">カード一覧</button> <!-- ★ data-target を追加 -->
-                <!-- 他の設定項目ボタンをここに追加可能 -->
+                <button id="settings-card-list-button" class="settings-nav-button" data-target="card-list">カード一覧</button>
             </div>
             <div id="settings-content">
-                <!-- ゲームルール -->
                 <div id="settings-rules-content" class="settings-tab-content active">
                     <h3>ゲームルール</h3>
-
-                    <!-- ★ ルールをセクション分け -->
                     <h4>▼ 基本</h4>
-                    <ul>
-                        <li>CPUキャラクターを相手に、日本の伝統的なサイコロゲーム<strong>「チンチロ」</strong>で勝負するゲームです。</li>
-                        <li>各<strong>WAVE</strong>の開始時、どちらかが<strong>「親」</strong>となり、もう一方が<strong>「子」</strong>となります（最初はプレイヤーが親）。</li>
-                        <li>「親」は、各ラウンドの開始時に<strong>「賭け金」</strong>を設定します。子は親が設定した賭け金で勝負を受けます。</li>
-                    </ul>
-
+                    <ul><li>CPUキャラクターを相手に、日本の伝統的なサイコロゲーム<strong>「チンチロ」</strong>で勝負するゲームです。</li><li>各<strong>WAVE</strong>の開始時、どちらかが<strong>「親」</strong>となり、もう一方が<strong>「子」</strong>となります（最初はプレイヤーが親）。</li><li>「親」は、各ラウンドの開始時に<strong>「賭け金」</strong>を設定します。子は親が設定した賭け金で勝負を受けます。</li></ul>
                     <h4>▼ サイコロと役</h4>
-                    <ul>
-                        <li>サイコロは<strong>3個</strong>同時に振り、出た目の組み合わせで<strong>「役」</strong>が決まります。</li>
-                        <li><strong>3回</strong>まで振り直せますが、役（ピンゾロ、アラシ、シゴロ、通常の目）が出たらその時点で確定です。</li>
-                        <li><strong>「ヒフミ」(1,2,3)</strong> は役ですが、出ると基本的には**負け**となり、<strong>2倍</strong>の点数を支払います。</li>
-                        <li><strong>「ションベン」</strong>（サイコロが器の外に出るなど）は、その場で**負け**となり、<strong>1倍</strong>の点数を支払います。</li>
-                        <li>3回振っても役も目も出ない<strong>「目なし」</strong>も、最終的に<strong>ションベン扱い</strong>となります。</li>
-                        <li>3つのサイコロの数字が全てバラバラで役でもない場合（例: 1,3,5）はペナルティなく<strong>再度振り直せます</strong>（ロール回数内）。</li>
-                     </ul>
-
+                    <ul><li>サイコロは<strong>3個</strong>同時に振り、出た目の組み合わせで<strong>「役」</strong>が決まります。</li><li><strong>3回</strong>まで振り直せますが、役（ピンゾロ、アラシ、シゴロ、通常の目）が出たらその時点で確定です。</li><li><strong>「ヒフミ」(1,2,3)</strong> は役ですが、出ると基本的には**負け**となり、<strong>2倍</strong>の点数を支払います。</li><li><strong>「ションベン」</strong>（サイコロが器の外に出るなど）は、その場で**負け**となり、<strong>1倍</strong>の点数を支払います。</li><li>3回振っても役も目も出ない<strong>「目なし」</strong>も、最終的に<strong>ションベン扱い</strong>となります。</li><li>3つのサイコロの数字が全てバラバラで役でもない場合（例: 1,3,5）はペナルティなく<strong>再度振り直せます</strong>（ロール回数内）。</li></ul>
                     <h4>▼ 勝敗とスコア</h4>
-                     <ul>
-                        <li>基本的には、「親」が先にサイコロを振り、その後「子」が振ります。役の強さで勝敗が決まります（強い順：ピンゾロ > アラシ(6>...>2) > シゴロ > 目(6>...>1) > ヒフミ > 目なし > ションベン）。</li>
-                        <li><strong>強い役</strong>で勝つと、賭け金が多くもらえます（ピンゾロ:5倍, アラシ:3倍, シゴロ:2倍, 目:1倍）。</li>
-                        <li>勝負に勝った方が点数を獲得し、負けた方は点数を失います。</li>
-                        <li>親が勝つと連勝となり、<strong>連勝ボーナス</strong>として獲得/支払い得点が増加します！</li>
-                        <li>相手と同じ強さの役・目を出した場合は<strong>「引き分け」</strong>となり、基本的には得点変動はありません（カード効果でボーナスあり）。</li>
-                    </ul>
-
+                     <ul><li>基本的には、「親」が先にサイコロを振り、その後「子」が振ります。役の強さで勝敗が決まります（強い順：ピンゾロ > アラシ(6>...>2) > シゴロ > 目(6>...>1) > ヒフミ > 目なし > ションベン）。</li><li><strong>強い役</strong>で勝つと、賭け金が多くもらえます（ピンゾロ:5倍, アラシ:3倍, シゴロ:2倍, 目:1倍）。</li><li>勝負に勝った方が点数を獲得し、負けた方は点数を失います。</li><li>親が勝つと連勝となり、<strong>連勝ボーナス</strong>として獲得/支払い得点が増加します！</li><li>相手と同じ強さの役・目を出した場合は<strong>「引き分け」</strong>となり、基本的には得点変動はありません（カード効果でボーナスあり）。</li></ul>
                     <h4>▼ 親交代</h4>
-                    <ul>
-                        <li>親が勝負に<strong>負けた</strong>場合、次のラウンドから「親」と「子」が交代します。</li>
-                        <li>ただし、<strong>「親権維持」</strong>カードを使用することで、負けても親を継続できる場合があります。</li>
-                    </ul>
-
+                    <ul><li>親が勝負に<strong>負けた</strong>場合、次のラウンドから「親」と「子」が交代します。</li><li>ただし、<strong>「親権維持」</strong>カードを使用することで、負けても親を継続できる場合があります。</li></ul>
                     <h4>▼ WAVE進行とゲーム終了</h4>
-                     <ul>
-                        <li>相手キャラクターの持ち点を<strong>0</strong>にするか、相手が<strong>最低賭け金</strong>を払えなくなると<strong>WAVEクリア</strong>です！</li>
-                        <li>WAVEが進むごとに相手は強くなり、<strong>最低賭け金</strong>も上がっていきます。</li>
-                        <li>プレイヤーの持ち点が<strong>0</strong>になるか、最低賭け金が払えなくなると<strong>ゲームオーバー</strong>です。</li>
-                        <li>通常モードでは全10WAVEクリア、エンドレスモードでは限界までのWAVEクリアを目指しましょう！</li>
-                    </ul>
-
+                     <ul><li>相手キャラクターの持ち点を<strong>0</strong>にするか、相手が<strong>最低賭け金</strong>を払えなくなると<strong>WAVEクリア</strong>です！</li><li>WAVEが進むごとに相手は強くなり、<strong>最低賭け金</strong>も上がっていきます。</li><li>プレイヤーの持ち点が<strong>0</strong>になるか、最低賭け金が払えなくなると<strong>ゲームオーバー</strong>です。</li><li>通常モードでは全10WAVEクリア、エンドレスモードでは限界までのWAVEクリアを目指しましょう！</li></ul>
                     <h4>▼ ショップとカード</h4>
-                    <ul>
-                        <li>WAVEをクリアすると<strong>「ショップ」</strong>が開き、獲得した<strong>「コイン」</strong>を使って<strong>「カード」</strong>を購入・強化できます。</li>
-                        <li>カードには、サイコロの目を操作したり、点数を増やしたり、様々な有利な効果があります。</li>
-                        <li>カードは<strong>「アクティブ」</strong>（WAVE中使用回数制限あり）と<strong>「パッシブ」</strong>（常時効果発動）の2種類に大別されます。</li>
-                        <li>手札は最大<strong>8枚</strong>(アクティブ4枚、パッシブ4枚)まで持てます。上限を超えて購入したい場合は、既存のカードを売却する必要があります。</li>
-                        <li>詳しい役の種類や点数、カードの効果は、それぞれのタブで確認できます。</li>
-                    </ul>
+                    <ul><li>WAVEをクリアすると<strong>「ショップ」</strong>が開き、獲得した<strong>「コイン」</strong>を使って<strong>「カード」</strong>を購入・強化できます。</li><li>カードには、サイコロの目を操作したり、点数を増やしたり、様々な有利な効果があります。</li><li>カードは<strong>「アクティブ」</strong>（WAVE中使用回数制限あり）と<strong>「パッシブ」</strong>（常時効果発動）の2種類に大別されます。</li><li>手札は最大<strong>8枚</strong>(アクティブ4枚、パッシブ4枚)まで持てます。上限を超えて購入したい場合は、既存のカードを売却する必要があります。</li><li>詳しい役の種類や点数、カードの効果は、それぞれのタブで確認できます。</li></ul>
                 </div>
-                <!-- 役と点数 -->
                 <div id="settings-roles-content" class="settings-tab-content">
                     <h3>役と点数</h3>
-                    <!-- (役と点数の内容は変更なし) -->
                     <div class="score-calculation-info">
                         <h4>基本的な得点の計算方法</h4>
                         <p>各ラウンドの得点（または失点）は、以下の計算式に基づいて決まります。</p>
-                        <p class="calculation-formula">
-                            <strong>得点</strong> = <strong>基本賭け金</strong> × (<strong>役の基本倍率</strong> + <span class="tooltip" title="アラシ強化、シゴロ強化、各種目ボーナス、報酬増幅、ダブルアップ、ヒフミ/ションベン軽減などのカード効果による倍率の増減です。">カード効果補正</span><span class="formula-part">)</span> × (<span class="formula-part">1</span> + <span class="tooltip" title="親が2連勝以上している場合に加算されます。">連勝ボーナス率</span> + <span class="tooltip" title="「逆境の魂」など、連勝ボーナス率自体を増やすカード効果です。">カード効果補正</span><span class="formula-part">)</span>
-                        </p>
+                        <p class="calculation-formula"><strong>得点</strong> = <strong>基本賭け金</strong> × (<strong>役の基本倍率</strong> + <span class="tooltip" title="アラシ強化、シゴロ強化、各種目ボーナス、報酬増幅、ダブルアップ、ヒフミ/ションベン軽減などのカード効果による倍率の増減です。">カード効果補正</span><span class="formula-part">)</span> × (<span class="formula-part">1</span> + <span class="tooltip" title="親が2連勝以上している場合に加算されます。">連勝ボーナス率</span> + <span class="tooltip" title="「逆境の魂」など、連勝ボーナス率自体を増やすカード効果です。">カード効果補正</span><span class="formula-part">)</span></p>
                         <p><small>※「一撃保険」など、計算式自体を上書きするカード効果もあります。</small></p>
                         <p><small>※「引き分けボーナス」は引き分け時に別途計算されます。</small></p>
                     </div>
                     <dl>
-                        <dt>ピンゾロ (1,1,1)</dt>
-                        <dd>最も強い役！ <strong class="payout-win">基本 5倍</strong> の得点を獲得。</dd>
-                        <dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-pinzoro">5</span>倍）</dd>
-                        <dt>アラシ (ゾロ目 2〜6)</dt>
-                        <dd>ゾロ目の役。数字が大きいほど強い (6ゾロ > ... > 2ゾロ)。<strong class="payout-win">基本 3倍</strong> の得点を獲得。</dd>
-                        <dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-arashi">3</span>倍）</dd>
-                        <dt>シゴロ (4,5,6)</dt>
-                        <dd>4,5,6の組み合わせ。<strong class="payout-win">基本 2倍</strong> の得点を獲得。</dd>
-                        <dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-shigoro">2</span>倍）</dd>
-                        <dt>通常の目 (例: 2,2,5 なら「5の目」)</dt>
-                        <dd>同じ数字2つと異なる数字1つの組み合わせ。異なる数字が大きいほど強い (6の目 > ... > 1の目)。相手の目と比べて数字が大きい方が勝ち。<strong class="payout-win-normal">基本 1倍</strong> の得点（または失点）。</dd>
-                        <dd class="card-effect-rate">（1の目勝利時倍率: <span id="role-rate-eye1">1</span>倍 / 6の目勝利時倍率: <span id="role-rate-eye6">1</span>倍）</dd>
-                        <dt>ヒフミ (1,2,3)</dt>
-                        <dd>1,2,3の組み合わせ。役の中では一番弱いがションベンよりは強い。 <strong class="payout-lose">基本 2倍</strong> の失点。</dd>
-                        <dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-hifumi">2</span>倍）</dd>
-                        <dt>ションベン</dt>
-                        <dd>サイコロが器の外に出るなどした場合の反則負け。3回振って役も目も出ない「目なし」も最終的にションベン扱い。<strong class="payout-lose">基本 1倍</strong> の失点。</dd>
-                        <dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-shonben">1</span>倍）</dd>
-                        <dt>目なし</dt>
-                        <dd>3つのサイコロの数字が全てバラバラで、かつヒフミ(123)やシゴロ(456)ではない場合。ペナルティはなく、<strong class="payout-neutral">再度振り直せる</strong>（最大ロール回数まで）。</dd>
-                        <dt>引き分け</dt>
-                        <dd>相手と同じ強さの役・目を出した場合。基本的には<strong class="payout-neutral">得点変動なし</strong>。（カード効果でボーナスあり）</dd>
-                        <dt>★連勝ボーナス</dt>
-                        <dd>親が勝利した場合、<strong class="payout-win">その勝利から</strong>獲得/支払い得点が10%ずつ増加します (例: 親1勝目で+10%, 親2連勝目で+20%...)。（カード効果でさらに増加する場合あり）</dd>
-                        <dt>★親交代</dt>
-                        <dd>親が勝負に<strong class="payout-lose">負けた</strong>場合、次のラウンドから親と子が交代します。（カード効果で維持できる場合あり）</dd>
+                        <dt>ピンゾロ (1,1,1)</dt><dd>最も強い役！ <strong class="payout-win">基本 5倍</strong> の得点を獲得。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-pinzoro">5</span>倍）</dd>
+                        <dt>アラシ (ゾロ目 2〜6)</dt><dd>ゾロ目の役。数字が大きいほど強い (6ゾロ > ... > 2ゾロ)。<strong class="payout-win">基本 3倍</strong> の得点を獲得。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-arashi">3</span>倍）</dd>
+                        <dt>シゴロ (4,5,6)</dt><dd>4,5,6の組み合わせ。<strong class="payout-win">基本 2倍</strong> の得点を獲得。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-shigoro">2</span>倍）</dd>
+                        <dt>通常の目 (例: 2,2,5 なら「5の目」)</dt><dd>同じ数字2つと異なる数字1つの組み合わせ。異なる数字が大きいほど強い (6の目 > ... > 1の目)。相手の目と比べて数字が大きい方が勝ち。<strong class="payout-win-normal">基本 1倍</strong> の得点（または失点）。</dd><dd class="card-effect-rate">（1の目勝利時倍率: <span id="role-rate-eye1">1</span>倍 / 6の目勝利時倍率: <span id="role-rate-eye6">1</span>倍）</dd>
+                        <dt>ヒフミ (1,2,3)</dt><dd>1,2,3の組み合わせ。役の中では一番弱いがションベンよりは強い。 <strong class="payout-lose">基本 2倍</strong> の失点。</dd><dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-hifumi">2</span>倍）</dd>
+                        <dt>ションベン</dt><dd>サイコロが器の外に出るなどした場合の反則負け。3回振って役も目も出ない「目なし」も最終的にションベン扱い。<strong class="payout-lose">基本 1倍</strong> の失点。</dd><dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-shonben">1</span>倍）</dd>
+                        <dt>目なし</dt><dd>3つのサイコロの数字が全てバラバラで、かつヒフミ(123)やシゴロ(456)ではない場合。ペナルティはなく、<strong class="payout-neutral">再度振り直せる</strong>（最大ロール回数まで）。</dd>
+                        <dt>引き分け</dt><dd>相手と同じ強さの役・目を出した場合。基本的には<strong class="payout-neutral">得点変動なし</strong>。（カード効果でボーナスあり）</dd>
+                        <dt>★連勝ボーナス</dt><dd>親が勝利した場合、<strong class="payout-win">その勝利から</strong>獲得/支払い得点が10%ずつ増加します (例: 親1勝目で+10%, 親2連勝目で+20%...)。（カード効果でさらに増加する場合あり）</dd>
+                        <dt>★親交代</dt><dd>親が勝負に<strong class="payout-lose">負けた</strong>場合、次のラウンドから親と子が交代します。（カード効果で維持できる場合あり）</dd>
                     </dl>
                 </div>
-                <!-- カード一覧タブ -->
-                <div id="settings-card-list-content" class="settings-tab-content filter-all"> <!-- ★ filter-all クラスを追加 -->
+                <div id="settings-card-list-content" class="settings-tab-content filter-all">
                     <h3>カード一覧</h3>
-                    <!-- カテゴリ選択タブを追加 -->
                     <div class="card-list-filter-tabs">
                         <button class="filter-tab active" data-filter="all">全カード</button>
                         <button class="filter-tab" data-filter="active">アクティブ</button>
                         <button class="filter-tab" data-filter="passive">パッシブ</button>
                     </div>
-                    <div id="settings-card-list-inner">
-                        <!-- JSでカードリストが生成される -->
-                    </div>
+                    <div id="settings-card-list-inner"></div>
                 </div>
-                <!-- 他のタブコンテンツがここに追加される可能性 -->
-            </div> <!-- /#settings-content -->
-        </div> <!-- /.modal-content -->
-    </div> <!-- /#settings-modal -->
-
-    <!-- ===== カード画面モーダル ===== -->
+            </div>
+        </div>
+    </div>
     <div id="card-action-modal" class="modal">
         <div class="modal-content card-action-modal-content">
             <span id="close-card-action-modal" class="close-button">×</span>
             <h2>手札のカード</h2>
-
-            <!-- アクティブカードセクション -->
             <div class="card-section">
                 <h3>アクティブカード</h3>
                 <p id="active-card-message" class="card-section-message">使用したいカードを選択してください。</p>
-                <div id="active-card-display" class="card-display-area">
-                    <!-- JSでアクティブカードがここに挿入される -->
-                </div>
+                <div id="active-card-display" class="card-display-area"></div>
             </div>
-
-            <!-- パッシブカードセクション -->
             <div class="card-section">
                 <h3>パッシブカード (装備カード)</h3>
                 <p id="passive-card-message" class="card-section-message">現在装備中のカードです。</p>
-                <div id="passive-card-display" class="card-display-area">
-                    <!-- JSでパッシブカードがここに挿入される -->
-                </div>
+                <div id="passive-card-display" class="card-display-area"></div>
             </div>
-
         </div>
     </div>
-
-     <!-- ===== アイテム獲得演出モーダル ===== -->
-     <div id="item-reveal-modal" class="modal item-reveal-modal">
+    <div id="item-reveal-modal" class="modal item-reveal-modal">
         <div class="modal-content item-reveal-content">
             <span id="close-item-reveal-modal" class="close-button">×</span>
             <h2 id="item-reveal-title">アイテム獲得！</h2>
@@ -422,21 +334,17 @@
                         <span id="item-reveal-type" class="type-badge">タイプ</span>
                     </p>
                     <p id="item-reveal-description">カードの説明文...</p>
-                    <p id="item-reveal-level" style="display: none;">Lv. X</p> <!-- アップグレード時に表示 -->
+                    <p id="item-reveal-level" style="display: none;">Lv. X</p>
                 </div>
             </div>
             <button id="confirm-item-reveal-button" class="button-pop">確認</button>
         </div>
     </div>
-
-     <!-- ===== 役/目 結果表示モーダル (新規追加) ===== -->
-     <div id="role-result-modal" class="modal role-result-reveal-modal"> <!-- 新しいIDとクラス -->
+     <div id="role-result-modal" class="modal role-result-reveal-modal">
         <div class="modal-content role-result-reveal-content">
-            <!-- モーダルを閉じるボタンは任意（自動で閉じるため） -->
-            <!-- <span id="close-role-result-modal" class="close-button">×</span> -->
             <div id="role-result-modal-body">
-                <div id="role-result-dice-display">- - -</div> <!-- サイコロ表示用 -->
-                <h2 id="role-result-name">役/目 結果</h2> <!-- 役名/目表示用 -->
+                <div id="role-result-dice-display">- - -</div>
+                <h2 id="role-result-name">役/目 結果</h2>
             </div>
         </div>
     </div>
