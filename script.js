@@ -534,11 +534,9 @@ const boostItems = [
         console.log("Opening shop...");
 
         // 持ち点リセット
-        playerScore = INITIAL_PLAYER_SCORE + permanentScoreBoost; // ショップ入店時に基本スコア+永続ブースト値に戻す
-        scoreAtWaveStart = playerScore; // 現在のスコアをWAVE開始スコアとして記録（コイン計算用）
+        playerScore = INITIAL_PLAYER_SCORE + permanentScoreBoost;
+        scoreAtWaveStart = playerScore;
         console.log(`Shop opened. Player score reset to base + boost: ${playerScore}`);
-        // これにより、ショップ画面が表示される前に正しい持ち点がセットされるはず
-        updateShopUI();
 
         if(nextWaveArea) nextWaveArea.style.display = 'none';
         purchasedOrUpgradedInShop = [];
@@ -562,7 +560,11 @@ const boostItems = [
         if (existingConfirmation) existingConfirmation.remove();
         if(shopActionsEl) shopActionsEl.style.display = 'flex';
 
-        showScreen('shop-screen'); // 最後に画面を表示
+        showScreen('shop-screen'); // ★ 先に画面を表示
+        setTimeout(() => {
+            console.log("Updating shop UI after showing screen.");
+            updateShopUI(); // スコア表示やボタン状態を反映させる
+        }, 0); // 0ms遅延で実行キューの最後に回す
     }
 
     // === ショップを閉じる処理 ===
