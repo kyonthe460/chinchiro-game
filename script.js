@@ -774,43 +774,68 @@ async function purchaseCard(cardDefinition, purchaseCost) {
 }
 
 // purchasePack 関数 
-async function purchasePack(packDefinition, purchaseCost) { 
-    return new Promise(async (resolve) => { 
+async function purchasePack(packDefinition, purchaseCost) {
+    return new Promise(async (resolve) => {
        const startCoins = playerCoins;
        playerCoins -= purchaseCost;
        purchasedOrUpgradedInShop.push(packDefinition.id); console.log(`Bought pack: ${packDefinition.name} for ${purchaseCost}G`); setShopMessage(`${packDefinition.name} を購入！ カードを開封中...`); updateShopUI();
 
-       // コインアニメーションを先に実行
        if (purchaseCost > 0) {
            animateScore(shopCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
            animateScore(gameCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
-           playCoinAnimation(purchaseCost); // 消費したコスト分
+           playCoinAnimation(purchaseCost);
        }
 
-       const possibleCards = packDefinition.cardPool || []; if (possibleCards.length === 0) { await showItemRevealModal({ item: packDefinition, source: 'pack_empty' }); resolve(true); return; } // ★ 空でも成功扱い(true)で resolve
+       const possibleCards = packDefinition.cardPool || []; if (possibleCards.length === 0) { await showItemRevealModal({ item: packDefinition, source: 'pack_empty' }); resolve(true); return; }
        const randomIndex = Math.floor(Math.random() * possibleCards.length); const drawnCardId = possibleCards[randomIndex]; const drawnCardDef = allCards.find(c => c.id === drawnCardId);
        if (drawnCardDef) {
-           // setTimeout ではなく await を使う
-           // setTimeout(async () => { ... }, 800) -> await new Promise(res => setTimeout(res, 800));
-           await new Promise(res => setTimeout(res, 800)); // 表示のためのウェイト
+           await new Promise(res => setTimeout(res, 800)); // 表示ウェイト
 
-           const existingCard = playerCards.find(c => c.id === drawnCardId); let newItemLevel = 1; let revealSource = 'pack_new'; let addedOrUpgraded = false; // ★ 追加/強化成功フラグ
-           if (existingCard) { if (existingCard.level < MAX_CARD_LEVEL) { existingCard.level++; newItemLevel = existingCard.level; revealSource = 'pack_upgrade'; setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現！Lv.${existingCard.level}にアップグレード！`); console.log(` -> Upgraded ${drawnCardDef.name} to Lv.${existingCard.level} from pack.`); applyPlayerCardEffects(); updateShopHandDisplay(); addedOrUpgraded = true; } else { revealSource = 'pack_max_level'; setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現しましたが、既に最大レベルです。`); console.log(` -> Drew ${drawnCardDef.name} from pack, but already max level.`); } }
-           else { const isDrawnCardActive = !!drawnCardDef.usesPerWave; const drawnCardType = isDrawnCardActive ? 'active' : 'passive'; let currentCount = 0; playerCards.forEach(handCardData => { const handCardDef = allCards.find(c => c.id === handCardData.id); if (handCardDef) { const handCardIsActive = !!handCardDef.usesPerWave; if ((isDrawnCardActive && handCardIsActive) || (!isDrawnCardActive && !handCardIsActive)) { currentCount++; } } }); const limit = isDrawnCardActive ? MAX_ACTIVE_CARDS : MAX_PASSIVE_CARDS; const typeNameJp = isDrawnCardActive ? 'アクティブ' : 'パッシブ'; if (currentCount >= limit) { cardToDiscardFor = { ...drawnCardDef, cost: 0, itemType: 'card' }; cardTypeToDiscard = drawnCardType; setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現！しかし${typeNameJp}カードの手札がいっぱいです！売却するカードを選んでください。`); openDiscardModal(); resolve(true); return; } // ★ 破棄が必要な場合も成功扱い
-               else { playerCards.push({ id: drawnCardDef.id, level: 1 }); setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} を獲得しました！`); console.log(` -> Added ${drawnCardDef.name} (Lv.1) from pack to hand.`); applyPlayerCardEffects(); updateShopHandDisplay(); addedOrUpgraded = true; } }
+           const existingCard = playerCards.find(c => c.id === drawnCardId); let newItemLevel = 1; let revealSource = 'pack_new'; let addedOrUpgraded = false;
+           if (existingCard) { // --- 既存カードの場合 ---
+               if (existingCard.level < MAX_CARD_LEVEL) {
+                   existingCard.level++; newItemLevel = existingCard.level; revealSource = 'pack_upgrade';
+                   setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現！Lv.${existingCard.level}にアップグレード！`);
+                   console.log(` -> Upgraded ${drawnCardDef.name} to Lv.${existingCard.level} from pack.`);
+                   applyPlayerCardEffects(); updateShopHandDisplay(); addedOrUpgraded = true;
+               } else {
+                   revealSource = 'pack_max_level';
+                   setShopMessage(`${packDefinition.name} から ${drawnCardDef.name} が出現しましたが、既に最大レベルです。`);
+                   console.log(` -> Drew ${drawnCardDef.name} from pack, but already max level.`);
+               }
+               await showItemRevealModal({ item: drawnCardDef, level: newItemLevel, source: revealSource, packName: packDefinition.name }); // ★ とにかく獲得演出は表示
+               resolve(true); // 既存カードの場合は破棄モーダル不要なのでここで終了
+           } else { // --- 新規カードの場合 ---
+               const isDrawnCardActive = !!drawnCardDef.usesPerWave; const drawnCardType = isDrawnCardActive ? 'active' : 'passive'; let currentCount = 0; playerCards.forEach(handCardData => { const handCardDef = allCards.find(c => c.id === handCardData.id); if (handCardDef) { const handCardIsActive = !!handCardDef.usesPerWave; if ((isDrawnCardActive && handCardIsActive) || (!isDrawnCardActive && !handCardIsActive)) { currentCount++; } } }); const limit = isDrawnCardActive ? MAX_ACTIVE_CARDS : MAX_PASSIVE_CARDS; const typeNameJp = isDrawnCardActive ? 'アクティブ' : 'パッシブ';
 
-           await showItemRevealModal({ item: drawnCardDef, level: newItemLevel, source: revealSource, packName: packDefinition.name }); // ★ await でモーダル表示
-           resolve(true); 
+               // 手札上限チェックの前に獲得演出 
+               await showItemRevealModal({ item: drawnCardDef, level: 1, source: 'pack_new', packName: packDefinition.name });
 
-       } else {
-           await showItemRevealModal({ item: packDefinition, source: 'pack_error' }); 
+               if (currentCount >= limit) { // ★ 獲得演出の後に上限チェック
+                   cardToDiscardFor = { ...drawnCardDef, cost: 0, itemType: 'card' }; // 引いたカード情報を保持
+                   cardTypeToDiscard = drawnCardType;
+                   setShopMessage(`${drawnCardDef.name} を獲得！しかし${typeNameJp}カードの手札がいっぱいです！売却するカードを選んでください（新しいカードを選ぶと保持します）。`); // メッセージ変更
+                   openDiscardModal(); // 破棄モーダルを開く
+                   resolve(true); // ★ 破棄モーダルに処理を委譲するので成功扱い
+                   return; // 破棄モーダルからの処理待ち
+               } else { // ★ 手札に空きがあれば通常通り追加
+                   playerCards.push({ id: drawnCardDef.id, level: 1 });
+                   setShopMessage(`${drawnCardDef.name} を獲得しました！`);
+                   console.log(` -> Added ${drawnCardDef.name} (Lv.1) from pack to hand.`);
+                   applyPlayerCardEffects(); updateShopHandDisplay(); addedOrUpgraded = true;
+                    // showItemRevealModalは上で実行済みなので不要
+                   resolve(true); // ★ 成功で resolve
+               }
+           }
+       } else { // カード定義が見つからないエラー
+           await showItemRevealModal({ item: packDefinition, source: 'pack_error' });
            console.error(`Card definition not found for ID: ${drawnCardId} from pack ${packDefinition.name}`);
-           resolve(true); 
+           resolve(true); // エラーでも resolve
        }
    });
 }
 
-// purchaseBoost 関数 )
+// purchaseBoost 関数
 async function purchaseBoost(boostDefinition, purchaseCost) { 
     return new Promise(async (resolve) => { 
         if (purchasedOrUpgradedInShop.includes(boostDefinition.id)) { console.warn(`Boost item ${boostDefinition.id} already purchased.`); setShopMessage("この強化は既に購入済みです。"); resolve(false); return; } // ★ 失敗で resolve(false)
@@ -866,52 +891,147 @@ async function handleReroll() {
     console.log("Rerolled shop offers (Cards only)."); displayShopOffers(); updateShopUI();
 }
 
+    // === 破棄モーダル表示 ===
     function openDiscardModal() {
-        if (!cardTypeToDiscard) { console.error("Cannot open discard modal: Card type to discard is not specified."); return; }
-        const typeNameJp = cardTypeToDiscard === 'active' ? 'アクティブ' : 'パッシブ'; const modalTitle = discardModal.querySelector('h3'); const modalText = discardModal.querySelector('p'); if(modalTitle) modalTitle.textContent = `${typeNameJp}カードの手札がいっぱいです！`; if(modalText) modalText.textContent = `新しい${typeNameJp}カードを追加するために、売却する${typeNameJp}カードを選んでください。(売却額: (初期コスト+強化コスト合計)の半額)`;
-        discardOptionsEl.innerHTML = ''; let foundDiscardable = false;
+        if (!cardTypeToDiscard || !cardToDiscardFor) { // cardToDiscardFor もチェック
+            console.error("Cannot open discard modal: Card type or card data to add is not specified.");
+            return;
+        }
+        const typeNameJp = cardTypeToDiscard === 'active' ? 'アクティブ' : 'パッシブ';
+        const modalTitle = discardModal.querySelector('h3');
+        const modalText = discardModal.querySelector('p');
+        if(modalTitle) modalTitle.textContent = `${typeNameJp}カードの手札がいっぱいです！`;
+        // メッセージ変更: 新しいカードを選んだ場合の挙動を説明
+        if(modalText) modalText.textContent = `新しく「${cardToDiscardFor.name}」を獲得しましたが、${typeNameJp}の手札が上限です。保持したい場合は下記リストから売却するカードを選んでください。`;
+
+        discardOptionsEl.innerHTML = '';
+        let foundDiscardable = false;
+
+        // 追加予定のカードを最初に表示 
+        const newCardButton = document.createElement('button');
+        newCardButton.className = 'discard-choice-button new-card-option'; // 新しいクラスを追加
+        newCardButton.textContent = `${cardToDiscardFor.name} [Lv.1] (これを保持)`; // テキスト変更
+        newCardButton.dataset.cardId = cardToDiscardFor.id; // 新しいカードのID
+        newCardButton.dataset.sellPrice = "0"; // 売却額は0とする
+        newCardButton.addEventListener('click', handleDiscardChoice); // 同じハンドラを使用
+        discardOptionsEl.appendChild(newCardButton);
+
+        // 既存のカードを表示
         playerCards.forEach(cardData => {
-            const cardDefinition = allCards.find(c => c.id === cardData.id); if (cardDefinition) { const cardIsActive = !!cardDefinition.usesPerWave; const currentCardType = cardIsActive ? 'active' : 'passive'; if (currentCardType === cardTypeToDiscard) { foundDiscardable = true; const sellPrice = calculateSellPrice(cardData); const button = document.createElement('button'); button.className = 'discard-choice-button'; button.textContent = `${cardDefinition.name} [Lv.${cardData.level}] (売却: ${sellPrice}G)`; button.dataset.cardId = cardData.id; button.dataset.sellPrice = sellPrice; button.addEventListener('click', handleDiscardChoice); discardOptionsEl.appendChild(button); } }
+            const cardDefinition = allCards.find(c => c.id === cardData.id);
+            if (cardDefinition) {
+                const cardIsActive = !!cardDefinition.usesPerWave;
+                const currentCardType = cardIsActive ? 'active' : 'passive';
+                if (currentCardType === cardTypeToDiscard) {
+                    foundDiscardable = true;
+                    const sellPrice = calculateSellPrice(cardData);
+                    const button = document.createElement('button');
+                    button.className = 'discard-choice-button';
+                    button.textContent = `${cardDefinition.name} [Lv.${cardData.level}] (売却: ${sellPrice}G)`;
+                    button.dataset.cardId = cardData.id;
+                    button.dataset.sellPrice = sellPrice;
+                    button.addEventListener('click', handleDiscardChoice);
+                    discardOptionsEl.appendChild(button);
+                }
+            }
         });
-        if (!foundDiscardable) { discardOptionsEl.innerHTML = `<p>売却可能な${typeNameJp}カードがありません。</p>`; } discardModal.style.display = 'flex';
+
+        if (!foundDiscardable) {
+             // 新しいカードしか選択肢がない（＝既存の同タイプがない）場合は、破棄モーダルは実質不要だが、
+             // 念のためメッセージを表示し、キャンセルボタンのみ有効にする
+             discardOptionsEl.innerHTML = `<p>売却可能な${typeNameJp}カードが手札にありません。</p>`;
+             // 新しいカード保持ボタンも非表示にする（他のカードを売却できないため）
+             if(newCardButton) newCardButton.style.display = 'none';
+        }
+
+        discardModal.style.display = 'flex';
     }
 
-// handleDiscardChoice 関数 
-async function handleDiscardChoice(event) { 
-    const discardedCardId = event.target.dataset.cardId; const sellPrice = parseInt(event.target.dataset.sellPrice || '0'); const itemToPotentiallyAdd = cardToDiscardFor; if (!itemToPotentiallyAdd) return;
+// === 破棄選択処理 ===
+function handleDiscardChoice(event) {
+    const selectedButton = event.target;
+    const selectedDiscardCardId = selectedButton.dataset.cardId;
+    const sellPrice = parseInt(selectedButton.dataset.sellPrice || '0');
+    const itemToAdd = cardToDiscardFor; // 追加/保持予定のアイテム情報
+    if (!itemToAdd || !selectedDiscardCardId) {
+        console.error("Discard choice error: Missing data.");
+        cancelDiscard(); // エラー時はキャンセル
+        return;
+    }
 
     const startCoins = playerCoins;
     let coinChange = 0;
-    let modalShown = false; 
 
-    removePlayerCardEffect(discardedCardId);
-    playerCoins += sellPrice; coinChange += sellPrice;
-    console.log(`Sold card ${discardedCardId} for ${sellPrice}G.`);
+    // 選択されたのが新しいカードか既存カードかで処理分岐 
+    if (selectedDiscardCardId === itemToAdd.id) {
+        // --- 新しいカード (itemToAdd) を保持する場合 ---
+        // この場合、他のカードを売却する必要がある。再度モーダルを表示するか、
+        // UI的に「保持」を選んだら、次に「売却するカード」を選ばせる必要があるが、
+        // 今回はシンプルに「保持」ボタン自体に「既存カードを売却してこれを追加する」という意味合いを持たせる。
+        // よって、実際には「保持」ボタンが押されたら、次に押された既存カードを売却する、という流れになる。
+        // ただし、現在の実装ではボタンクリックで即座にこの関数が呼ばれるため、
+        // 「保持」ボタンが押されたことをトリガーに、別の処理を動かす必要がある。
 
-    const purchaseCost = itemToPotentiallyAdd.cost || 0; let successfullyAdded = false; let addedItemLevel = 1;
-    if (itemToPotentiallyAdd.itemType === 'card') {
-        if (purchaseCost > 0) { // 通常購入
-            if (playerCoins >= purchaseCost) { playerCoins -= purchaseCost; coinChange -= purchaseCost; playerCards.push({ id: itemToPotentiallyAdd.id, level: 1 }); purchasedOrUpgradedInShop.push(itemToPotentiallyAdd.id); setShopMessage(`売却して空きを作り、${itemToPotentiallyAdd.name} を購入しました！`); console.log(`Added ${itemToPotentiallyAdd.name} (Lv.1) to hand after discarding (Cost: ${purchaseCost}G).`); successfullyAdded = true; addedItemLevel = 1; }
-            else { setShopMessage(`売却しましたが、コインが足りず ${itemToPotentiallyAdd.name} を購入できませんでした。`); }
-        } else { // パックから
-            playerCards.push({ id: itemToPotentiallyAdd.id, level: 1 }); setShopMessage(`売却して空きを作り、${itemToPotentiallyAdd.name} を手札に加えました！`); console.log(`Added ${itemToPotentiallyAdd.name} (Lv.1) to hand after discarding (from pack).`); successfullyAdded = true; addedItemLevel = 1;
+        // 現状の実装だと「保持」ボタンを押しても、sellPriceが0の既存カード売却と同じ処理になる。
+        // これを修正するため、「保持」ボタンが押されたら、モーダルの表示を変え、
+        // 既存カードの選択を促すように変更するのが理想だが、複雑化する。
+
+        // === 代替案 ===
+        // 「保持」ボタンを押した = 「他のどれかを売却してこれを追加する」とみなし、
+        // どのカードを売却するかを *ユーザーに再度選択させる* のではなく、
+        // この関数内で「どのカードを売却したか」を判断する。
+        // しかし、このイベントハンドラは *クリックされたボタンの情報しか持たない*。
+
+        // === 再検討 ===
+        // `openDiscardModal` で「保持」ボタンと「売却」ボタンを用意。
+        // ・「保持」ボタンクリック -> この `handleDiscardChoice` が呼ばれる。ここで「どのカードを売却して保持するか」を選ぶ必要があるが、それはできない。
+        // ・「売却」ボタンクリック -> この `handleDiscardChoice` が呼ばれる。ここで「選択された既存カードを売却し、itemToAdd を追加する」処理を行う。
+
+        // --- 実装方針 ---
+        // 1. `openDiscardModal` で「保持」ボタンは表示しない。（または、クリックしても何もしない/メッセージを出す）
+        // 2. ユーザーは必ず「既存カードの売却ボタン」をクリックする。
+        // 3. `handleDiscardChoice` では、クリックされた既存カードID (`selectedDiscardCardId`) を使って処理を行う。
+        // 4. 処理内容は「選択された既存カードを売却し、保持していた `itemToAdd` を手札に追加する」。
+
+        // ↓ 上記方針に基づき、`selectedDiscardCardId === itemToAdd.id` のケースは発生しないはずだが、念のため残す
+        console.warn("Handle discard choice: 'Keep New Card' button logic needs rework or removal based on UI flow.");
+        setShopMessage("エラー：保持するカードではなく、売却するカードを選択してください。");
+        // ここでは何もしない（またはモーダルを再表示）
+        discardModal.style.display = 'none'; // 一旦閉じる
+        openDiscardModal(); // 再表示して選択を促す
+        return; // 処理中断
+
+    } else {
+        // --- 既存カード (selectedDiscardCardId) を売却する場合 ---
+        removePlayerCardEffect(selectedDiscardCardId); // 既存カード削除
+        playerCoins += sellPrice; // 売却額加算
+        coinChange += sellPrice;
+        console.log(`Sold existing card ${selectedDiscardCardId} for ${sellPrice}G.`);
+
+        // 保持していた新しいカード (itemToAdd) を手札に追加
+        if (itemToAdd.itemType === 'card') {
+            playerCards.push({ id: itemToAdd.id, level: 1 });
+            setShopMessage(`「${selectedDiscardCardId}」を売却し、「${itemToAdd.name}」を手札に加えました！`);
+            console.log(`Added ${itemToAdd.name} (Lv.1) to hand after discarding ${selectedDiscardCardId}.`);
+            applyPlayerCardEffects();
+            updateShopHandDisplay(); // 手札表示更新も忘れずに
+        } else {
+            // カード以外がここに来ることは基本ないはず
+            console.error("Error adding non-card item after discard.");
         }
-        if (successfullyAdded) {
-            applyPlayerCardEffects(); updateShopHandDisplay();
-            await showItemRevealModal({ item: itemToPotentiallyAdd, level: addedItemLevel, source: purchaseCost > 0 ? 'buy' : 'pack_new' }); // ★ await で待つ
-            modalShown = true;
-        }
-    } else { console.warn("Discard choice trying to add non-card item:", itemToPotentiallyAdd); setShopMessage(`売却しましたが、アイテム「${itemToPotentiallyAdd.name}」の追加処理が想定外です。`); }
+    }
 
-    // アニメーションをモーダル表示後 (またはモーダル表示なしの場合) に実行
+    // コインアニメーション実行
     if (coinChange !== 0) {
         animateScore(shopCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
         animateScore(gameCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
         if (coinChange > 0) { playCoinAnimation(coinChange); }
-        // 減少アニメーションは複雑化するため省略
     }
 
-    cardToDiscardFor = null; cardTypeToDiscard = null; discardModal.style.display = 'none'; updateShopUI();
+    cardToDiscardFor = null;
+    cardTypeToDiscard = null;
+    discardModal.style.display = 'none';
+    updateShopUI(); // ショップ全体のUI更新
 }
 
     function cancelDiscard() { cardToDiscardFor = null; cardTypeToDiscard = null; discardModal.style.display = 'none'; setShopMessage(DEFAULT_SHOP_MESSAGE); }
