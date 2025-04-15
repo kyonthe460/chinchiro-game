@@ -362,17 +362,16 @@ body {
 #next-wave-area { display: none; justify-content: center;  margin-top: 10px; }
 button { padding: 10px 18px; font-size: 1em; cursor: pointer; border: none; border-radius: 20px; color: #333; font-weight: bold; transition: all 0.2s ease; text-shadow: 0px 1px 1px rgba(255,255,255,0.3); box-shadow: 0 3px 5px rgba(0,0,0,0.3); }
 button:disabled {
-    background-color: #555 !important; /* !importantで確実に上書き */
+    background-color: #555 !important;
     background-image: none !important;
     color: #999 !important;
     cursor: not-allowed;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
     text-shadow: none;
-    transform: none !important; /* ホバーなどの変形も無効化 */
-    animation: none !important; /* アニメーションも停止 */
-    border: none !important; /* 枠線もリセット */
+    transform: none !important;
+    animation: none !important;
+    border: none !important;
 }
-/* ショップの購入/強化ボタンにも適用 */
 .buy-button:disabled, .upgrade-button:disabled {
     background-color: #555 !important;
     background-image: none !important;
@@ -565,7 +564,14 @@ button:disabled {
 .card-list-item .flavor-text { font-style: italic; color: #bbb; font-size: 0.9em; margin-bottom: 8px; }
 .card-list-item .effect-details { font-size: 0.9em; color: #e0e0e0; background-color: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; margin-top: 8px; }
 .effect-details .effect-level-title { margin-top: 8px; margin-bottom: 2px; color: #ffcc70; }
-.effect-details .effect-level-description { padding-left: 10px; border-left: 2px solid rgba(255, 255, 255, 0.1); margin-bottom: 8px; }
+.effect-details .effect-level-description {
+    padding-left: 10px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 8px;
+    overflow: hidden; /* ★ 念のため */
+    word-break: break-all; /* ★ 折り返し設定 */
+    overflow-wrap: break-word; /* ★ 折り返し設定 */
+}
 .effect-details .effect-level-title:first-of-type { margin-top: 0; }
 
 /* ===== ショップ画面レイアウト ===== */
@@ -875,22 +881,25 @@ animation:
 }
 .pack:not(.sold-out):hover, .boost-item:not(.sold-out):hover { transform: translateY(-6px) scale(1.03); box-shadow: 5px 10px 15px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(0,0,0,0.3); }
 .pack .card-name, .boost-item .card-name { font-size: 1.1em; color: #e0e0e0; margin-top: 15px; margin-bottom: 10px; font-weight: bold; background-color: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.25); padding: 6px 10px; border-radius: 8px; display: inline-block; }
-.pack .card-description, .boost-item .card-description {
+.card-description,
+.pack .card-description,
+.boost-item .card-description {
     font-size: 0.9em;
-    color: #d0d0d0;
+    color: #e8e8e8;
     line-height: 1.5;
     text-align: left;
     margin-bottom: 10px;
     flex-grow: 1;
-    background-color: rgba(0, 0, 0, 0.4);
+    position: relative;
+    z-index: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9), 1px -1px 2px rgba(0,0,0,0.9), -1px 1px 2px rgba(0,0,0,0.9);
+    background-color: rgba(0, 0, 0, 0.5);
     padding: 8px;
     border-radius: 5px;
     box-sizing: border-box;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
-    overflow-y: auto; /* ★ スクロール追加 */
-    max-height: 100px; /* ★ 高さ制限 */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    overflow: hidden; /* ★ はみ出し非表示 */
+    word-break: break-all; /* ★ 折り返し設定 */
+    overflow-wrap: break-word; /* ★ 折り返し設定 */
 }
 .pack .card-description::-webkit-scrollbar, .boost-item .card-description::-webkit-scrollbar { width: 4px; }
 .pack .card-description::-webkit-scrollbar-track, .boost-item .card-description::-webkit-scrollbar-track { background: transparent; }
@@ -1064,10 +1073,9 @@ animation:
     padding: 8px;
     border-radius: 5px;
     box-sizing: border-box;
-    overflow-y: auto; /* ★ スクロール */
-    max-height: 80px; /* ★ 高さ制限 */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    overflow: hidden; /* ★ はみ出し非表示 */
+    word-break: break-all; /* ★ 折り返し設定 */
+    overflow-wrap: break-word; /* ★ 折り返し設定 */
 }
 .card-action-item .card-description::-webkit-scrollbar { width: 4px; }
 .card-action-item .card-description::-webkit-scrollbar-track { background: transparent; }
@@ -1278,10 +1286,6 @@ animation:
     #player-status { flex-direction: column; align-items: center; text-align: center; }
     #shop-player-hand { text-align: center; flex-basis: auto; }
     #hand-cards { justify-content: center; }
-    .card, .pack, .boost-item { width: 170px; height: 250px; padding-bottom: 45px; } /* ★ 固定サイズに戻す */
-    .card-action-item { width: 170px; height: 250px; } /* ★ 固定サイズに戻す */
-    .card-description { max-height: 85px; } /* ★ 高さを再調整 */
-    .pack .card-description, .boost-item .card-description { max-height: 85px; } /* ★ 高さを再調整 */
     .card-footer { bottom: 10px; } /* フッター位置調整 */
     .card-name { font-size: 1.1em; }
     .card-description { font-size: 0.85em; }
@@ -1293,7 +1297,6 @@ animation:
     .modal-content { max-height: 90vh; } #history-log { max-height: 70vh; }
     .card-list-modal-content { padding: 20px 15px; } #card-list-content { max-height: 75vh; font-size: 0.85em;} .card-list-item h3 { font-size: 1.05em; } .card-list-item .card-meta { font-size: 0.7em; }
     .dice-roll-modal-content { max-width: 80vw; width: 80vw; }
-    /* 依頼6: スマホでのアナウンス欄アニメーション停止 */
     #current-bet-info { animation: none; border: 1px solid #ffeb3b; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
     #message-area { animation: none; border: 1px solid rgba(255, 255, 255, 0.1); }
     #current-bet-info, #message { text-shadow: 1px 1px 2px rgba(0,0,0,0.6); }
@@ -1312,11 +1315,6 @@ animation:
     .shop-outer-container { width: 99%; height: 96%; }
     .shop-header, #shop-scrollable-offers, .shop-footer { padding: 10px; }
     #shop-player-score { font-size: 1em; }
-    /* .shop-content { padding: 15px; max-width: 95%; } */
-    .card, .pack, .boost-item { width: 150px; height: 220px; padding-bottom: 50px; } /* ★ 480pxでの固定サイズ */
-    .card-action-item { width: 150px; height: 220px; } /* ★ 480pxでの固定サイズ */
-    .card-description { max-height: 60px; } /* ★ 高さを再調整 */
-    .pack .card-description, .boost-item .card-description { max-height: 60px; } /* ★ 高さを再調整 */
     .card-footer { bottom: 10px; } /* フッター位置調整 */
     .card-name { font-size: 1em; }
     .card-description { font-size: 0.8em; }
