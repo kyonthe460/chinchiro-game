@@ -1622,5 +1622,83 @@ animation:
     .card-list-modal-content { padding: 20px 15px; } #card-list-content { max-height: 75vh; font-size: 0.85em;} .card-list-item h3 { font-size: 1.05em; } .card-list-item .card-meta { font-size: 0.7em; }
     .dice-roll-modal-content { max-width: 95vw; width: 95vw; }
 }
+/* ===== ダイス選択オーバーレイ (デザイン改善) ===== */
+#dice-choice-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(20, 20, 30, 0.9); /* 背景色を少し濃く */
+    display: none; /* 初期非表示 */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    border-radius: 12px;
+    padding: 25px; /* パディング調整 */
+    box-sizing: border-box;
+    border: 2px solid rgba(255, 215, 0, 0.6); /* 金色の枠線 */
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(0,0,0,0.5); /* 内外に影 */
+    animation: modalFadeIn 0.3s ease-out; /* フェードイン */
+}
+
+#dice-choice-overlay h3 {
+    color: #ffdd57; /* ややオレンジがかった黄色 */
+    margin-bottom: 15px; /* マージン調整 */
+    font-size: 1.5em; /* サイズ調整 */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    border-bottom: 1px solid rgba(255, 221, 87, 0.3); /* 下線 */
+    padding-bottom: 10px;
+}
+
+#dice-choice-overlay p {
+    color: #eee;
+    margin-bottom: 25px; /* マージン調整 */
+    font-size: 1.1em; /* サイズ調整 */
+    text-align: center;
+}
+
+.dice-choice-buttons {
+    display: flex;
+    flex-direction: row; /* ★ 横並びに変更 */
+    gap: 15px; /* ボタン間の隙間 */
+    justify-content: center; /* 中央揃え */
+    align-items: center; /* 垂直中央揃え */
+    flex-wrap: wrap; /* 画面幅に応じて折り返し */
+    width: 100%;
+}
+
+.dice-choice-button {
+    font-size: 2.5em; /* 数字の大きさ */
+    padding: 0; /* パディングをリセット */
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* サイコロっぽいフォント */
+    min-width: 70px; /* 最低幅 */
+    height: 70px; /* 高さを幅と合わせる */
+    line-height: 70px; /* 数字を中央に */
+    text-align: center;
+    background: linear-gradient(145deg, #f8f8f8, #d8d8d8); /* 白っぽいグラデ */
+    color: #333; /* 数字の色 */
+    border: 1px solid #aaa;
+    border-radius: 10px; /* 角丸 */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.4), inset 1px 1px 3px rgba(255,255,255,0.6); /* 立体感を出す影 */
+    cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
+}
+
+.dice-choice-button:hover {
+    transform: translateY(-3px) scale(1.05); /* 少し浮き上がる */
+    box-shadow: 4px 6px 10px rgba(0,0,0,0.5), inset 1px 1px 3px rgba(255,255,255,0.7);
+    border-color: #888;
+}
+
+.dice-choice-button:active {
+    transform: translateY(1px) scale(0.98); /* 押し込み効果 */
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3), inset 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+#dice-choice-overlay .button-subtle { /* キャンセルボタン */
+    margin-top: 25px; /* 上のボタンとの間隔 */
+    padding: 8px 25px;
+    font-size: 1em;
+    width: auto; /* 幅自動 */
+}
 
 /* ===== END OF style.css ===== */
