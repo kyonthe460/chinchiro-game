@@ -282,7 +282,9 @@
                         <button class="filter-tab" data-filter="active">アクティブ</button>
                         <button class="filter-tab" data-filter="passive">パッシブ</button>
                     </div>
-                    <div id="settings-card-list-inner"></div>
+                    <div id="settings-card-list-inner">
+                        <!-- ここにJSでカードリストが生成される -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -294,12 +296,16 @@
             <div class="card-section">
                 <h3>アクティブカード</h3>
                 <p id="active-card-message" class="card-section-message">使用したいカードを選択してください。</p>
-                <div id="active-card-display" class="card-display-area"></div>
+                <div id="active-card-display" class="card-display-area">
+                    <!-- ここにJSでアクティブカードが表示される -->
+                </div>
             </div>
             <div class="card-section">
                 <h3>パッシブカード (装備カード)</h3>
                 <p id="passive-card-message" class="card-section-message">現在装備中のカードです。</p>
-                <div id="passive-card-display" class="card-display-area"></div>
+                <div id="passive-card-display" class="card-display-area">
+                    <!-- ここにJSでパッシブカードが表示される -->
+                </div>
             </div>
         </div>
     </div>
@@ -330,6 +336,39 @@
             <div id="role-result-modal-body">
                 <div id="role-result-dice-display">- - -</div>
                 <h2 id="role-result-name">役/目 結果</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 新規追加: カード詳細モーダル ===== -->
+    <div id="card-detail-modal" class="modal card-detail-modal">
+        <div class="modal-content card-detail-content">
+            <span id="close-card-detail-modal" class="close-button">×</span>
+            <div id="card-detail-body">
+                <div id="card-detail-image-container">
+                    <img id="card-detail-image" src="" alt="カード画像">
+                    <div id="card-detail-placeholder">画像なし</div>
+                </div>
+                <div id="card-detail-info">
+                    <h2 id="card-detail-name">カード名</h2>
+                    <p id="card-detail-meta">
+                        <span id="card-detail-rarity" class="rarity-badge">レアリティ</span>
+                        <span id="card-detail-type" class="type-badge">タイプ</span>
+                        <span id="card-detail-level">Lv. X</span>
+                    </p>
+                    <div id="card-detail-description-container">
+                        <h3>効果詳細</h3>
+                        <p id="card-detail-description">カードの効果説明...</p>
+                    </div>
+                    <div id="card-detail-flavor-container">
+                        <h3>フレーバーテキスト</h3>
+                        <p id="card-detail-flavor">カードの一言...</p>
+                    </div>
+                    <div id="card-detail-uses-container" style="display: none;">
+                        <h3>残り使用回数</h3>
+                        <p id="card-detail-uses">- / - 回</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
