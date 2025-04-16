@@ -1034,22 +1034,23 @@ animation:
 .card-action-item {
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
-    padding: 15px;
+    padding: 15px; 
     width: 200px;
-    height: 280px; /* 高さを固定 */
+    height: 280px;
     flex-shrink: 0;
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    position: relative;
+    position: relative; /* ★ ボタン配置の基準 */
     overflow: hidden;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
     background-color: rgba(60, 60, 90, 0.8);
     text-align: center;
-    cursor: default;
+    cursor: pointer;
+    padding-bottom: 60px; /* ★ ボタン用のスペース確保 */
 }
 .card-action-item .card-type-badge, .card-action-item .card-rarity-badge { position: absolute; top: 0; padding: 3px 10px; font-size: 0.8em; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); z-index: 1; }
 .card-action-item .card-type-badge { left: 0; border-radius: 10px 0 10px 0; } .card-action-item .card-rarity-badge { right: 0; border-radius: 0 10px 0 10px; }
@@ -1081,26 +1082,56 @@ animation:
 .card-action-item .card-description::-webkit-scrollbar-track { background: transparent; }
 .card-action-item .card-description::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 2px; }
 .card-action-item .card-action-uses {
-    font-size: 0.9em; color: #ccc;
-    margin-top: auto; padding-top: 5px; /* ボタンとの間隔調整 */
+    font-size: 1.1em;
+    color: #ffeb3b;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+    font-weight: bold;
     border-top: 1px dashed rgba(255, 255, 255, 0.15);
-    min-height: 30px; /* 高さを少し詰める */
-    display: none; /* ★ デフォルト非表示 */
+    min-height: 30px;
+    display: none; /* デフォルト非表示 */
     justify-content: center; align-items: center;
     width: 100%; box-sizing: border-box;
-    padding-bottom: 0; /* ボタンとの間にスペース不要 */
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+    padding: 10px; /* ★ パディング調整 */
+    margin-bottom: 10px; /* ★ ボタンとの間隔 */
+    flex-grow: 1; /* ★ 説明文と同様に高さを取る */
 }
-.card-action-item:hover .card-action-uses { display: flex; } /* ★ ホバーで表示 */
 .card-action-item .use-card-button {
-    margin-top: 5px; /* ★ 上マージン少し詰める */
-    padding: 8px 15px; /* ★ パディング少し詰める */
+    position: absolute; /* ★ 下部固定 */
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px); /* 左右パディング考慮 */
+    margin-top: 0; /* ★ 自動マージン解除 */
+    padding: 8px 15px;
     font-size: 1em;
-    width: 100%;
     box-sizing: border-box;
     background: linear-gradient(180deg, #5bc0de, #31b0d5);
     color: white;
-    border-radius: 15px; /* ボタンの角丸 */
-    display: block; /* ★ 常に表示 */
+    border-radius: 15px;
+    display: block; /* 常に表示 */
+}
+/* ★ クリックで表示切替するためのクラス */
+.card-action-item[data-display-state="uses"] .card-description {
+    display: none;
+}
+.card-action-item[data-display-state="uses"] .card-action-uses {
+    display: flex; /* Usesを表示 */
+    /* flex-grow: 1; を削除 (下部固定になったため) */
+    position: absolute; /* ★ Usesも下部固定 */
+    bottom: 50px; /* ★ ボタンの上に配置 (調整可) */
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px);
+    background-color: rgba(0, 0, 0, 0.7); /* ★ 背景少し濃く */
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.card-action-item[data-display-state="description"] .card-description {
+    display: block; /* Descriptionを表示 */
+}
+.card-action-item[data-display-state="description"] .card-action-uses {
+    display: none;
 }
 .card-action-item .use-card-button:hover:not(:disabled) { background: linear-gradient(180deg, #70cce6, #4ac0e0); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(49, 176, 213, 0.4); }
 .card-action-item .use-card-button:disabled { background-color: #555 !important; background-image: none !important; color: #999 !important; cursor: not-allowed; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); text-shadow: none; transform: none !important; }
@@ -1109,15 +1140,63 @@ animation:
     /* ボタン無効化スタイルは :disabled セレクタで適用される */
 }
 .card-action-item.used-up { opacity: 0.6; filter: grayscale(90%); cursor: not-allowed; }
-.card-action-item.used-up .card-action-uses { color: #888; display: flex; /* 使用済みでも回数表示 */ }
+.card-action-item.used-up .card-action-uses {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px);
+    display: flex; /* 常に表示 */
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(80, 80, 80, 0.8); /* ★ 使用済み感を出す色 */
+    color: #bbb;
+    padding: 8px 10px;
+    min-height: 38px; /* ボタンの高さと合わせる */
+    border-radius: 15px;
+    font-weight: bold;
+    box-sizing: border-box;
+    border-top: none; /* 破線を削除 */
+}
 .card-action-item.used-up .use-card-button { display: none; } /* 使用済みはボタン非表示 */
 .card-action-item.usable { cursor: pointer; border-color: cyan; box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), 3px 3px 8px rgba(0, 0, 0, 0.4); animation: usableCardPulse 1.8s infinite ease-in-out; }
 .card-action-item.usable:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 0 20px rgba(0, 255, 255, 0.7), 5px 7px 12px rgba(0, 0, 0, 0.5); }
 @keyframes usableCardPulse { 0%, 100% { border-color: cyan; box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), 3px 3px 8px rgba(0, 0, 0, 0.4); } 50% { border-color: #3fffff; box-shadow: 0 0 22px rgba(0, 255, 255, 0.7), 3px 3px 8px rgba(0, 0, 0, 0.4); } }
 .card-action-item.passive { cursor: default; animation: none; border-color: rgba(255, 255, 255, 0.15); }
 .card-action-item.passive:hover { transform: none; box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0,0,0,0.2); }
-.card-action-item.passive .use-card-button { display: none; }
-.passive-status { display: inline-block; width: calc(100% - 10px); padding: 8px 10px; font-size: 1em; font-weight: bold; color: #ffffff; background: linear-gradient(180deg, #90ee90, #28a745); border-radius: 15px; box-sizing: border-box; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-top: 10px; margin-left: 5px; margin-right: 5px; }
+.card-action-item.passive .card-action-uses {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    width: calc(100% - 20px); /* 左右マージン考慮 */
+    display: flex; /* 常に表示 */
+    justify-content: center;
+    align-items: center;
+    padding: 0; /* 内側のpassive-statusでpadding */
+    border-top: none;
+    background-color: transparent;
+    min-height: auto;
+    margin-top: 0; /* 自動マージン解除 */
+    margin-bottom: 0;
+}
+.passive-status {
+    width: 100%; /* ★ 幅を100%に */
+    padding: 8px 10px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #ffffff;
+    background: linear-gradient(180deg, #90ee90, #28a745);
+    border-radius: 15px;
+    box-sizing: border-box;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin: 0; /* ★ マージン削除 */
+    min-height: 38px; /* ボタンの高さと合わせる */
+    display: flex; /* ★ 中身を中央揃え */
+    justify-content: center;
+    align-items: center;
+}
 
 /* スマホ表示調整 (カードアクションモーダル) */
 @media (max-width: 768px) {
