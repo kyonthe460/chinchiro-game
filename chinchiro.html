@@ -53,7 +53,6 @@
                     <div id="game-area">
                         <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
                         <div class="character-image-area player">
-                            <!-- プレイヤー用インジケーター追加 -->
                             <div class="win-lose-indicator"></div>
                         </div>
                         <div id="dice-area">
@@ -61,9 +60,9 @@
                             <div id="roll-counter" class="roll-counter-top-right">0/3回</div>
                             <div id="center-role-announcement" class="center-role"></div>
                             <div id="dice-choice-overlay" class="overlay"></div>
+                            <div id="score-calculation-animation"></div>
                         </div>
                         <div class="character-image-area npc">
-                             <!-- NPC用インジケーター追加 -->
                             <div class="win-lose-indicator"></div>
                         </div>
                         <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
@@ -258,20 +257,24 @@
                     <div class="score-calculation-info">
                         <h4>基本的な得点の計算方法</h4>
                         <p>各ラウンドの得点（または失点）は、以下の計算式に基づいて決まります。</p>
-                        <p class="calculation-formula"><strong>得点</strong> = <strong>基本賭け金</strong> × (<strong>役の基本倍率</strong> + <span class="tooltip" title="アラシ強化、シゴロ強化、各種目ボーナス、報酬増幅、ダブルアップ、ヒフミ/ションベン軽減などのカード効果による倍率の増減です。">カード効果補正</span><span class="formula-part">)</span> × (<span class="formula-part">1</span> + <span class="tooltip" title="親が2連勝以上している場合に加算されます。">連勝ボーナス率</span> + <span class="tooltip" title="「逆境の魂」など、連勝ボーナス率自体を増やすカード効果です。">カード効果補正</span><span class="formula-part">)</span></p>
+                        <p class="calculation-formula"><strong>得点</strong> = <strong>基本賭け金</strong> × (<strong>役の基本倍率</strong> + <span class="tooltip" title="アラシ強化、シゴロ強化、各種目ボーナス、報酬増幅、ダブルアップ、ヒフミ/ションベン軽減などのカード効果による倍率の増減です。">カード効果補正</span><span class="formula-part">)</span> × (<span class="formula-part">1</span> + <span class="tooltip" title="親が勝利した場合に1勝目から10%ずつ加算されます。">連勝ボーナス率</span> + <span class="tooltip" title="「逆境の魂」など、連勝ボーナス率自体を増やすカード効果です。">カード効果補正</span><span class="formula-part">)</span></p>
                         <p><small>※「一撃保険」など、計算式自体を上書きするカード効果もあります。</small></p>
                         <p><small>※「引き分けボーナス」は引き分け時に別途計算されます。</small></p>
                     </div>
                     <dl>
-                        <dt>ピンゾロ (1,1,1)</dt><dd>最も強い役！ <strong class="payout-win">基本 5倍</strong> の得点を獲得。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-pinzoro">5</span>倍）</dd>
-                        <dt>アラシ (ゾロ目 2〜6)</dt><dd>ゾロ目の役。数字が大きいほど強い (6ゾロ > ... > 2ゾロ)。<strong class="payout-win">基本 3倍</strong> の得点を獲得。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-arashi">3</span>倍）</dd>
-                        <dt>シゴロ (4,5,6)</dt><dd>4,5,6の組み合わせ。<strong class="payout-win">基本 2倍</strong> の得点を獲得。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-shigoro">2</span>倍）</dd>
+                        <dt>ピンゾロ (1,1,1)</dt><dd>最も強い役！ <strong class="payout-win">基本 5倍</strong> の得点を獲得（ヒフミ相手なら<strong class="payout-win">6倍</strong>）。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-pinzoro">5</span>倍）</dd>
+                        <dt>アラシ (ゾロ目 2〜6)</dt><dd>ゾロ目の役。数字が大きいほど強い (6ゾロ > ... > 2ゾロ)。<strong class="payout-win">基本 3倍</strong> の得点を獲得（ヒフミ相手なら<strong class="payout-win">4倍</strong>）。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-arashi">3</span>倍）</dd>
+                        <dt>シゴロ (4,5,6)</dt><dd>4,5,6の組み合わせ。<strong class="payout-win">基本 2倍</strong> の得点を獲得（ヒフミ相手なら<strong class="payout-win">3倍</strong>）。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-shigoro">2</span>倍）</dd>
                         <dt>通常の目 (例: 2,2,5 なら「5の目」)</dt><dd>同じ数字2つと異なる数字1つの組み合わせ。異なる数字が大きいほど強い (6の目 > ... > 1の目)。相手の目と比べて数字が大きい方が勝ち。<strong class="payout-win-normal">基本 1倍</strong> の得点（または失点）。</dd><dd class="card-effect-rate">（1の目勝利時倍率: <span id="role-rate-eye1">1</span>倍 / 6の目勝利時倍率: <span id="role-rate-eye6">1</span>倍）</dd>
-                        <dt>ヒフミ (1,2,3)</dt><dd>1,2,3の組み合わせ。役の中では一番弱いがションベンよりは強い。 <strong class="payout-lose">基本 2倍</strong> の失点。</dd><dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-hifumi">2</span>倍）</dd>
-                        <dt>ションベン</dt><dd>サイコロが器の外に出るなどした場合の反則負け。3回振って役も目も出ない「目なし」も最終的にションベン扱い。<strong class="payout-lose">基本 1倍</strong> の失点。</dd><dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-shonben">1</span>倍）</dd>
+                        <!-- ▼▼▼ ヒフミの説明修正 ▼▼▼ -->
+                        <dt>ヒフミ (1,2,3)</dt>
+                        <dd>1,2,3の組み合わせ。役の中では一番弱い。<br>・通常は <strong class="payout-lose">基本 2倍</strong> の失点（相手の役が強いほど支払い倍率増）。<br>・ションベン/目なし相手には <strong class="payout-win-normal">基本 1倍</strong> の得点。</dd>
+                        <dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-hifumi">2</span>倍）</dd>
+                        <!-- ▲▲▲ ヒフミの説明修正ここまで ▲▲▲ -->
+                        <dt>ションベン</dt><dd>サイコロが器の外に出るなどした場合の反則負け。3回振って役も目も出ない「目なし」も最終的にションベン扱い。<strong class="payout-lose">基本 1倍</strong> の失点（相手の役に応じて支払い倍率増）。</dd><dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-shonben">1</span>倍）</dd>
                         <dt>目なし</dt><dd>3つのサイコロの数字が全てバラバラで、かつヒフミ(123)やシゴロ(456)ではない場合。ペナルティはなく、<strong class="payout-neutral">再度振り直せる</strong>（最大ロール回数まで）。</dd>
                         <dt>引き分け</dt><dd>相手と同じ強さの役・目を出した場合。基本的には<strong class="payout-neutral">得点変動なし</strong>。（カード効果でボーナスあり）</dd>
-                        <dt>★連勝ボーナス</dt><dd>親が勝利した場合、<strong class="payout-win">その勝利から</strong>獲得/支払い得点が10%ずつ増加します (例: 親1勝目で+10%, 親2連勝目で+20%...)。（カード効果でさらに増加する場合あり）</dd>
+                        <dt>★連勝ボーナス</dt><dd>親が勝利した場合、<strong class="payout-win">1勝目から</strong>獲得/支払い得点が10%ずつ増加します (例: 親1勝目で+10%, 親2連勝目で+20%...)。（カード効果でさらに増加する場合あり）</dd>
                         <dt>★親交代</dt><dd>親が勝負に<strong class="payout-lose">負けた</strong>場合、次のラウンドから親と子が交代します。（カード効果で維持できる場合あり）</dd>
                     </dl>
                 </div>
