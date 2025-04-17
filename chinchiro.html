@@ -51,9 +51,11 @@
                     </div>
                     <div id="current-bet-info" style="min-height: 1.5em; margin-bottom: 15px; font-weight: bold; color: #ffeb3b;"></div>
                     <div id="game-area">
-                        <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
-                        <div class="character-image-area player">
-                            <div class="win-lose-indicator"></div>
+                        <div class="player-section">
+                            <div id="player-info" class="player-box"><h2>あなた <span id="player-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="player-score" class="score">2500</span></p><p>役/目: <span id="player-hand" class="hand-display">-</span></p><p>サイコロ: <span id="player-dice">-</span></p></div>
+                            <div class="character-image-area player">
+                                <div class="win-lose-indicator"></div>
+                            </div>
                         </div>
                         <div id="dice-area">
                             <div id="dice-display">- - -</div>
@@ -62,10 +64,12 @@
                             <div id="dice-choice-overlay" class="overlay"></div>
                             <div id="score-calculation-animation"></div>
                         </div>
-                        <div class="character-image-area npc">
-                            <div class="win-lose-indicator"></div>
+                        <div class="npc-section">
+                            <div class="character-image-area npc">
+                                <div class="win-lose-indicator"></div>
+                            </div>
+                            <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
                         </div>
-                        <div id="npc-info" class="player-box"><h2>NPC <span id="npc-parent-marker" class="parent-marker">(親)</span></h2><p class="score-container">持ち点: <span id="npc-score" class="score">500</span></p><p>役/目: <span id="npc-hand" class="hand-display">-</span></p><p>サイコロ: <span id="npc-dice">-</span></p></div>
                     </div>
                     <div id="message-area">
                         <p id="message">ゲーム開始！</p>
