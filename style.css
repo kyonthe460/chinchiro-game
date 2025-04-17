@@ -988,4 +988,103 @@ animation: shopContainerPulse 6s infinite alternate; /* ★ 全体の脈動 */ }
 .character-image-area.shake-happy { animation: shake-happy 1.5s cubic-bezier(.36,.07,.19,.97) both; }
 .character-image-area.shake-damage { animation: shake-damage 1s linear both; }
 
+/* ===== 設定モーダル - オプションタブ ===== */
+#settings-options-content {
+    padding: 10px; /* タブ内コンテンツのパディング */
+}
+
+.settings-option-group {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+}
+.settings-option-group:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.settings-option-group h4 {
+    font-size: 1.1em;
+    color: #b0c4de;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.volume-slider-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px; /* 要素間のスペース */
+}
+
+.volume-slider-container label {
+    width: 120px; /* ラベル幅を固定 */
+    text-align: right;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.volume-slider-container input[type="range"] {
+    flex-grow: 1; /* スライダーを可能な限り伸ばす */
+    cursor: pointer;
+    height: 8px;
+    background: linear-gradient(to right, #5bc0de 0%, #5bc0de var(--value-percent, 50%), #444 var(--value-percent, 50%), #444 100%);
+    border-radius: 4px;
+    outline: none;
+    appearance: none; /* デフォルトスタイル解除 */
+    -webkit-appearance: none;
+    transition: background 0.1s ease-in-out;
+}
+/* スライダーのつまみ (Chrome, Edge, Safari) */
+.volume-slider-container input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #ffeb3b;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #a08d2a;
+    box-shadow: 0 0 4px rgba(255, 235, 59, 0.7);
+}
+/* スライダーのつまみ (Firefox) */
+.volume-slider-container input[type="range"]::-moz-range-thumb {
+    width: 16px; /* Firefoxはborder含めたサイズで指定 */
+    height: 16px;
+    background: #ffeb3b;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #a08d2a;
+    box-shadow: 0 0 4px rgba(255, 235, 59, 0.7);
+}
+
+/* スライダーの値表示 */
+.volume-slider-container span {
+    min-width: 45px; /* 幅を確保 */
+    text-align: right;
+    font-size: 0.9em;
+    color: #ffeb3b;
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif; /* 数字が見やすいフォント */
+}
+
+.settings-option-group button {
+    display: block; /* ボタンをブロック要素に */
+    width: 80%; /* 幅を調整 */
+    max-width: 250px; /* 最大幅設定 */
+    margin: 15px auto 5px auto; /* 上下左右中央揃え */
+    padding: 10px 20px;
+    font-size: 1em;
+}
+
+.settings-note {
+    font-size: 0.8em;
+    color: #aaa;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
 /* --- END OF style.css (Continuation) ---

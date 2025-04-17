@@ -240,6 +240,7 @@
                 <button class="settings-nav-button active" data-target="rules">ゲームルール</button>
                 <button class="settings-nav-button" data-target="roles">役と点数</button>
                 <button id="settings-card-list-button" class="settings-nav-button" data-target="card-list">カード一覧</button>
+                <button class="settings-nav-button" data-target="options">オプション</button>
             </div>
             <div id="settings-content">
                 <div id="settings-rules-content" class="settings-tab-content active">
@@ -290,6 +291,31 @@
                     </div>
                     <div id="settings-card-list-inner">
                         <!-- ここにJSでカードリストが生成される -->
+                    </div>
+                </div>
+                <div id="settings-options-content" class="settings-tab-content">
+                    <h3>オプション</h3>
+
+                    <div class="settings-option-group">
+                        <h4>音量設定</h4>
+                        <div class="volume-slider-container">
+                            <label for="bgm-volume-slider">BGM 音量:</label>
+                            <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.01" value="0.5">
+                            <span id="bgm-volume-value">50%</span>
+                        </div>
+                        <div class="volume-slider-container">
+                            <label for="se-volume-slider">効果音 (SE) 音量:</label>
+                            <input type="range" id="se-volume-slider" min="0" max="1" step="0.01" value="0.7">
+                            <span id="se-volume-value">70%</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-option-group">
+                        <h4>ゲーム操作</h4>
+                        <button id="back-to-title-from-settings-button" class="button-subtle">タイトルへ戻る</button>
+                        <p class="settings-note">※進行状況は失われます（セーブ機能実装前）</p>
+                        <button id="close-game-button" class="button-subtle">ゲームを終了</button>
+                        <p class="settings-note">※ブラウザによってはタブを閉じられない場合があります。</p>
                     </div>
                 </div>
             </div>
