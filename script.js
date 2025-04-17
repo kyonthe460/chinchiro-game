@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char13', name: 'キャラクター13', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
         { id: 'char14', name: 'トキワ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['changeEyeToOne'] },
         { id: 'char15', name: 'ツキコ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['changeEyeToSix'] },
+        { id: 'char16', name: 'カゲヤマ', image: './Character Image/Character16.png', initialCardId: null, initialCardPool: ['blessingDice'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;

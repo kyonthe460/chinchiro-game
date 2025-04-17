@@ -7,14 +7,18 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Yuji+Syuku&family=Shippori+Mincho:wght@800&family=RocknRoll+One&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+    <!-- 和柄オーバーレイ -->
+    <div class="wafu-overlay"></div>
+    <!-- 流動グリッド背景 -->
+    <div class="grid-background"></div>
 
     <!-- ===== タイトル画面 ===== -->
     <div id="title-screen" class="screen active">
-        <div class="title-content">
+        <div class="title-content screen-content-box">
             <h1 class="game-title">チンチロりん♪</h1>
             <div class="mode-selector">
                 <p>モード選択:</p>
@@ -31,8 +35,7 @@
             <div class="title-extra-buttons" style="margin-top: 25px; display: flex; justify-content: center; gap: 10px;">
             </div>
         </div>
-        <div class="stars"></div>
-        <div class="twinkling"></div>
+        <!-- 背景要素はbody直下に移動 -->
     </div>
 
     <!-- ===== ゲーム画面 ===== -->
@@ -45,7 +48,7 @@
         </header>
         <div id="game-main-area">
             <div id="game-scrollable-area">
-                <div id="game-container">
+                <div id="game-container" class="screen-content-box">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative;">
                         <div id="wave-info"></div>
                     </div>
@@ -111,9 +114,14 @@
 
     <!-- ===== ショップ画面 ===== -->
     <div id="shop-screen" class="screen">
-        <div class="shop-outer-container">
+        <div class="shop-outer-container screen-content-box">
             <div class="shop-header">
-                <h2 class="shop-title">カ<span class="neon-pink">ー</span><span class="neon-yellow">ド</span>ショ<span class="neon-yellow">ッ</span><span class="neon-pink">プ</span></h2>
+                <!-- 看板風デザインのために構造変更 -->
+                <div class="shop-title-container">
+                     <h2 class="shop-title">
+                         <span class="shop-title-text">カ<span class="neon-pink">ー</span><span class="neon-yellow">ド</span>ショ<span class="neon-yellow">ッ</span><span class="neon-pink">プ</span></span>
+                     </h2>
+                 </div>
                 <div id="player-status">
                     <div id="coin-display">所持コイン: <span id="player-coins">0</span> G</div>
                     <div id="shop-player-score">持ち点: <span id="shop-player-score-value">0</span> 点</div>
@@ -169,13 +177,12 @@
                 <button id="cancel-discard-button" class="button-subtle">キャンセル</button>
             </div>
         </div>
-        <div class="stars"></div>
-        <div class="twinkling"></div>
+        <!-- 背景要素はbody直下に移動 -->
     </div>
 
     <!-- ===== リザルト画面 ===== -->
     <div id="result-screen" class="screen">
-        <div class="result-content">
+        <div class="result-content screen-content-box">
             <h2 id="result-title">ゲームオーバー</h2>
             <p id="result-message">残念！</p>
             <p id="final-score">最終スコア: 0</p>
@@ -184,13 +191,12 @@
                 <button id="back-to-title-from-result-button" class="button-subtle">タイトルに戻る</button>
             </div>
         </div>
-        <div class="stars"></div>
-        <div class="twinkling"></div>
+        <!-- 背景要素はbody直下に移動 -->
     </div>
 
     <!-- ===== キャラクター選択画面 ===== -->
     <div id="character-select-screen" class="screen">
-        <div class="character-select-content">
+        <div class="character-select-content screen-content-box">
             <h2>キャラクター選択</h2>
             <div class="character-select-body">
                 <div id="character-list">
@@ -209,8 +215,7 @@
             </div>
             <button id="back-to-title-button" class="button-subtle">タイトルへ戻る</button>
         </div>
-        <div class="stars"></div>
-        <div class="twinkling"></div>
+        <!-- 背景要素はbody直下に移動 -->
     </div>
 
     <!-- ===== モーダル ===== -->
@@ -266,11 +271,9 @@
                         <dt>アラシ (ゾロ目 2〜6)</dt><dd>ゾロ目の役。数字が大きいほど強い (6ゾロ > ... > 2ゾロ)。<strong class="payout-win">基本 3倍</strong> の得点を獲得（ヒフミ相手なら<strong class="payout-win">4倍</strong>）。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-arashi">3</span>倍）</dd>
                         <dt>シゴロ (4,5,6)</dt><dd>4,5,6の組み合わせ。<strong class="payout-win">基本 2倍</strong> の得点を獲得（ヒフミ相手なら<strong class="payout-win">3倍</strong>）。</dd><dd class="card-effect-rate">（現在のカード効果込み倍率: <span id="role-rate-shigoro">2</span>倍）</dd>
                         <dt>通常の目 (例: 2,2,5 なら「5の目」)</dt><dd>同じ数字2つと異なる数字1つの組み合わせ。異なる数字が大きいほど強い (6の目 > ... > 1の目)。相手の目と比べて数字が大きい方が勝ち。<strong class="payout-win-normal">基本 1倍</strong> の得点（または失点）。</dd><dd class="card-effect-rate">（1の目勝利時倍率: <span id="role-rate-eye1">1</span>倍 / 6の目勝利時倍率: <span id="role-rate-eye6">1</span>倍）</dd>
-                        <!-- ▼▼▼ ヒフミの説明修正 ▼▼▼ -->
                         <dt>ヒフミ (1,2,3)</dt>
                         <dd>1,2,3の組み合わせ。役の中では一番弱い。<br>・通常は <strong class="payout-lose">基本 2倍</strong> の失点（相手の役が強いほど支払い倍率増）。<br>・ションベン/目なし相手には <strong class="payout-win-normal">基本 1倍</strong> の得点。</dd>
                         <dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-hifumi">2</span>倍）</dd>
-                        <!-- ▲▲▲ ヒフミの説明修正ここまで ▲▲▲ -->
                         <dt>ションベン</dt><dd>サイコロが器の外に出るなどした場合の反則負け。3回振って役も目も出ない「目なし」も最終的にションベン扱い。<strong class="payout-lose">基本 1倍</strong> の失点（相手の役に応じて支払い倍率増）。</dd><dd class="card-effect-rate">（現在のカード効果込み支払い倍率: <span id="role-rate-shonben">1</span>倍）</dd>
                         <dt>目なし</dt><dd>3つのサイコロの数字が全てバラバラで、かつヒフミ(123)やシゴロ(456)ではない場合。ペナルティはなく、<strong class="payout-neutral">再度振り直せる</strong>（最大ロール回数まで）。</dd>
                         <dt>引き分け</dt><dd>相手と同じ強さの役・目を出した場合。基本的には<strong class="payout-neutral">得点変動なし</strong>。（カード効果でボーナスあり）</dd>
@@ -343,7 +346,7 @@
         </div>
     </div>
 
-    <!-- ===== 新規追加: カード詳細モーダル ===== -->
+    <!-- ===== カード詳細モーダル ===== -->
     <div id="card-detail-modal" class="modal card-detail-modal">
         <div class="modal-content card-detail-content">
             <span id="close-card-detail-modal" class="close-button">×</span>
