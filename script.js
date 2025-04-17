@@ -1861,18 +1861,18 @@ async function handleSellCard(event) {
             const playerNameStr = playerName || selectedCharacter?.name || 'あなた';
             const npcNameStr = currentNpcCharacter?.name || '相手';
 
-            // ラウンド開始前の連勝数を保持
+            // 履歴/デバッグ用にラウンド開始前の連勝数を保持
             const consecutiveWinsBeforeRound = consecutiveWins;
             const npcConsecutiveWinsBeforeRound = npcConsecutiveWins;
 
             let baseMultiplier = 1.0;
             let multiplierBonus = 0;
             let streakBonusRate = 0.0; // 計算用レート
-            // let displayStreakWins = 0; // 表示用連勝数 ← calculationData に直接渡すので不要に
             let isHifumiLoss = false;
             let insuranceApplied = false;
             let appliedCardEffects = [];
 
+            // --- 勝敗判定 ---
             if (playerHand?.type === 'ションベン') nWin = true;
             else if (npcHand?.type === 'ションベン') pWin = true;
             else {
@@ -1998,29 +1998,41 @@ async function handleSellCard(event) {
                 }
                 console.log(`Total Multiplier Bonus/Reduction: ${multiplierBonus.toFixed(1)}`);
 
-              // 3. 連勝ボーナス計算 (親限定、1勝目から)
-              streakBonusRate = 0.0;
-             // 親が勝利した場合、更新「後」の連勝数（最低1）に基づいて計算
-             if (isPlayerParent && pWin && consecutiveWins >= 1) {
-                streakBonusRate = consecutiveWins * CONSECUTIVE_WIN_BONUS_RATE; // 更新後の連勝数を使用
-                console.log(`Player Parent Streak Bonus Rate Base: +${(streakBonusRate * 100).toFixed(0)}% (${consecutiveWins} wins)`);
-                const spiritCard = playerCards.find(c => c.id === 'fightingSpirit');
-                if (spiritCard) {
-                    const level = spiritCard.level;
-                    const conditionMet = (level < 3 && playerInitialScore <= npcInitialScore / 2) || (level >= 3 && playerInitialScore <= npcInitialScore);
-                    if (conditionMet) {
-                        const spiritBonusRateInc = [0.1, 0.2, 0.3][level - 1];
-                        streakBonusRate += spiritBonusRateInc;
-                        appliedCardEffects.push({ name: `逆境の魂 Lv.${level}`, value: `連勝率+${(spiritBonusRateInc * 100).toFixed(0)}%`, type: 'bonus' });
-                    }
-                }
-           } else if (!isPlayerParent && nWin && npcConsecutiveWins >= 1) { // NPCが親で勝利した場合
-                streakBonusRate = npcConsecutiveWins * CONSECUTIVE_WIN_BONUS_RATE; // 更新後の連勝数を使用
-                console.log(`NPC Parent Streak Bonus Rate: +${(streakBonusRate * 100).toFixed(0)}% (${npcConsecutiveWins} wins)`);
-           }
-           streakBonusRate = Math.max(0, streakBonusRate);
-           console.log(`Final Streak Bonus Rate for calculation: +${(streakBonusRate * 100).toFixed(0)}%`);
- 
+               // 連勝ボーナス計算 (最終修正) 
+               streakBonusRate = 0.0;
+               let winsForBonus = 0; // ボーナス計算に使う連勝数
+               let displayWins = 0; // 履歴やUI表示に使う連勝数
+
+               if (isPlayerParent && pWin) { // プレイヤーが親で勝利した場合
+                   winsForBonus = consecutiveWins; // 更新後の連勝数をボーナス計算に使う (1勝目から)
+                   displayWins = consecutiveWins;
+               } else if (!isPlayerParent && nWin) { // NPCが親で勝利した場合
+                   winsForBonus = npcConsecutiveWins; // 更新後の連勝数をボーナス計算に使う (1勝目から)
+                   displayWins = npcConsecutiveWins;
+               }
+               // 上記以外（子が勝利した場合、または引き分け）は winsForBonus = 0 のまま
+
+               if (winsForBonus >= 1) { // 親が1勝以上した場合のみボーナス計算
+                   streakBonusRate = winsForBonus * CONSECUTIVE_WIN_BONUS_RATE;
+                   console.log(`${parentBefore === 'Player' ? 'Player' : 'NPC'} Parent Streak Bonus Rate Base: +${(streakBonusRate * 100).toFixed(0)}% (${winsForBonus} wins)`);
+
+                   // 逆境の魂チェック (親がプレイヤーの場合のみ)
+                   if (isPlayerParent && pWin) {
+                       const spiritCard = playerCards.find(c => c.id === 'fightingSpirit');
+                       if (spiritCard) {
+                           const level = spiritCard.level;
+                           const conditionMet = (level < 3 && playerInitialScore <= npcInitialScore / 2) || (level >= 3 && playerInitialScore <= npcInitialScore);
+                           if (conditionMet) {
+                               const spiritBonusRateInc = [0.1, 0.2, 0.3][level - 1];
+                               streakBonusRate += spiritBonusRateInc;
+                               appliedCardEffects.push({ name: `逆境の魂 Lv.${level}`, value: `連勝率+${(spiritBonusRateInc * 100).toFixed(0)}%`, type: 'bonus' });
+                           }
+                       }
+                   }
+               }
+               streakBonusRate = Math.max(0, streakBonusRate);
+               console.log(`Final Streak Bonus Rate for calculation: +${(streakBonusRate * 100).toFixed(0)}%`);
+
                  // 4. 最終スコア計算
                  const insuranceCard = playerCards.find(card => card.id === 'lossInsurance');
                  if (!winnerIsPlayer && insuranceCard) {
@@ -2161,11 +2173,28 @@ function playCoinAnimation(amount) {
     }
 }
 
-    function showResultScreen(isClear, currentScore, wave, reason = "") {
-        if (gameMode === 'endless' && !isClear) { resultTitleEl.textContent = "エンドレスモード 終了"; resultTitleEl.className = 'over'; resultMessageEl.textContent = `到達 WAVE: ${wave}. ${reason}`; }
-        else { resultTitleEl.textContent = isClear ? "ゲームクリア！" : "ゲームオーバー"; resultTitleEl.className = isClear ? 'clear' : 'over'; resultMessageEl.textContent = isClear ? `祝！ 全${MAX_WAVES}WAVE制覇！` : `残念！ WAVE ${wave} で敗北... ${reason}`; }
-        let finalCalcScore = 0; const coinBonus = playerCoins * 3; const clearBonus = (gameMode === 'normal' && isClear) ? MAX_WAVES * 100 : 0; const waveBonusEndless = (gameMode === 'endless') ? (wave -1) * 50 : 0; finalCalcScore = Math.max(0, totalScoreChange + coinBonus + clearBonus + waveBonusEndless); finalScoreEl.textContent = `最終スコア: ${finalCalcScore}`; showScreen('result-screen');
+function showResultScreen(isClear, currentScore, wave, reason = "") {
+    document.body.classList.remove('shake-game-over');
+
+    if (gameMode === 'endless' && !isClear) {
+        resultTitleEl.textContent = "エンドレスモード 終了";
+        resultTitleEl.className = 'over';
+        resultMessageEl.textContent = `到達 WAVE: ${wave}. ${reason}`;
+        document.body.classList.add('shake-game-over');
+        setTimeout(() => document.body.classList.remove('shake-game-over'), 800); // shake-game-over の animation-duration に合わせる
     }
+    else {
+        resultTitleEl.textContent = isClear ? "ゲームクリア！" : "ゲームオーバー";
+        resultTitleEl.className = isClear ? 'clear' : 'over';
+        resultMessageEl.textContent = isClear ? `祝！ 全${MAX_WAVES}WAVE制覇！` : `残念！ WAVE ${wave} で敗北... ${reason}`;
+        if (!isClear) {
+            document.body.classList.add('shake-game-over');
+            setTimeout(() => document.body.classList.remove('shake-game-over'), 800); // shake-game-over の animation-duration に合わせる
+        }
+    }
+    let finalCalcScore = 0; const coinBonus = playerCoins * 3; const clearBonus = (gameMode === 'normal' && isClear) ? MAX_WAVES * 100 : 0; const waveBonusEndless = (gameMode === 'endless') ? (wave -1) * 50 : 0; finalCalcScore = Math.max(0, totalScoreChange + coinBonus + clearBonus + waveBonusEndless); finalScoreEl.textContent = `最終スコア: ${finalCalcScore}`;
+    showScreen('result-screen');
+}
 
      function addHistoryEntry(entry) { entry.npcName = currentNpcCharacter?.name || 'NPC不明'; gameHistory.push(entry); console.log("History entry added:", entry); }
      function displayHistory() {
