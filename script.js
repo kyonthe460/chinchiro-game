@@ -319,6 +319,9 @@ const soundFiles = {
     detailButton: './sounds/detail.mp3',         // ★ 詳細ボタンSE
     startButton: './sounds/start_button.mp3',     // ★ ゲーム開始ボタンSE
     scoreResults: './sounds/score_results.mp3',   // ★ スコア結果表示SE
+    skipButton: './sounds/skip.mp3',         // ★ スキップボタンSE
+    cardButton: './sounds/card_button.mp3',   // ★ カードボタンSE (共通)
+    shopButton: './sounds/shop.mp3',         // ★ ショップ入/出ボタンSE
     // 必要に応じて他の効果音も追加
 };
 let sounds = {}; // Audioオブジェクトを格納
@@ -887,7 +890,7 @@ function handleSeVolumeChange(event) {
         rateShonbenEl.textContent = Math.max(0.5, baseRateShonben * (1 - reductionShonben)); // ションベン軽減適用 (最低0.5倍?) -> 0.5軽減なので `base - 0.5` かも？ 現状は 乗算 になっている
         console.log("Updated role rates display based on current cards.");
     }
-    function setMessage(msg, buttonType = 'none') { // (変更なし)
+    function setMessage(msg, buttonType = 'none') { 
         messageEl.textContent = msg;
         messageButtonContainer.innerHTML = ''; // ボタンクリア
 
@@ -909,7 +912,7 @@ function handleSeVolumeChange(event) {
             skipButton.id = 'skip-action-button';
             skipButton.textContent = 'スキップ';
             skipButton.className = 'button-subtle skip-button';
-            skipButton.onclick = handleSkipAction; // handleSkipAction内でSE再生
+            skipButton.onclick = () => { playSound('skipButton'); handleSkipAction(); };
             messageButtonContainer.appendChild(skipButton);
 
             // 「カード」ボタン
@@ -917,7 +920,7 @@ function handleSeVolumeChange(event) {
             cardButton.id = 'post-roll-card-button';
             cardButton.textContent = 'カード';
             cardButton.className = 'button-pop card-button';
-            cardButton.onclick = openCardActionModal; // openCardActionModal内でSE再生
+            cardButton.onclick = () => { playSound('cardButton'); openCardActionModal(); };
             messageButtonContainer.appendChild(cardButton);
             updateCardButtonHighlight();
         }
@@ -1304,7 +1307,7 @@ function handleSeVolumeChange(event) {
     }
     // === ショップを開く処理 ===
     function openShop() {
-        playSound('click');
+        playSound('shopButton');
         console.log("Opening shop...");
 
         const shopDisplayScore = INITIAL_PLAYER_SCORE + permanentScoreBoost;
@@ -1340,7 +1343,7 @@ function handleSeVolumeChange(event) {
     }
     // === ショップを閉じる処理 ===
     function closeShop() {
-        playSound('click');
+        playSound('shopButton');
         console.log("Closing shop, proceeding to next wave.");
         activeCardUses = {}; // WAVE開始時にアクティブカード使用回数をリセット
         console.log("Active card uses reset for new wave.");
@@ -2258,7 +2261,7 @@ function handleSeVolumeChange(event) {
         updateCardButtonHighlight();
     }
 
-   nextWaveButton.addEventListener('click', () => { playSound('click'); openShop(); }); // ★ SE追加
+   nextWaveButton.addEventListener('click', () => { openShop(); }); // ★ SE追加
    restartSameModeButton.addEventListener('click', () => { playSound('click'); initGame(false); }); // ★ SE追加 (initGame内でfalse指定追加)
    backToTitleFromResultButton.addEventListener('click', () => { playSound('click'); permanentScoreBoost = 0; console.log("Returning to title from result. permanentScoreBoost reset."); showScreen('title-screen'); }); // ★ SE追加
    historyButton.addEventListener('click', () => { playSound('click'); if (diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll) return; displayHistory(); historyModal.style.display = 'flex'; }); // ★ SE追加
@@ -3344,8 +3347,8 @@ async function handleSkipAction() { // (SE追加)
              }
         });
     }
-    if (cardActionButton) { // ゲーム画面の「カード」ボタン (SE追加)
-        cardActionButton.addEventListener('click', () => { playSound('click'); if (settingsModal && settingsModal.style.display === 'flex') { settingsModal.style.display = 'none'; } if (historyModal && historyModal.style.display === 'flex') { historyModal.style.display = 'none'; } if (cardDetailModal && cardDetailModal.style.display === 'flex') { cardDetailModal.style.display = 'none'; } openCardActionModal(); });
+    if (cardActionButton) { 
+        cardActionButton.addEventListener('click', () => { playSound('cardButton'); if (settingsModal && settingsModal.style.display === 'flex') { settingsModal.style.display = 'none'; } if (historyModal && historyModal.style.display === 'flex') { historyModal.style.display = 'none'; } if (cardDetailModal && cardDetailModal.style.display === 'flex') { cardDetailModal.style.display = 'none'; } openCardActionModal(); });
     }
 
     // === アクティブカード使用処理 === (変更なし - 内部でSE再生)
@@ -3978,7 +3981,7 @@ async function handleSkipAction() { // (SE追加)
     }
 
     // --- ショップ関連イベントリスナー --- (SE追加)
-    shopCloseButton.addEventListener('click', () => { playSound('click'); closeShop(); }); // ★ SE追加
+    shopCloseButton.addEventListener('click', () => { closeShop(); });
     if (shopRerollButton) shopRerollButton.addEventListener('click', () => { playSound('click'); handleReroll(); }); // ★ SE追加 (handleReroll内で個別音再生あり)
     if (shopOffersContainerEl) { shopOffersContainerEl.addEventListener('click', (event) => { const button = event.target.closest('.buy-button, .upgrade-button'); if (button && !button.disabled) { playSound('click'); console.log("Shop item button clicked:", button.dataset.cardId || button.dataset.itemId); handleBuyCard(event); } }); } else { console.error(".shop-offers-container element not found for listener setup!"); } // ★ SE追加 (handleBuyCard内で個別音再生あり)
     cancelDiscardButton.addEventListener('click', cancelDiscard); // cancelDiscard 内でSE再生
