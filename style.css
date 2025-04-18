@@ -608,6 +608,53 @@ animation: shopContainerPulse 6s infinite alternate; /* ★ 全体の脈動 */ }
 .card.rarity-rare:hover { --rarity-glow-color: rgba(74, 144, 226, 0.6); }
 .card.rarity-epic:hover { --rarity-glow-color: rgba(156, 39, 176, 0.7); }
 .card.rarity-legendary:hover { --rarity-glow-color: rgba(255, 152, 0, 0.8); }
+.card::before { /* シャイニングエフェクト */
+    content: "";
+    position: absolute;
+    top: 0; left: -85%;
+    z-index: 2; /* ★ afterより手前に */
+    display: block;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.3) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none; /* ★ 追加 */
+}
+/*  適用対象をクラスで指定 */
+.card.rarity-rare::before,
+.card.rarity-epic::before,
+.card.rarity-legendary::before {
+    animation: shining 3s infinite linear; /* 速度は共通化しても良い */
+    opacity: 1; /* 表示 */
+}
+/* レアリティ毎の速度調整 (任意) */
+.card.rarity-rare::before { animation-duration: 3.5s; }
+.card.rarity-epic::before { animation-duration: 2.8s; }
+.card.rarity-legendary::before { width: 70%; animation-duration: 2.2s; animation-delay: .2s; }
+
+@keyframes shining { 0% { left: -100%; } 40%, 100% { left: 120%; } }
+
+/*  エピックレア用キラキラエフェクト */
+.card.rarity-epic::after {
+    content: '';
+    position: absolute;
+    inset: -2px; /* ボーダーの内側あたりに */
+    background-image: radial-gradient(circle, rgba(255,255,255,0.7) 0.5px, transparent 0.5px),
+                      radial-gradient(circle, rgba(255,255,255,0.5) 0.5px, transparent 0.5px);
+    background-size: 10px 10px, 20px 20px; /* 2種類のサイズ */
+    background-position: 0 0, 5px 5px; /* 位置ずらし */
+    opacity: 0;
+    animation: sparkleEpic 3s infinite linear;
+    pointer-events: none;
+    z-index: 1; /* beforeより奥 */
+    border-radius: इन्हेerit; /* 親要素に合わせる */
+}
+@keyframes sparkleEpic {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.6; }
+    /* 必要なら transform: rotate など追加 */
+}
 
 .pack:not(.sold-out):hover, .boost-item:not(.sold-out):hover {
     transform: translateY(-8px) scale(1.05);
@@ -651,7 +698,7 @@ animation: shopContainerPulse 6s infinite alternate; /* ★ 全体の脈動 */ }
 .card.upgradeable { border-color: #ffeb3b; position: relative; animation: upgradePulse 1.8s infinite ease-in-out; }
 .card.upgradeable:not(.sold-out):hover { box-shadow: 0 0 25px rgba(255, 235, 59, 0.6), inset 0 0 12px rgba(255, 235, 59, 0.25), 5px 10px 15px rgba(0, 0, 0, 0.5); }
 @keyframes upgradePulse { 0%, 100% { transform: scale(1); border-width: 1px; box-shadow: 0 0 12px rgba(255, 235, 59, 0.4), inset 0 0 6px rgba(255, 235, 59, 0.15), 3px 3px 8px rgba(0, 0, 0, 0.4); } 50% { transform: scale(1.025); border-width: 2px; box-shadow: 0 0 20px rgba(255, 235, 59, 0.7), inset 0 0 10px rgba(255, 235, 59, 0.3), 4px 6px 12px rgba(0, 0, 0, 0.45); } }
-.card.upgradeable-lv3 { border-color: #ff8c00; animation: upgradePulseLv3 1.5s infinite ease-in-out; }
+.card.upgradeable-lv3 { border-color: #ff8c00; animation: upgradePulse 1.8s infinite ease-in-out; }
 .card.upgradeable-lv3:not(.sold-out):hover { box-shadow: 0 0 30px rgba(255, 140, 0, 0.7), inset 0 0 15px rgba(255, 140, 0, 0.3), 5px 10px 15px rgba(0, 0, 0, 0.5); }
 @keyframes upgradePulseLv3 { 0%, 100% { transform: scale(1) rotate(0deg); border-width: 2px; box-shadow: 0 0 15px rgba(255, 140, 0, 0.5), inset 0 0 8px rgba(255, 140, 0, 0.2), 3px 3px 8px rgba(0, 0, 0, 0.4); } 50% { transform: scale(1.04) rotate(2deg); border-width: 3px; box-shadow: 0 0 25px rgba(255, 140, 0, 0.8), inset 0 0 12px rgba(255, 140, 0, 0.4), 5px 8px 15px rgba(0, 0, 0, 0.5); } }
 .card .card-level { display: block; font-size: 0.8em; color: #ffcc70; font-weight: normal; }
