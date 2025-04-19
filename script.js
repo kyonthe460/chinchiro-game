@@ -1532,6 +1532,17 @@ function setMessage(msg, buttonType = 'none') {
         }
         activeCardOffersEl.innerHTML = ''; passiveCardOffersEl.innerHTML = ''; packOffersEl.innerHTML = ''; boostOffersEl.innerHTML = '';
 
+        const discountCard = playerCards.find(card => card.id === 'shopDiscount');
+        const discountLevel = discountCard ? discountCard.level : 0;
+        let discountRate = 0; // 関数スコープで定義
+        if (discountLevel === 1) discountRate = 0.1;
+        else if (discountLevel === 2) discountRate = 0.2;
+        else if (discountLevel >= 3) discountRate = 0.3;
+
+        if (discountRate > 0) {
+            console.log(`Applying Shop Discount Lv.${discountLevel} (${discountRate * 100}%)`);
+        }
+
         const activeCardPool = allCards.filter(card => !!card.usesPerWave);
         const passiveCardPool = allCards.filter(card => !card.usesPerWave && (card.applyEffect || card.removeEffect || card.effectTag));
         const availableActive = activeCardPool.filter(card => !playerCards.find(c => c.id === card.id && c.level >= MAX_CARD_LEVEL));
@@ -1627,28 +1638,37 @@ function setMessage(msg, buttonType = 'none') {
              }
             currentShopOffers.push({ ...cardData, itemType: 'card', cardActualType: 'passive', isOwned: isOwned, currentLevel: currentLevel, displayCost: displayCost });
         }
-         // パックオファー生成
+        // パックオファー生成 
         for (let i = 0; i < Math.min(numPackOffers, shuffledPacks.length); i++) {
             const packDef = shuffledPacks[i];
-            let packCost = packDef.baseCost;
+            let basePackCost = packDef.baseCost; 
+
+            // パックの基本コスト計算 (必要であれば)
             if (packDef.costCalculation === 'average' && packDef.cardPool.length > 0) {
                 let totalCost = 0;
                 let validCardCount = 0;
                 packDef.cardPool.forEach(cardId => {
                     const card = allCards.find(c => c.id === cardId);
-                    if (card) {
-                        totalCost += card.cost;
-                        validCardCount++;
-                    }
+                    if (card) { totalCost += card.cost; validCardCount++; }
                 });
-                if (validCardCount > 0) { packCost = Math.floor(totalCost / validCardCount); packCost = Math.max(10, Math.round(packCost / 10) * 10); }
-                else { basePackCost = packCost; }
+                if (validCardCount > 0) {
+                    // 計算結果を basePackCost に代入
+                    basePackCost = Math.floor(totalCost / validCardCount);
+                    basePackCost = Math.max(10, Math.round(basePackCost / 10) * 10);
+                }
+                // else の場合は初期値 packDef.baseCost が使われる
             }
-            let displayCost = basePackCost;
+            let displayCost = basePackCost; // まず基本コストを代入
             if (discountRate > 0) {
                  displayCost = Math.max(1, Math.floor(basePackCost * (1 - discountRate)));
             }
-            if (!purchasedOrUpgradedInShop.includes(packDef.id)) { currentShopOffers.push({ ...packDef, itemType: 'pack', displayCost: displayCost }); }
+            if (!purchasedOrUpgradedInShop.includes(packDef.id)) {
+                currentShopOffers.push({
+                    ...packDef,
+                    itemType: 'pack',
+                    displayCost: displayCost, // ★ 表示・購入に使用するコスト
+                });
+            }
         }
         // 持ち点増強オファー生成
         boostItems.forEach(boostItem => {
