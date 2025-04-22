@@ -1259,7 +1259,12 @@ function setMessage(msg, buttonType = 'none') {
             }
             effectText = `次にショップを開いた時、リロールが ${freeRerollsText} 無料になる。`;
             break;
-            case 'soulRoll': conditionText = "振り残り回数が0になった後 (アクティブ)"; const soulCostPercent = [10, 5, 5][level - 1]; const soulMenashiAvoidText = level >= 3 ? " Lv3効果: この追加ロールで目なしが出ても、回避できるまで振り直す。" : ""; effectText = `WAVE中 1回 使用可能。自分の持ち点の ${soulCostPercent}% (最低1点) を消費して、追加で1回サイコロを振ることができる。${soulMenashiAvoidText}`; break;
+            case 'soulRoll':
+                conditionText = "自分の役/目が確定した後、または振り残り回数が0になった後 (アクティブ)";
+                const soulCostPercent = [10, 5, 5][level - 1];
+                const soulMenashiAvoidText = level >= 3 ? " Lv3効果: この追加ロールで目なしが出ても、回避できるまで振り直す。" : "";
+                effectText = `WAVE中 1回 使用可能。自分の持ち点の ${soulCostPercent}% (最低1点) を消費して、追加で1回サイコロを振ることができる。${soulMenashiAvoidText}`;
+                break;
             case 'riskyBet':
                 conditionText = "賭け金設定フェーズ (アクティブ)";
                 const riskyUsesUpdated = level; 
@@ -3898,27 +3903,23 @@ async function displayScoreCalculationAnimation(data) {
         }
 
         const playerCardData = playerCards.find(c => c.id === cardId);
-        // ★ 修正: isUsableNow の判定を簡略化し、呼び出し元でチェック済前提とするか、ここで再チェック
+        // 修正: isUsableNow の判定を簡略化し、呼び出し元でチェック済前提とするか、ここで再チェック
         const isUsableNow = waitingForPlayerActionAfterRoll ? checkCardUsabilityInPostRoll(cardId) : checkCardUsability(cardId);
 
-        // ★ 修正: isUsableNow のチェックを強化
+        // 修正: isUsableNow のチェックを強化
         if (!playerCardData || activeCardBeingUsed || waitingForUserChoice || !isUsableNow || isShowingRoleResult || isShowingGameResult) {
             console.log(`Card ${cardId} cannot be used now. Active: ${activeCardBeingUsed}, WaitingChoice: ${waitingForUserChoice}, UsableNow: ${isUsableNow}, ShowingRoleResult: ${isShowingRoleResult}, ShowingGameResult: ${isShowingGameResult}`);
             if (!isUsableNow && !activeCardBeingUsed) {
                  playSound('error');
-                 // ★ メッセージ表示を追加 (デバッグ用、後で調整)
-                 // setMessage(`カード「${allCards.find(c=>c.id === cardId)?.name}」は現在使用できません。`);
             }
-            // ★ ここで return する前に activeCardBeingUsed を解除すべきか検討
-            // activeCardBeingUsed = null; // 解除してしまうと、後続処理が動く可能性があるため注意
-            return; // ★ return は維持
+            return; // return は維持
         }
         const card = allCards.find(c => c.id === cardId); if (!card) return;
 
         playSound('cardUse');
 
         console.log(`Attempting to use card: ${card.name} (Lv.${playerCardData.level})`);
-        activeCardBeingUsed = cardId; // ★★★ ここで使用中フラグを立てる
+        activeCardBeingUsed = cardId; // ここで使用中フラグを立てる
 
         // ラウンド開始時の使用回数を記録
         if (cardId === 'doubleUpBet') activeCardUses['doubleUpBet_roundStartCount'] = activeCardUses['doubleUpBet'] || 0;
@@ -3926,15 +3927,13 @@ async function displayScoreCalculationAnimation(data) {
 
         let useConsumed = false;
         let requiresDelay = false;
-        // let turnEnd = false; // ★ 削除: turnEnd は使わない方向で
         let postUseMessage = "";
         let requiresRoll = false;
-        // let requiresNPCAction = false; // ★ 削除: requiresNPCAction は使わない方向で
-        let requiresPlayerActionAfterCard = false; // ★ これで制御
+        let requiresPlayerActionAfterCard = false; 
 
         // --- カード効果分岐 ---
         if (['changeToOne', 'changeToSix', 'adjustEye', 'menashiAdjust'].includes(cardId)) {
-            // ★ ダイス選択が必要なカードは、選択後に useConsumed, requiresPlayerActionAfterCard を決定
+            // ダイス選択が必要なカードは、選択後に useConsumed, requiresPlayerActionAfterCard を決定
             showDiceChoiceOverlay(cardId);
             // useConsumed = false; // 選択完了まで消費保留 (showDiceChoiceOverlay内でも良いがここで明確化)
             // activeCardBeingUsed は解除しない (選択完了 or キャンセルまで保持)
@@ -4095,29 +4094,24 @@ async function displayScoreCalculationAnimation(data) {
            postUseMessage = `蜃気楼！このラウンド中、相手のロールに影響します。`; // ★ 名前変更反映
            requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
        }
-        else if (cardId === 'soulRoll') {
-             // ★ 条件チェックを強化
-             const canUseSoulRollNow = (isOutOfRolls || isPlayerPostRollYakuOrEye) && !soulRollUsedThisTurn;
-             if (!canUseSoulRollNow) {
-                 postUseMessage = "魂の一振りは現在使用できません。";
-                 useConsumed = false;
-             } else {
-                 const costPercent = [10, 5, 5][playerCardData.level - 1];
-                 const cost = Math.max(1, Math.floor(playerScore * (costPercent / 100)));
-                 if (playerScore < cost) {
-                     playSound('error');
-                     postUseMessage = `魂の一振りのコスト(${cost}点)を払えません！`;
-                     useConsumed = false;
-                 } else {
-                     playerScore -= cost;
-                     soulRollUsedThisTurn = true; // ★ フラグを立てる
-                     postUseMessage = `魂の一振り！${cost}点を消費して追加ロール！ サイコロを振ってください。`;
-                     requiresRoll = true; // ★ ロールが必要
-                     updateUI(); // スコア表示更新
-                     useConsumed = true;
-                 }
-             }
+       else if (cardId === 'soulRoll') {
+        const costPercent = [10, 5, 5][playerCardData.level - 1];
+        const cost = Math.max(1, Math.floor(playerScore * (costPercent / 100)));
+        if (playerScore < cost) {
+            playSound('error');
+            postUseMessage = `魂の一振りのコスト(${cost}点)を払えません！`;
+            useConsumed = false;
+            activeCardBeingUsed = null;
+        } else {
+            playerScore -= cost;
+            soulRollUsedThisTurn = true; // フラグを立てる (ロール後に解除される想定)
+            postUseMessage = `魂の一振り！${cost}点を消費して追加ロール！ サイコロを振ってください。`;
+            requiresRoll = true; // ロールが必要
+            updateUI(); // スコア表示更新
+            useConsumed = true;
+            activeCardBeingUsed = null; // フラグ解除
         }
+   }
         else if (cardId === 'rewardAmplifier') {
             rewardAmplifierActive = true; useConsumed = true; // 使用確定
             postUseMessage = `報酬増幅！このラウンドの役での勝利時、配当倍率が増加します。`; requiresDelay = true;
@@ -4710,9 +4704,9 @@ async function rerollWithGuarantee(level, currentDice) {
         const remainingUses = getRemainingUses(cardId);
         if (remainingUses <= 0) return false;
 
-        // ★ 修正: activeCardBeingUsed のチェックを除外 (自分自身はチェックしないように)
+        // 修正: activeCardBeingUsed のチェックを除外 (自分自身はチェックしないように)
         // if (activeCardBeingUsed && activeCardBeingUsed !== cardId) return false;
-        // ★ isShowingRoleResult, isShowingGameResult はチェック継続
+        // isShowingRoleResult, isShowingGameResult はチェック継続
         if(isShowingRoleResult || isShowingGameResult) return false;
 
 
@@ -4732,7 +4726,7 @@ async function rerollWithGuarantee(level, currentDice) {
             case 'giveUpEye':
                  return isPlayerPostRollMenashi && !giveUpEyeUsedThisTurn;
             case 'menashiAdjust':
-                // ★ 修正: adjustEyeUsedThisTurn をチェックしない (別のカードの効果なので)
+                // 修正: adjustEyeUsedThisTurn をチェックしない (別のカードの効果なので)
                 return isPlayerPostRollMenashi;
 
             // --- 目が出た時に使用可能 ---
@@ -4750,16 +4744,13 @@ async function rerollWithGuarantee(level, currentDice) {
 
             // --- 役/目一般 または 特定の役/状態で使用可能 (最終決定前系) ---
             case 'doubleUpBet':
-                // ★ 修正: フラグチェックは handleActiveCardUse 内で行う方が確実かもしれない
+                // 修正: フラグチェックは handleActiveCardUse 内で行う方が確実かもしれない
                 return isPlayerPostRollYakuOrEye && !isPlayerParent; // && !doubleUpBetActive;
             case 'blindingDice': // または 'shinkirou'
-                 // ★ 修正: フラグチェックは handleActiveCardUse 内で
                  return isPlayerPostRollYakuOrEye && isPlayerParent; // && !blindingDiceActive;
             case 'rewardAmplifier':
-                 // ★ 修正: フラグチェックは handleActiveCardUse 内で
                  return isPlayerPostRollYakuOrEye; // && !rewardAmplifierActive;
             case 'drawBonus':
-                 // ★ 修正: フラグチェックは handleActiveCardUse 内で
                  return isPlayerPostRollYakuOrEye && playerHand?.type !== '目なし'; // && !drawBonusActive;
             case 'destinyShift':
                  const level = cardData.level;
@@ -4768,7 +4759,7 @@ async function rerollWithGuarantee(level, currentDice) {
 
             // --- 振り直し回数0で使用可能 / 役/目成立時にも使用可能 ---
             case 'soulRoll':
-                 // ★ 修正: 役/目成立時の条件を追加、使用済みフラグもチェック
+                 // 修正: 役/目成立時の条件を追加、使用済みフラグもチェック
                  const canUseOnRollEnd = isOutOfRolls && isPlayerPostRollMenashi; // 目なしで振り終わり
                  const canUseOnYakuEye = isPlayerPostRollYakuOrEye; // 役/目成立時
                  return (canUseOnRollEnd || canUseOnYakuEye) && !soulRollUsedThisTurn;
