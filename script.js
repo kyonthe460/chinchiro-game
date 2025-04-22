@@ -268,7 +268,7 @@ const boostItems = [
         { id: 'doubleUpBet', name: 'ダブルアップ', type: 'score', cost: 220, rarity: 3, flavor: '倍プッシュだ…！', usesPerWave: 1, image: './Card Image/25.png' },
         { id: 'riskyBet', name: '危険な賭け', type: 'support', cost: 120, rarity: 2, flavor: '勝負は常に、リスクと隣り合わせ。', usesPerWave: 1, image: './Card Image/26.png' },
         { id: 'giveUpEye', name: '見切り', type: 'support', cost: 70, rarity: 1, flavor: '深追いは禁物。損切りも大事。', usesPerWave: 1, image: './Card Image/27.png' },
-        { id: 'blindingDice', name: '目くらまし', type: 'dice', cost: 180, rarity: 3, flavor: 'さあ、惑うがいい！', usesPerWave: 1, image: './Card Image/28.png' },
+        { id: 'blindingDice', name: '蜃気楼', type: 'dice', cost: 180, rarity: 3, flavor: '揺らめく陽炎が、相手の運命を狂わせる。', usesPerWave: 1, image: './Card Image/28.png' },
         { id: 'lossInsurance', name: '一撃保険', type: 'score', cost: 190, rarity: 3, flavor: '備えあれば憂いなし…？', effectTag: 'lossInsurance', image: './Card Image/29.png' },
         { id: 'changeEyeToOne', name: '1の目に変更', type: 'dice', cost: 90, rarity: 1, flavor: 'ピンゾロ…？いや、安全策か。', usesPerWave: 1, image: './Card Image/30.png' },
         { id: 'changeEyeToSix', name: '6の目に変更', type: 'dice', cost: 110, rarity: 1, flavor: 'その目を、最強の目に変えよう。', usesPerWave: 1, image: './Card Image/31.png' },
@@ -997,12 +997,12 @@ function setMessage(msg, buttonType = 'none') {
     }
     // 他の buttonType があればここに追加
 }
-    function waitForUserChoice() { return new Promise(resolve => { waitingForUserChoice = true; userChoiceResolver = resolve; }); } // (変更なし)
+    function waitForUserChoice() { return new Promise(resolve => { waitingForUserChoice = true; userChoiceResolver = resolve; }); } 
     function handleUserChoice(choice) { if (!waitingForUserChoice || !userChoiceResolver) return; waitingForUserChoice = false; const resolver = userChoiceResolver; userChoiceResolver = null; messageButtonContainer.innerHTML = ''; resolver(choice); } // (変更なし)
-    function waitForShopConfirmation() { return new Promise(resolve => { shopConfirmationResolver = resolve; }); } // (変更なし)
+    function waitForShopConfirmation() { return new Promise(resolve => { shopConfirmationResolver = resolve; }); } 
     function handleShopConfirmation(choice) { if (shopConfirmationResolver) { const resolver = shopConfirmationResolver; shopConfirmationResolver = null; const confirmationButtons = document.getElementById('shop-confirmation-buttons'); if (confirmationButtons) confirmationButtons.remove(); if(shopActionsEl) shopActionsEl.style.display = 'flex'; resolver(choice); } } // (変更なし)
-    function rollSingleDice() { return Math.floor(Math.random() * 6) + 1; } // (変更なし)
-    function rollDice(isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) { // (変更なし)
+    function rollSingleDice() { return Math.floor(Math.random() * 6) + 1; } 
+    function rollDice(isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) { 
         let dice = [rollSingleDice(), rollSingleDice(), rollSingleDice()];
         let appliedZoroUp = false;
         const isStormWarningReroll = stormWarningRerollsLeft > 0 && !isNpc;
@@ -1016,7 +1016,7 @@ function setMessage(msg, buttonType = 'none') {
             if (soulRollLevel >= 3) { let attempts = 0; const maxAttempts = 5; const isMenashiCheck = (d) => d[0] !== d[1] && d[1] !== d[2] && d[0] !== d[2]; let isMenashi = isMenashiCheck(dice); while (isMenashi && attempts < maxAttempts) { console.log(`Soul Roll Lv.3: Menashi detected (${dice.join(',')}), rerolling... (Attempt ${attempts + 1})`); let rerolledDice = [rollSingleDice(), rollSingleDice(), rollSingleDice()]; attempts++; isMenashi = isMenashiCheck(rerolledDice); dice = rerolledDice; } if (attempts >= maxAttempts && isMenashi) { console.warn("Soul Roll Lv.3: Max reroll attempts reached, still Menashi."); } else if (attempts > 0 && !isMenashi) { console.log(`Soul Roll Lv.3: Menashi avoided! New dice: ${dice.join(',')}`); } }
         } return dice;
     }
-    function getHandResult(dice, isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) { // (変更なし)
+    function getHandResult(dice, isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) { 
         const s = [...dice].sort((a, b) => a - b); const [d1, d2, d3] = s; let result;
         if (d1 === d2 && d2 === d3) { result = d1 === 1 ? { ...ROLES.PINZORO, type: '役', value: 1 } : { ...ROLES.ARASHI, type: '役', value: d1 }; }
         else if (d1 === 4 && d2 === 5 && d3 === 6) { result = { ...ROLES.SHIGORO, type: '役', value: 6 }; }
@@ -1025,9 +1025,64 @@ function setMessage(msg, buttonType = 'none') {
         else if (d1 !== d2 && d2 === d3) { result = { ...ROLES.NORMAL_EYE, type: '目', value: d1 }; }
         else { result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name }; }
         console.log(`Initial Hand Result (${isNpc ? 'NPC' : 'Player'}): ${getHandDisplayName(result)}`); 
-        if (isNpc && blindingDiceLevel > 0) { let specialRoleAvoided = false; const specialRolesToAvoid = [ROLES.PINZORO.name, ROLES.ARASHI.name, ROLES.SHIGORO.name, ROLES.HIFUMI.name]; if (result.type === '役' && specialRolesToAvoid.includes(result.name)) { const avoidChance = [0.2, 0.4, 0.6][blindingDiceLevel - 1]; if (Math.random() < avoidChance) { console.log(`%cCard Effect: 目くらまし Lv.${blindingDiceLevel} 発動! NPCの特殊役「${result.name}」を回避 -> 目なしに変更`, 'color: orange; font-weight: bold;'); result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name }; specialRoleAvoided = true; } else { console.log(`Card Effect: 目くらまし Lv.${blindingDiceLevel} - NPCの特殊役「${result.name}」回避失敗 (確率 ${avoidChance * 100}%)`); } } if (!specialRoleAvoided && blindingDiceLevel >= 3 && result.type !== 'ションベン' && result.type !== '目なし') { const shonbenUpChance = 0.2; if (Math.random() < shonbenUpChance) { console.log(`%cCard Effect: 目くらまし Lv.3 - ションベン率UP発動! NPCの結果「${getHandDisplayName(result)}」を目なしに変更`, 'color: orange; font-weight: bold;'); result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name }; } else { console.log(`Card Effect: 目くらまし Lv.3 - ションベン率UP失敗 (確率 ${shonbenUpChance * 100}%)`); } } }
-        console.log(`%cFinal Hand Result (${isNpc ? 'NPC' : 'Player'}): ${getHandDisplayName(result)}`, 'font-weight: bold;'); return result;
-    }
+        // --- カード効果適用 (蜃気楼など) ---
+        if (isNpc && blindingDiceLevel > 0) { // blindingDiceLevel は蜃気楼カードのレベル
+            let specialRoleAvoided = false;
+            const specialRolesToAvoid = [ROLES.PINZORO.name, ROLES.ARASHI.name, ROLES.SHIGORO.name, ROLES.HIFUMI.name];
+            if (result.type === '役' && specialRolesToAvoid.includes(result.name)) {
+                const avoidChance = [0.3, 0.5, 0.7][blindingDiceLevel - 1];
+                if (Math.random() < avoidChance) {
+                    console.log(`%cCard Effect: 蜃気楼 Lv.${blindingDiceLevel} 発動! NPCの特殊役「${result.name}」を回避 -> 目なしに変更`, 'color: orange; font-weight: bold;');
+                    result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name, forcedMenashi: true }; // ★ forcedMenashi フラグを追加
+                    specialRoleAvoided = true;
+                } else {
+                    // console.log(`Card Effect: 蜃気楼 Lv.${blindingDiceLevel} - NPCの特殊役「${result.name}」回避失敗 (確率 ${avoidChance * 100}%)`); // ログ抑制
+                }
+            }
+            // Lv3のションベン率UP効果
+            if (!specialRoleAvoided && blindingDiceLevel >= 3 && result.type !== 'ションベン' && result.type !== '目なし') {
+                 const shonbenUpChance = 0.2;
+                 if (Math.random() < shonbenUpChance) {
+                     console.log(`%cCard Effect: 蜃気楼 Lv.3 - ションベン率UP発動! NPCの結果「${getHandDisplayName(result)}」を目なしに変更`, 'color: orange; font-weight: bold;');
+                     result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name, forcedMenashi: true }; // ★ forcedMenashi フラグを追加
+                 } else {
+                     // console.log(`Card Effect: 蜃気楼 Lv.3 - ションベン率UP失敗 (確率 ${shonbenUpChance * 100}%)`);
+                 }
+             }
+        }
+
+        // --- 魂の一振り Lv3 目なし回避 ---
+        if (!isNpc && soulRollLevel >= 3) {
+            let attempts = 0;
+            const maxAttempts = 5;
+            const isMenashiCheck = (d) => d[0] !== d[1] && d[1] !== d[2] && d[0] !== d[2];
+            let currentIsMenashi = isMenashiCheck([d1, d2, d3]); // 元のダイスで判定
+
+            while (currentIsMenashi && attempts < maxAttempts) {
+                console.log(`Soul Roll Lv.3: Menashi detected (${dice.join(',')}), rerolling... (Attempt ${attempts + 1})`);
+                let rerolledDiceRaw = [rollSingleDice(), rollSingleDice(), rollSingleDice()];
+                attempts++;
+                // 新しいダイスで手を再評価
+                const sRerolled = [...rerolledDiceRaw].sort((a, b) => a - b);
+                const [r1, r2, r3] = sRerolled;
+                if (r1 === r2 && r2 === r3) { result = r1 === 1 ? { ...ROLES.PINZORO, type: '役', value: 1 } : { ...ROLES.ARASHI, type: '役', value: r1 }; }
+                else if (r1 === 4 && r2 === 5 && r3 === 6) { result = { ...ROLES.SHIGORO, type: '役', value: 6 }; }
+                else if (r1 === 1 && r2 === 2 && r3 === 3) { result = { ...ROLES.HIFUMI, type: '役', value: 3 }; }
+                else if (r1 === r2 && r2 !== r3) { result = { ...ROLES.NORMAL_EYE, type: '目', value: r3 }; }
+                else if (r1 !== r2 && r2 === r3) { result = { ...ROLES.NORMAL_EYE, type: '目', value: r1 }; }
+                else { result = { type: '目なし', strength: ROLES.MENASHI.strength, name: ROLES.MENASHI.name }; }
+                currentIsMenashi = result.type === '目なし'; // 再評価後の手で目なしか判定
+                dice = rerolledDiceRaw; // ダイス目を更新
+            }
+            if (attempts >= maxAttempts && currentIsMenashi) {
+                console.warn("Soul Roll Lv.3: Max reroll attempts reached, still Menashi.");
+            } else if (attempts > 0 && !currentIsMenashi) {
+                console.log(`Soul Roll Lv.3: Menashi avoided! New dice: ${dice.join(',')}, New Hand: ${getHandDisplayName(result)}`);
+            }
+       }
+       console.log(`%cFinal Hand Result (${isNpc ? 'NPC' : 'Player'}): ${getHandDisplayName(result)}`, 'font-weight: bold;');
+       return result;
+   }
     function applyPlayerCardEffects() { 
          currentMaxRolls = BASE_MAX_ROLLS; // リセットしてから適用
          shopChoicePlus1Active = false;
@@ -1260,7 +1315,7 @@ function setMessage(msg, buttonType = 'none') {
             effectText = `次にショップを開いた時、リロールが ${freeRerollsText} 無料になる。`;
             break;
             case 'soulRoll':
-                conditionText = "自分の役/目が確定した後、または振り残り回数が0になった後 (アクティブ)";
+                conditionText = "振り残り回数が0になった後 (アクティブ)";
                 const soulCostPercent = [10, 5, 5][level - 1];
                 const soulMenashiAvoidText = level >= 3 ? " Lv3効果: この追加ロールで目なしが出ても、回避できるまで振り直す。" : "";
                 effectText = `WAVE中 1回 使用可能。自分の持ち点の ${soulCostPercent}% (最低1点) を消費して、追加で1回サイコロを振ることができる。${soulMenashiAvoidText}`;
@@ -1321,8 +1376,12 @@ function setMessage(msg, buttonType = 'none') {
             const zoroUpPercentText = [5, 10, 15][level - 1];
             effectText = `WAVE中 ${nextChanceUsesUpdated}回 使用可能。「目」の数字と同じサイコロを **1つ** 選んで振り直すことができる。振り直し時、その目がゾロ目になる確率が ${zoroUpPercentText}% 追加される。(他のゾロ目UP効果と重複可)`;
             break;
-            case 'blindingDice': conditionText = "自分が親で、役/目が確定した後 (アクティブ)"; const blindingAvoidChanceText = ['少し', 'そこそこ', '大きく'][level - 1]; const blindingShonbenText = level >= 3 ? " さらに相手がションベンする確率も少し上げる。" : ""; effectText = `WAVE中 1回 使用可能。使用したラウンド中、相手が良い役（ピンゾロ/アラシ/シゴロ/ヒフミ）を出した場合に、それを無効化（目なし扱い）する確率が${blindingAvoidChanceText}上がる。${blindingShonbenText}`; break;
-            default: conditionText = "---"; effectText = '---'; break;
+            case 'blindingDice': // ID は blindingDice のまま
+                conditionText = "自分が親で、役/目が確定した後 (アクティブ)";
+                const blindingAvoidChanceText = ['30%', '50%', '70%'][level - 1];
+                const blindingShonbenText = level >= 3 ? " さらに相手がションベンする確率も少し上げる。" : "";
+                effectText = `WAVE中 1回 使用可能。使用したラウンド中、相手が良い役（ピンゾロ/アラシ/シゴロ/ヒフミ）を出した場合に、それを無効化（目なし扱い）する確率が ${blindingAvoidChanceText} になる。${blindingShonbenText}`;
+                break;
             case 'stormRoulette':
             conditionText = "自分のロール結果が「アラシ」になった後 (アクティブ)";
             const rouletteUses = level; 
@@ -1338,6 +1397,7 @@ function setMessage(msg, buttonType = 'none') {
                 }
                 effectText = `WAVE中 ${destinyUses}回 使用可能。${destinyTargetText} が出た場合、追加の振り直し権利を得る（ロール回数上限無視）。振り直すか選択でき、振り直した場合は結果が必ず ${destinyTargetText} 以外になる。`;
                 break;
+            default: conditionText = "---"; effectText = '---'; break;
         }
         const conditionHtml = conditionText ? `<b>【発動条件/タイミング】</b><br>${conditionText}<br>` : '';
         return `${conditionHtml}<b>【効果】</b><br>${effectText}`;
@@ -2708,28 +2768,6 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
            }
        }); 
 
-       rollButton.addEventListener('click', async () => { 
-        if (playerScore <= 0 || !isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll || isShowingRoleResult || isShowingGameResult) { checkGameEnd(); return; }
-        let isFreeRoll = stormWarningRerollsLeft > 0; const soulRollCard = playerCards.find(c => c.id === 'soulRoll');
-        const canUseSoulRollCheck = soulRollCard && playerRollCount >= currentMaxRolls && !isFreeRoll && !soulRollUsedThisTurn && !waitingForPlayerActionAfterRoll && getRemainingUses('soulRoll') > 0; if (canUseSoulRollCheck) { waitingForPlayerActionAfterRoll = true; setMessage("振り残り回数がありません。「魂の一振り」を使用できます。どうしますか？", 'postRollChoice'); rollButton.disabled = true; updateCardButtonHighlight(); updateBetLimits(); return; }
-        const canRoll = playerRollCount < currentMaxRolls || isFreeRoll || soulRollUsedThisTurn; if (!canRoll) { playSound('error'); setMessage("振り残り回数がありません。"); return; } // ★ SE: エラー音
-        playSound('diceRollButton');
-        if (isFreeRoll) { stormWarningRerollsLeft--; console.log("Using Storm Warning free reroll."); } else if (!soulRollUsedThisTurn) { playerRollCount++; }
-        playSound('diceRoll'); // サイコロロール開始音
-        rollButton.disabled = true; historyButton.disabled = true; const playerName = selectedCharacter?.name || 'あなた'; setMessage(`${playerName}(${isPlayerParent ? '親' : '子'}): 振っています...`); showDiceRollModal(); updateUI();
-        const soulRollLvFor判定 = (soulRollCard && soulRollUsedThisTurn) ? soulRollCard.level : 0; const finalDice = rollDice(false, 0, soulRollLvFor判定);
-        animateDiceRoll(finalDice, async () => {
-            playerDice = finalDice; if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' '); hideDiceRollModal(); diceDisplayEl.textContent = finalDice.join(' ');
-            const result = getHandResult(playerDice, false, 0, soulRollLvFor判定); const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目')); playerHand = rk ? { ...ROLES[rk], ...result } : result;
-            console.log("Player Rolled:", playerDice, "Hand:", playerHand); updateUI(); highlightHand(playerHandEl, playerHand);
-            let stormWarningAppliedThisRoll = false; const stormCardCheck = playerCards.find(c => c.id === 'stormWarning');
-            if (stormWarningActive && stormCardCheck) { const stormLevelCheck = stormCardCheck.level; const targetRoles = (stormLevelCheck >= 3) ? [ROLES.ARASHI.name, ROLES.PINZORO.name] : [ROLES.ARASHI.name]; if (!(playerHand.type === '役' && targetRoles.includes(playerHand.name))) { stormWarningRerollsLeft = (stormLevelCheck >= 2) ? 2 : 1; stormWarningAppliedThisRoll = true; console.log(`Card Effect: 嵐の予感発動！ Target role not hit. ${stormWarningRerollsLeft} free rerolls available.`); setMessage(`${playerName}(${isPlayerParent ? '親' : '子'}): 嵐の予感効果！ アラシ/ピンゾロが出なかったので無料振り直しが ${stormWarningRerollsLeft} 回可能です。再度振ってください。`); rollButton.disabled = false; historyButton.disabled = false; updateCardButtonHighlight(); stormWarningActive = false; activeCardUses['stormWarning'] = (activeCardUses['stormWarning'] || 0) + 1; if (soulRollUsedThisTurn) soulRollUsedThisTurn = false; return; } else { console.log(`Card Effect: 嵐の予感 - Target role ${playerHand.name} hit! No free reroll.`); stormWarningActive = false; activeCardUses['stormWarning'] = (activeCardUses['stormWarning'] || 0) + 1; } }
-            if (soulRollUsedThisTurn) { console.log("Resetting soulRollUsedThisTurn flag after successful roll."); soulRollUsedThisTurn = false; }
-
-            await handlePostRollPlayerAction();
-        });
-    });
-
     async function handlePostRollPlayerAction() {
 
         const playerName = selectedCharacter?.name || 'あなた';
@@ -2891,27 +2929,64 @@ if (avoid123_456Active && avoidCard && playerHand) { // フラグが立ってい
     playSound('diceRoll');
     showDiceRollModal(); updateUI();
     const blindingLevel = blindingDiceActive ? (playerCards.find(c => c.id === 'blindingDice')?.level || 0) : 0; const finalDice = rollDice(true, blindingLevel, 0);
+
     animateDiceRoll(finalDice, async () => {
         npcDice = finalDice; if(npcDiceEl) npcDiceEl.textContent = npcDice.join(' '); hideDiceRollModal(); diceDisplayEl.textContent = finalDice.join(' ');
-        const result = getHandResult(npcDice, true, blindingLevel, 0); const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目')); npcHand = rk ? { ...ROLES[rk], ...result } : result;
+        const result = getHandResult(npcDice, true, blindingLevel, 0); // ★ getHandResult の戻り値に forcedMenashi が含まれる可能性
+        const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目'));
+        npcHand = rk ? { ...ROLES[rk], ...result } : result;
         console.log("NPC Rolled:", npcDice, "Hand:", npcHand);
+
+        // 役・目・ションベンの場合のBGMチェックと進行
         if (npcHand.type !== 'ションベン' && npcHand.type !== '目なし') {
-             checkAndSwitchRoleBgm(playerHand, npcHand); // プレイヤーの手札と比較
+             checkAndSwitchRoleBgm(playerHand, npcHand);
         }
-        let forcedReroll = false; if (blindingDiceActive && npcHand.type === '目なし') { console.log("Blinding Dice forced reroll for NPC on Menashi."); forcedReroll = true; setMessage(`${npcName}(${!isPlayerParent ? '親' : '子'}): 目なし。目くらましで再度振ります...`); setTimeout(npcTurn, 1000); return; }
+
         updateUI(); highlightHand(npcHandEl, npcHand); const playerName = selectedCharacter?.name || 'あなた';
+
+        // --- 役・目・ションベンの場合の処理 ---
         if (npcHand.type === '役' || npcHand.type === '目' || npcHand.type === 'ションベン') {
             const handName = getHandDisplayName(npcHand); historyButton.disabled = false;
-            if (npcHand.type !== '目なし') { await showRoleResultModal(npcHand, npcDice); }
+            if (npcHand.type !== '目なし' && npcHand.type !== 'ションベン') { // 目なし/ションベン以外なら役モーダル表示
+                 await showRoleResultModal(npcHand, npcDice);
+             } else if (npcHand.type === 'ションベン') { // ションベンならションベンモーダル表示
+                 await showRoleResultModal(npcHand, npcDice);
+             }
+             // 進行ロジック 
             if (!isPlayerParent && npcHand.type !== 'ションベン') { setMessage(`${npcName}(親): ${handName}！ ${playerName}(子)の番です。`); isPlayerTurn = true; rollButton.disabled = false; updateCardButtonHighlight(); updateUI(); }
             else { setMessage(`${npcName}(${!isPlayerParent?'親':'子'}): ${handName}！ ${npcHand.type === 'ションベン' ? (isPlayerParent ? '勝ちです。' : `${playerName}の勝ちです。`) : '勝負！'}`); rollButton.disabled = true; setTimeout(handleRoundEnd, 100); }
-        } else if (npcHand.type === '目なし') {
-            if (npcRollCount < BASE_MAX_ROLLS) { setMessage(`${npcName}(${!isPlayerParent ? '親' : '子'}): 目なし。再度振ります... (${npcRollCount}/${BASE_MAX_ROLLS})`); setTimeout(npcTurn, 1000); }
-            else { npcHand = { ...ROLES.SHONBEN, type: 'ションベン' }; updateUI(); highlightHand(npcHandEl, npcHand); rollButton.disabled = true; historyButton.disabled = false; await showRoleResultModal(npcHand, npcDice); setMessage(`${npcName}(${!isPlayerParent ? '親' : '子'}): ションベン！ ${isPlayerParent ? '勝ちです。' : `${playerName}の勝ちです。`}`); setTimeout(handleRoundEnd, 100); }
         }
-         updateCardButtonHighlight(); // NPCターン後にも更新
-    });
-}
+        // --- 目なしの場合の処理 ---
+        else if (npcHand.type === '目なし') {
+            // 修正: forcedMenashi フラグをチェック 
+            if (npcHand.forcedMenashi) {
+                console.log("NPC Menashi was forced by Shinkirou. Treating as Shonben.");
+                // カード効果で目なしにされた場合はションベン扱いとしてラウンド終了
+                npcHand = { ...ROLES.SHONBEN, type: 'ションベン', name: 'ションベン(蜃気楼)' }; // 名前を区別しても良い
+                updateUI(); highlightHand(npcHandEl, npcHand);
+                rollButton.disabled = true; historyButton.disabled = false;
+                await showRoleResultModal(npcHand, npcDice); // ションベンとして結果表示
+                setMessage(`${npcName}(${!isPlayerParent ? '親' : '子'}): 蜃気楼の効果でションベン！ ${isPlayerParent ? '勝ちです。' : `${playerName}の勝ちです。`}`);
+                setTimeout(handleRoundEnd, 100);
+            }
+            // 通常の目なしの場合 (ロール回数チェック)
+            else if (npcRollCount < BASE_MAX_ROLLS) {
+                setMessage(`${npcName}(${!isPlayerParent ? '親' : '子'}): 目なし。再度振ります... (${npcRollCount}/${BASE_MAX_ROLLS})`);
+                setTimeout(npcTurn, 1000); // 再度 NPC ターンへ
+            }
+            // 振り切り目なしの場合 
+            else {
+                npcHand = { ...ROLES.SHONBEN, type: 'ションベン' }; // ションベン扱いに変更
+                updateUI(); highlightHand(npcHandEl, npcHand);
+                rollButton.disabled = true; historyButton.disabled = false;
+                await showRoleResultModal(npcHand, npcDice); // ションベンとして結果表示
+                setMessage(`${npcName}(${!isPlayerParent ? '親' : '子'}): ションベン！ ${isPlayerParent ? '勝ちです。' : `${playerName}の勝ちです。`}`);
+                setTimeout(handleRoundEnd, 100);
+            }
+        }
+         updateCardButtonHighlight(); // ボタンハイライト更新
+    }); // animateDiceRoll コールバック終わり
+} // npcTurn 関数終わり
 
 // スコア計算アニメーション表示関数
 async function displayScoreCalculationAnimation(data) {
@@ -3803,7 +3878,7 @@ async function displayScoreCalculationAnimation(data) {
                     cardElement.style.backgroundPosition = 'center';
                 }
 
-                // ★★★ イベントリスナーをここで設定 ★★★
+                // イベントリスナーをここで設定 
                 const detailBtn = cardElement.querySelector('.card-detail-button');
                 if (detailBtn) {
                     detailBtn.addEventListener('click', handleDetailButtonClick); // SE不要箇所
@@ -3911,7 +3986,11 @@ async function displayScoreCalculationAnimation(data) {
             console.log(`Card ${cardId} cannot be used now. Active: ${activeCardBeingUsed}, WaitingChoice: ${waitingForUserChoice}, UsableNow: ${isUsableNow}, ShowingRoleResult: ${isShowingRoleResult}, ShowingGameResult: ${isShowingGameResult}`);
             if (!isUsableNow && !activeCardBeingUsed) {
                  playSound('error');
+                 // メッセージ表示を追加 (デバッグ用、後で調整)
+                 // setMessage(`カード「${allCards.find(c=>c.id === cardId)?.name}」は現在使用できません。`);
             }
+            // ここで return する前に activeCardBeingUsed を解除すべきか検討
+            // activeCardBeingUsed = null; // 解除してしまうと、後続処理が動く可能性があるため注意
             return; // return は維持
         }
         const card = allCards.find(c => c.id === cardId); if (!card) return;
@@ -3927,9 +4006,11 @@ async function displayScoreCalculationAnimation(data) {
 
         let useConsumed = false;
         let requiresDelay = false;
+        // let turnEnd = false; // 削除: turnEnd は使わない方向で
         let postUseMessage = "";
         let requiresRoll = false;
-        let requiresPlayerActionAfterCard = false; 
+        // let requiresNPCAction = false; // 削除: requiresNPCAction は使わない方向で
+        let requiresPlayerActionAfterCard = false; // これで制御
 
         // --- カード効果分岐 ---
         if (['changeToOne', 'changeToSix', 'adjustEye', 'menashiAdjust'].includes(cardId)) {
@@ -3965,7 +4046,7 @@ async function displayScoreCalculationAnimation(data) {
                     if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' ');
                     diceDisplayEl.textContent = playerDice.join(' ');
                     useConsumed = true;
-                    requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+                    requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
                     postUseMessage = `「${eyeValue}」の目を「${targetValue}」に変更しました。`; // メッセージ設定
                 } else {
                      useConsumed = false;
@@ -4002,7 +4083,7 @@ async function displayScoreCalculationAnimation(data) {
                     postUseMessage = `ネクストチャンス！ 「${originalValue}」の目を振り直しました。結果: ${rolledValue} (${getHandDisplayName(playerHand)})`;
                     useConsumed = true;
                     nextChanceUsedThisTurn = true;
-                    requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+                    requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
                     // UI更新
                     if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' ');
                     diceDisplayEl.textContent = playerDice.join(' ');
@@ -4017,7 +4098,7 @@ async function displayScoreCalculationAnimation(data) {
                  postUseMessage = "このカードは「目」が出ている時しか使用できません。";
                  useConsumed = false;
             }
-            // ★ フラグ解除は共通処理で行う
+            // フラグ解除は共通処理で行う
         }
         else if (cardId === 'ignoreMinBet') {
             ignoreMinBetActive = true;
@@ -4071,7 +4152,7 @@ async function displayScoreCalculationAnimation(data) {
                  useConsumed = true;
                  requiresDelay = false;
                  postUseMessage = `危険な賭け！最低賭け金が2倍になり、勝敗結果の倍率が変動します。`;
-                 updateBetLimits(); // ★ 即時反映
+                 updateBetLimits(); // 即時反映
              }
         }
         else if (cardId === 'giveUpEye') {
@@ -4081,18 +4162,18 @@ async function displayScoreCalculationAnimation(data) {
             } else {
                 playerHand = { ...ROLES.SHONBEN, type: 'ションベン' }; giveUpEyeUsedThisTurn = true; useConsumed = true;
                 postUseMessage = `見切り使用！ションベン扱いになります。`; updateUI(); highlightHand(playerHandEl, playerHand); rollButton.disabled = true;
-                requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+                requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
             }
        }
        else if (cardId === 'doubleUpBet') {
            doubleUpBetActive = true; useConsumed = true;
            postUseMessage = "ダブルアップ準備完了！勝負！"; requiresDelay = true;
-           requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+           requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
        }
        else if (cardId === 'blindingDice') { // または 'shinkirou'
            blindingDiceActive = true; requiresDelay = true; useConsumed = true; // 使用確定
-           postUseMessage = `蜃気楼！このラウンド中、相手のロールに影響します。`; // ★ 名前変更反映
-           requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+           postUseMessage = `蜃気楼！このラウンド中、相手のロールに影響します。`; // 名前変更反映
+           requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
        }
        else if (cardId === 'soulRoll') {
         const costPercent = [10, 5, 5][playerCardData.level - 1];
@@ -4101,26 +4182,29 @@ async function displayScoreCalculationAnimation(data) {
             playSound('error');
             postUseMessage = `魂の一振りのコスト(${cost}点)を払えません！`;
             useConsumed = false;
-            activeCardBeingUsed = null;
+            // activeCardBeingUsed は共通処理で解除
         } else {
             playerScore -= cost;
-            soulRollUsedThisTurn = true; // フラグを立てる (ロール後に解除される想定)
+            soulRollUsedThisTurn = true; // フラグ立てる
             postUseMessage = `魂の一振り！${cost}点を消費して追加ロール！ サイコロを振ってください。`;
-            requiresRoll = true; // ロールが必要
-            updateUI(); // スコア表示更新
+            requiresRoll = true; // ロール要求
+            updateUI(); // スコア更新
             useConsumed = true;
-            activeCardBeingUsed = null; // フラグ解除
+            rollButton.disabled = false; // ロールボタン有効化
+            historyButton.disabled = false;
+            // activeCardBeingUsed は共通処理で解除
+            // return しない（共通処理に進む）
         }
    }
         else if (cardId === 'rewardAmplifier') {
             rewardAmplifierActive = true; useConsumed = true; // 使用確定
             postUseMessage = `報酬増幅！このラウンドの役での勝利時、配当倍率が増加します。`; requiresDelay = true;
-            requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+            requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
         }
         else if (cardId === 'drawBonus') {
             drawBonusActive = true; useConsumed = true; // 使用確定
             postUseMessage = `引き分けボーナス準備完了！このラウンド引き分け時に効果発動。`; requiresDelay = true;
-            requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+            requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
         }
         else if (cardId === 'stormRoulette') {
              if (playerHand?.name === ROLES.ARASHI.name) {
@@ -4142,7 +4226,7 @@ async function displayScoreCalculationAnimation(data) {
                  playerDice = newDice;
                  playerHand = newHand;
                  useConsumed = true;
-                 requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+                 requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
                  postUseMessage = `ストームルーレット！ ${messageSuffix}`;
                  // UI更新
                  if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' ');
@@ -4157,13 +4241,13 @@ async function displayScoreCalculationAnimation(data) {
         else if (cardId === 'destinyShift') {
             const level = playerCardData.level;
             const currentHandName = getHandDisplayName(playerHand);
-            // ★ ユーザー選択の前に activeCardBeingUsed を null にしない
+            // ユーザー選択の前に activeCardBeingUsed を null にしない
             setMessage(`運命改変 Lv.${level}！ 現在の結果「${currentHandName}」を振り直しますか？ (残${getRemainingUses(cardId)}回)`, 'yesNo');
             const choice = await waitForUserChoice(); // ユーザーの選択を待つ
 
             if (choice) {
                 setMessage("運命を書き換えています...");
-                useConsumed = true; // ★ ここで消費確定
+                useConsumed = true; // ここで消費確定
                 const { dice: newDice, hand: newHand } = await rerollWithGuarantee(level, playerDice);
                 playerDice = newDice;
                 playerHand = newHand;
@@ -4173,20 +4257,19 @@ async function displayScoreCalculationAnimation(data) {
                 diceDisplayEl.textContent = playerDice.join(' ');
                 if(playerHandEl) playerHandEl.textContent = getHandDisplayName(playerHand);
                 highlightHand(playerHandEl, playerHand);
-                requiresPlayerActionAfterCard = true; // ★ 変更: 再度アクション判断へ
+                requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
                 // 使用回数カウントは後続の共通処理で行う
             } else {
                 postUseMessage = "運命改変の使用をキャンセルしました。";
                 useConsumed = false;
-                requiresPlayerActionAfterCard = true; // ★ キャンセルしても後続処理へ
+                requiresPlayerActionAfterCard = true; // キャンセルしても後続処理へ
             }
-            // ★ Yes/No 選択後に activeCardBeingUsed を解除
             activeCardBeingUsed = null;
         }
         else { console.warn(`Active card effect for ${cardId} is not fully implemented yet.`); postUseMessage = `カード「${card.name}」の効果処理が未実装です。`; useConsumed = false; }
 
         // --- 処理分岐前の共通処理 ---
-        if (useConsumed && card.usesPerWave) { // 使用回数カウント
+        if (useConsumed && card.usesPerWave) {
             activeCardUses[cardId] = (activeCardUses[cardId] || 0) + 1;
             const remainingUses = getRemainingUses(cardId);
             if (postUseMessage) {
@@ -4195,14 +4278,12 @@ async function displayScoreCalculationAnimation(data) {
             console.log(`Used card ${cardId}. Remaining uses: ${remainingUses}`);
         }
 
-        // メッセージ表示 (Yes/No待ちでなければ、かつメッセージがあれば)
         if (!waitingForUserChoice && postUseMessage) {
              setMessage(postUseMessage);
         }
         if (requiresDelay) await new Promise(resolve => setTimeout(resolve, 800));
 
-        // ★★★★ activeCardBeingUsed の解除をこの共通処理部分で行う ★★★★
-        // ただし、ダイス選択が必要な場合は、選択完了orキャンセル時に解除されるため、ここでは解除しない
+        // activeCardBeingUsed の解除 (共通処理部分)
         if (!['changeToOne', 'changeToSix', 'adjustEye', 'menashiAdjust'].includes(cardId) && activeCardBeingUsed === cardId) {
             activeCardBeingUsed = null;
             console.log(`Reset activeCardBeingUsed for ${cardId} in common cleanup.`);
@@ -4210,33 +4291,29 @@ async function displayScoreCalculationAnimation(data) {
 
         // --- 後続処理分岐 ---
         if (requiresPlayerActionAfterCard) {
-             await handlePostRollPlayerAction(); // ★ 変更: await を追加
+             await handlePostRollPlayerAction();
         } else if (requiresRoll) {
-             // ロールが必要な場合
              rollButton.disabled = false;
              historyButton.disabled = false;
              isPlayerTurn = true;
              console.log("Card requires roll. Enabling roll button.");
         } else if (!useConsumed) {
-             // 使用キャンセル/失敗時
              historyButton.disabled = false;
              if (waitingForPlayerActionAfterRoll) {
+                 if (activeCardBeingUsed === cardId) activeCardBeingUsed = null;
                  setMessageAfterActionCancel(card.name + "は使用できませんでした");
              } else if (!isGameActive && isPlayerParent) {
-                  updateBetLimits(); // ベットフェーズでの失敗時
+                  updateBetLimits();
              }
-        } else { // その他の消費されたカード (ignoreMinBetなど)
-             // (activeCardBeingUsed は解除済み)
+        } else {
              historyButton.disabled = false;
              if (!isGameActive && isPlayerParent) {
-                 updateBetLimits(); // ベットフェーズでの効果適用後
+                 updateBetLimits();
              }
-             // ★ ここで handlePostRollPlayerAction を呼ぶべきか？ -> 基本的に不要
         }
 
-        // ★ 最終確認: 万が一 activeCardBeingUsed が残っていたら解除
         if (activeCardBeingUsed === cardId &&
-            (!diceChoiceOverlay || !diceChoiceOverlay.style.display || diceChoiceOverlay.style.display === 'none') // ダイス選択中でなければ
+            (!diceChoiceOverlay || !diceChoiceOverlay.style.display || diceChoiceOverlay.style.display === 'none')
            ) {
              console.warn(`Final check: Resetting activeCardBeingUsed for ${cardId} at the end of the function.`);
              activeCardBeingUsed = null;
@@ -4245,6 +4322,31 @@ async function displayScoreCalculationAnimation(data) {
        updateUI();
        updateCardButtonHighlight();
     } // handleActiveCardUse 関数の終わり
+
+    rollButton.addEventListener('click', async () => {
+        if (playerScore <= 0 || !isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll || isShowingRoleResult || isShowingGameResult) { checkGameEnd(); return; }
+        let isFreeRoll = stormWarningRerollsLeft > 0;
+        const canRoll = playerRollCount < currentMaxRolls || isFreeRoll; 
+        if (!canRoll) { 
+            playSound('error'); setMessage("振り残り回数がありません。"); return;
+        }
+        playSound('diceRollButton');
+        if (isFreeRoll) { stormWarningRerollsLeft--; console.log("Using Storm Warning free reroll."); }
+        else { playerRollCount++; } 
+        playSound('diceRoll');
+        rollButton.disabled = true; historyButton.disabled = true; const playerName = selectedCharacter?.name || 'あなた'; setMessage(`${playerName}(${isPlayerParent ? '親' : '子'}): 振っています...`); showDiceRollModal(); updateUI();
+        const soulRollCard = playerCards.find(c => c.id === 'soulRoll'); // soulRollLvFor判定用に取得
+        const soulRollLvFor判定 = 0; 
+        const finalDice = rollDice(false, 0, soulRollLvFor判定);
+        animateDiceRoll(finalDice, async () => {
+            playerDice = finalDice; if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' '); hideDiceRollModal(); diceDisplayEl.textContent = finalDice.join(' ');
+            const result = getHandResult(playerDice, false, 0, soulRollLvFor判定); const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目')); playerHand = rk ? { ...ROLES[rk], ...result } : result;
+            console.log("Player Rolled:", playerDice, "Hand:", playerHand); updateUI(); highlightHand(playerHandEl, playerHand);
+            let stormWarningAppliedThisRoll = false; const stormCardCheck = playerCards.find(c => c.id === 'stormWarning');
+            if (stormWarningActive && stormCardCheck) { const stormLevelCheck = stormCardCheck.level; const targetRoles = (stormLevelCheck >= 3) ? [ROLES.ARASHI.name, ROLES.PINZORO.name] : [ROLES.ARASHI.name]; if (!(playerHand.type === '役' && targetRoles.includes(playerHand.name))) { stormWarningRerollsLeft = (stormLevelCheck >= 2) ? 2 : 1; stormWarningAppliedThisRoll = true; console.log(`Card Effect: 嵐の予感発動！ Target role not hit. ${stormWarningRerollsLeft} free rerolls available.`); setMessage(`${playerName}(${isPlayerParent ? '親' : '子'}): 嵐の予感効果！ アラシ/ピンゾロが出なかったので無料振り直しが ${stormWarningRerollsLeft} 回可能です。再度振ってください。`); rollButton.disabled = false; historyButton.disabled = false; updateCardButtonHighlight(); stormWarningActive = false; activeCardUses['stormWarning'] = (activeCardUses['stormWarning'] || 0) + 1; return; } else { console.log(`Card Effect: 嵐の予感 - Target role ${playerHand.name} hit! No free reroll.`); stormWarningActive = false; activeCardUses['stormWarning'] = (activeCardUses['stormWarning'] || 0) + 1; } }
+            await handlePostRollPlayerAction();
+        });
+    });
 
     function checkCardUsability(cardId) {
         const cardData = playerCards.find(c => c.id === cardId);
@@ -4757,15 +4859,10 @@ async function rerollWithGuarantee(level, currentDice) {
                  const isTargetRole = isPlayerPostRollHifumi || isPlayerPostRollShigoro || (level >= 3 && isPlayerPostRollMenashi);
                  return isTargetRole;
 
-            // --- 振り直し回数0で使用可能 / 役/目成立時にも使用可能 ---
+            // --- 振り直し回数0で使用可能 ---
             case 'soulRoll':
-                 // 修正: 役/目成立時の条件を追加、使用済みフラグもチェック
-                 const canUseOnRollEnd = isOutOfRolls && isPlayerPostRollMenashi; // 目なしで振り終わり
-                 const canUseOnYakuEye = isPlayerPostRollYakuOrEye; // 役/目成立時
-                 return (canUseOnRollEnd || canUseOnYakuEye) && !soulRollUsedThisTurn;
-
+                 return isOutOfRolls && isPlayerPostRollMenashi && !soulRollUsedThisTurn;
             default:
-                // 上記以外のアクティブカードはロール後には使えない
                 return false;
         }
     } // checkCardUsabilityInPostRoll 関数の終わり
