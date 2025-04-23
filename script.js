@@ -146,7 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char11', name: 'カラスマ', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['soulRoll'] },
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
-        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['soulRoll'] },
+        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['trueBlinding'] },
+        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['adjustEyeValue'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;
@@ -181,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let keepParentRightUsedThisWave = 0;
     let keepParentDiscountNextRound = false;
     let drawBonusActive = false;
+    let trueBlindingActive = false;
 
      // --- 定数 --- 
      const BASE_MAX_ROLLS = 3; let currentMaxRolls = BASE_MAX_ROLLS;
@@ -242,40 +244,74 @@ const boostItems = [
      // --- カードデータ定義 --- 
      const allCards = [
          { id: 'reroll1', name: '振り直し回数+1', type: 'support', cost: 50, rarity: 1, flavor: 'もう一回！あと一回だけ！', applyEffect: (level = 1) => currentMaxRolls = BASE_MAX_ROLLS + level, removeEffect: (level = 1) => currentMaxRolls = BASE_MAX_ROLLS, image: './Card Image/01.jpeg' },
-         { id: 'shonbenHalf', name: 'ションベン軽減', type: 'score', cost: 70, rarity: 1, flavor: 'おっとっと、少しこぼしただけさ。', effectTag: 'shonbenHalf', image: './Card Image/02.jpeg' },
+         { id: 'shonbenHalf', name: 'ションベン軽減', type: 'score', cost: 100, rarity: 1, flavor: 'おっとっと、少しこぼしただけさ。', effectTag: 'shonbenHalf', image: './Card Image/02.jpeg' },
          { id: 'ignoreMinBet', name: '最低賭け金無視', type: 'support', cost: 40, rarity: 1, flavor: 'チリも積もれば...', usesPerWave: 1, image: './Card Image/03.jpeg' },
          { id: 'shopChoicePlus1', name: 'ショップ選択肢＋', type: 'support', cost: 150, rarity: 2, flavor: '選択肢は多いほうがいい。人生も、カードも。', applyEffect: (level = 1) => shopChoicePlus1Active = true, removeEffect: () => shopChoicePlus1Active = false, image: './Card Image/04.jpeg' },
-        { id: 'changeToOne', name: '1に変更', type: 'dice', cost: 80, rarity: 1, flavor: 'ピンゾロ狙い？それとも…？', usesPerWave: 1, image: './Card Image/05.jpeg' },
-        { id: 'changeToSix', name: '6に変更', type: 'dice', cost: 100, rarity: 1, flavor: '目は力なり。最大値をその手に。', usesPerWave: 1, image: './Card Image/06.jpeg' },
+        { id: 'changeToOne', name: '1に変更', type: 'dice', cost: 60, rarity: 1, flavor: 'ピンゾロ狙い？それとも…？', usesPerWave: 1, image: './Card Image/05.jpeg' },
+        { id: 'changeToSix', name: '6に変更', type: 'dice', cost: 90, rarity: 1, flavor: '目は力なり。最大値をその手に。', usesPerWave: 1, image: './Card Image/06.jpeg' },
         { id: 'zoroChanceUp', name: 'ゾロ目確率UP', type: 'dice', cost: 120, rarity: 2, flavor: '揃え！揃え！揃えー！(このラウンド中有効)', usesPerWave: 1, image: './Card Image/07.jpeg' },
-        { id: 'avoid123_456', name: '役回避', type: 'dice', cost: 50, rarity: 1, flavor: '危ない橋は渡らない主義でね。', usesPerWave: 1, image: './Card Image/08.jpeg' },
+        { id: 'avoid123_456', name: '役回避', type: 'dice', cost: 40, rarity: 1, flavor: '危ない橋は渡らない主義でね。', usesPerWave: 1, image: './Card Image/08.jpeg' },
         { id: 'sixEyeBonus', name: '6の目ボーナス', type: 'score', cost: 100, rarity: 1, flavor: '最高の一点で、最高の報酬を。', effectTag: 'sixEyeBonus', image: './Card Image/09.jpeg' },
-        { id: 'oneEyeBonus', name: '1の目ボーナス', type: 'score', cost: 120, rarity: 1, flavor: '最弱の目が、最強の切り札に。', effectTag: 'oneEyeBonus', image: './Card Image/10.jpeg' },
+        { id: 'oneEyeBonus', name: '1の目ボーナス', type: 'score', cost: 50, rarity: 1, flavor: '最弱の目が、最強の切り札に。', effectTag: 'oneEyeBonus', image: './Card Image/10.jpeg' },
         { id: 'arashiBonus', name: 'アラシ強化', type: 'score', cost: 150, rarity: 2, flavor: '吹き荒れろ！嵐の如く！', effectTag: 'arashiBonus', image: './Card Image/11.jpeg' },
         { id: 'shigoroBonus', name: 'シゴロ強化', type: 'score', cost: 130, rarity: 1, flavor: '4-5-6！幸運の階段。', effectTag: 'shigoroBonus', image: './Card Image/12.jpeg' },
         { id: 'hifumiHalf', name: 'ヒフミ軽減', type: 'score', cost: 180, rarity: 2, flavor: '1-2-3...痛恨のミスも、少しだけ軽く。', effectTag: 'hifumiHalf', image: './Card Image/13.jpeg' },
         { id: 'drawBonus', name: '引き分けボーナス', type: 'support', cost: 90, rarity: 1, flavor: 'まあ、悪くないんじゃない？', usesPerWave: 1, image: './Card Image/14.jpeg' },
         { id: 'blessingDice', name: '天の恵み', type: 'dice', cost: 130, rarity: 2, flavor: '天よ、我に力を！(このラウンド中6が出やすく)', usesPerWave: 1, image: './Card Image/15.png' },
-        { id: 'adjustEye', name: '出目調整', type: 'dice', cost: 60, rarity: 1, flavor: 'あと一つ…！を現実に。', usesPerWave: 1, image: './Card Image/16.png' },
-        { id: 'stormWarning', name: '嵐の予感', type: 'dice', cost: 250, rarity: 3, flavor: '嵐の前触れ…次こそは！(無料ロール時ゾロ目率UP)', usesPerWave: 1, image: './Card Image/17.png' },
-        { id: 'nextChance', name: 'ネクストチャンス', type: 'dice', cost: 180, rarity: 3, flavor: '諦めるのはまだ早い。', usesPerWave: 1, image: './Card Image/18.png' },
+        { id: 'adjustEye', name: '隣接変更', type: 'dice', cost: 60, rarity: 1, flavor: '隣の目に変えて、流れを変える。', usesPerWave: 1, image: './Card Image/16.png' },
+        { id: 'stormWarning', name: '嵐の予感', type: 'dice', cost: 180, rarity: 3, flavor: '嵐の前触れ…次こそは！(無料ロール時ゾロ目率UP)', usesPerWave: 1, image: './Card Image/17.png' },
+        { id: 'nextChance', name: 'ネクストチャンス', type: 'dice', cost: 160, rarity: 3, flavor: '諦めるのはまだ早い。', usesPerWave: 1, image: './Card Image/18.png' },
         { id: 'betBoost', name: '賭け金ブースト', type: 'score', cost: 160, rarity: 2, flavor: 'リスクを取らねば、得られるものも少ない。', effectTag: 'betBoost', image: './Card Image/19.png' },
-        { id: 'fightingSpirit', name: '逆境の魂', type: 'score', cost: 140, rarity: 2, flavor: '窮鼠猫を噛む、とはよく言ったものだ。', effectTag: 'fightingSpirit', image: './Card Image/20.png' },
-        { id: 'rewardAmplifier', name: '報酬増幅', type: 'score', cost: 280, rarity: 3, flavor: '勝利の美酒は、より甘く。', usesPerWave: 1, image: './Card Image/21.png' },
+        { id: 'fightingSpirit', name: '逆境の魂', type: 'score', cost: 120, rarity: 2, flavor: '窮鼠猫を噛む、とはよく言ったものだ。', effectTag: 'fightingSpirit', image: './Card Image/20.png' },
+        { id: 'rewardAmplifier', name: '報酬増幅', type: 'score', cost: 260, rarity: 3, flavor: '勝利の美酒は、より甘く。', usesPerWave: 1, image: './Card Image/21.png' },
         { id: 'keepParentalRight', name: '親権維持', type: 'support', cost: 180, rarity: 2, flavor: 'この座は、譲らん！', usesPerWave: 1, image: './Card Image/22.png' },
         { id: 'handExchange', name: '新装開店', type: 'support', cost: 50, rarity: 1, flavor: '不要なものを、新たな可能性に。', effectTag: 'handExchange', image: './Card Image/23.png' },
-        { id: 'soulRoll', name: '魂の一振り', type: 'support', cost: 200, rarity: 3, flavor: 'すべてをこの一振りに…！', usesPerWave: 1, image: './Card Image/24.png' },
+        { id: 'soulRoll', name: '魂の一振り', type: 'support', cost: 100, rarity: 2, flavor: 'すべてをこの一振りに…！', usesPerWave: 1, image: './Card Image/24.png' },
         { id: 'doubleUpBet', name: 'ダブルアップ', type: 'score', cost: 220, rarity: 3, flavor: '倍プッシュだ…！', usesPerWave: 1, image: './Card Image/25.png' },
         { id: 'riskyBet', name: '危険な賭け', type: 'support', cost: 120, rarity: 2, flavor: '勝負は常に、リスクと隣り合わせ。', usesPerWave: 1, image: './Card Image/26.png' },
-        { id: 'giveUpEye', name: '見切り', type: 'support', cost: 70, rarity: 1, flavor: '深追いは禁物。損切りも大事。', usesPerWave: 1, image: './Card Image/27.png' },
-        { id: 'blindingDice', name: '蜃気楼', type: 'dice', cost: 180, rarity: 3, flavor: '揺らめく陽炎が、相手の運命を狂わせる。', usesPerWave: 1, image: './Card Image/28.png' },
+        { id: 'giveUpEye', name: '見切り', type: 'support', cost: 50, rarity: 1, flavor: '深追いは禁物。損切りも大事。', usesPerWave: 1, image: './Card Image/27.png' },
+        { id: 'blindingDice', name: '蜃気楼', type: 'dice', cost: 200, rarity: 4, flavor: '揺らめく陽炎が、相手の運命を狂わせる。', usesPerWave: 1, image: './Card Image/28.png' },
         { id: 'lossInsurance', name: '一撃保険', type: 'score', cost: 190, rarity: 3, flavor: '備えあれば憂いなし…？', effectTag: 'lossInsurance', image: './Card Image/29.png' },
         { id: 'changeEyeToOne', name: '1の目に変更', type: 'dice', cost: 90, rarity: 1, flavor: 'ピンゾロ…？いや、安全策か。', usesPerWave: 1, image: './Card Image/30.png' },
         { id: 'changeEyeToSix', name: '6の目に変更', type: 'dice', cost: 110, rarity: 1, flavor: 'その目を、最強の目に変えよう。', usesPerWave: 1, image: './Card Image/31.png' },
         { id: 'menashiAdjust', name: '目なし調整', type: 'dice', cost: 70, rarity: 1, flavor: '少しだけ、運命をズラす。', usesPerWave: 1, image: './Card Image/32.png' },
-        { id: 'shopDiscount', name: 'ショップ割引', type: 'support', cost: 150, rarity: 2, flavor: '常連さんにはサービスしないとね！', effectTag: 'shopDiscount', image: './Card Image/33.png' },
-        { id: 'stormRoulette', name: 'ストームルーレット', type: 'dice', cost: 300, rarity: 4, flavor: '嵐よ、目覚めよ！更なる力を！', usesPerWave: true, image: './Card Image/34.png'},
-        { id: 'destinyShift', name: '運命改変', type: 'dice', cost: 350, rarity: 4, flavor: '定められし賽の目すら、捻じ曲げる。', usesPerWave: true, image: './Card Image/35.png' },
+        { id: 'shopDiscount', name: 'ショップ割引', type: 'support', cost: 100, rarity: 2, flavor: '常連さんにはサービスしないとね！', effectTag: 'shopDiscount', image: './Card Image/33.png' },
+        { id: 'stormRoulette', name: 'ストームルーレット', type: 'dice', cost: 240, rarity: 4, flavor: '嵐よ、目覚めよ！更なる力を！', usesPerWave: true, image: './Card Image/34.png'},
+        { id: 'destinyShift', name: '運命改変', type: 'dice', cost: 300, rarity: 4, flavor: '定められし賽の目すら、捻じ曲げる。', usesPerWave: true, image: './Card Image/35.png' },
+        { id: 'twoEyeBonus', name: '2の目ボーナス', type: 'score', cost: 60, rarity: 1, flavor: '二は地味だが、勝ちは勝ち。', effectTag: 'twoEyeBonus', image: './Card Image/36.png' }, 
+        { id: 'threeEyeBonus', name: '3の目ボーナス', type: 'score', cost: 70, rarity: 1, flavor: '三度目の正直、とは限らないが良い目だ。', effectTag: 'threeEyeBonus', image: './Card Image/37.png' },
+        { id: 'fourEyeBonus', name: '4の目ボーナス', type: 'score', cost: 80, rarity: 1, flavor: '四合わせ（しあわせ）の目？', effectTag: 'fourEyeBonus', image: './Card Image/38.png' },
+        { id: 'fiveEyeBonus', name: '5の目ボーナス', type: 'score', cost: 90, rarity: 1, flavor: '五分の魂、いや五分の勝利。', effectTag: 'fiveEyeBonus', image: './Card Image/39.png' },
+        { id: 'allEyeBonus', name: '全目ボーナス', type: 'score', cost: 150, rarity: 2, flavor: 'どの目が出ようと、勝てば良いのだ。', effectTag: 'allEyeBonus', image: './Card Image/40.png' }, 
+        { id: 'eyeDefense', name: '見切り防御', type: 'score', cost: 180, rarity: 2, flavor: '相手の目がなんだ。かすり傷にもならんわ。', effectTag: 'eyeDefense', image: './Card Image/41.png' }, 
+        { id: 'trueBlinding', name: '目くらまし', type: 'dice', cost: 180, rarity: 3, flavor: '相手の目を眩ませ、好機を潰す。', usesPerWave: 1, image: './Card Image/42.png' }, 
+        { id: 'adjustEyeValue', name: '出目調整', type: 'dice', cost: 90, rarity: 2, flavor: 'その目を、狙った目に近づける。', usesPerWave: true, image: './Card Image/43.png' },
+        { id: 'pinzoroLossGuard', name: 'ピンゾロガード', type: 'score', cost: 160, rarity: 3, flavor: '最悪の目だけは、避けさせてもらう。', effectTag: 'pinzoroLossGuard', image: './Card Image/44.png' },
+        { id: 'arashiLossGuard', name: 'アラシガード', type: 'score',cost: 140,rarity: 2, 
+            flavor: '嵐の直撃は避けたいものだ。', // 例
+            effectTag: 'arashiLossGuard',
+            image: './Card Image/arashi_guard.png' // ★ 仮パス
+        },
+        {
+            id: 'shigoroLossGuard',
+            name: 'シゴロガード',
+            type: 'score',
+            cost: 80,  // 例
+            rarity: 1, // 例 (ノーマル)
+            flavor: '4-5-6… あんまり痛くないといいな。', // 例
+            effectTag: 'shigoroLossGuard',
+            image: './Card Image/shigoro_guard.png' // ★ 仮パス
+        },
+        {
+            id: 'overallLossGuard',
+            name: '鉄壁防御', // 例
+            type: 'score',
+            cost: 250, // 例
+            rarity: 4, // 例 (レジェンダリー)
+            flavor: 'どんな攻撃だろうと、受け止めてみせる！', // 例
+            effectTag: 'overallLossGuard',
+            image: './Card Image/overall_guard.png' // ★ 仮パス
+        },
     ];
 
      // --- three.js 関連変数 --- 
@@ -1014,7 +1050,56 @@ function setMessage(msg, buttonType = 'none') {
             if (totalZoroUpRate > 0) { console.log(`最終ゾロ目確率UPレート: ${totalZoroUpRate * 100}%`); if (Math.random() < totalZoroUpRate) { if (dice[1] !== dice[0]) { console.log(` -> ゾロ目確率UP効果！ ダイス2 (${dice[1]}) が ${dice[0]} に！`); dice[1] = dice[0]; appliedZoroUp = true; } } if (Math.random() < totalZoroUpRate) { if (dice[2] !== dice[0]) { console.log(` -> ゾロ目確率UP効果！ ダイス3 (${dice[2]}) が ${dice[0]} に！`); dice[2] = dice[0]; appliedZoroUp = true; } } }
             if (isStormWarningReroll && !appliedZoroUp) { const stormCard = playerCards.find(c => c.id === 'stormWarning'); const stormLevel = stormCard?.level || 1; const arashiBoostChance = [0.05, 0.07, 0.10][stormLevel - 1]; if (Math.random() < arashiBoostChance) { const targetValue = Math.floor(Math.random() * 5) + 2; console.log(`Card Effect: 嵐の予感 Lv.${stormLevel} 振り直し時アラシブースト発動！ ${targetValue}のアラシに！`); dice = [targetValue, targetValue, targetValue]; } }
             if (soulRollLevel >= 3) { let attempts = 0; const maxAttempts = 5; const isMenashiCheck = (d) => d[0] !== d[1] && d[1] !== d[2] && d[0] !== d[2]; let isMenashi = isMenashiCheck(dice); while (isMenashi && attempts < maxAttempts) { console.log(`Soul Roll Lv.3: Menashi detected (${dice.join(',')}), rerolling... (Attempt ${attempts + 1})`); let rerolledDice = [rollSingleDice(), rollSingleDice(), rollSingleDice()]; attempts++; isMenashi = isMenashiCheck(rerolledDice); dice = rerolledDice; } if (attempts >= maxAttempts && isMenashi) { console.warn("Soul Roll Lv.3: Max reroll attempts reached, still Menashi."); } else if (attempts > 0 && !isMenashi) { console.log(`Soul Roll Lv.3: Menashi avoided! New dice: ${dice.join(',')}`); } }
-        } return dice;
+        } 
+        // --- 目くらまし効果 ---
+        if (isNpc && trueBlindingActive && trueBlindingLevel > 0) {
+            console.log(`Applying True Blinding Lv.${trueBlindingLevel} effect to NPC roll... Initial dice: [${dice.join(',')}]`); // ★ ログ追加
+            const s = [...dice].sort((a, b) => a - b);
+            const [d1, d2, d3] = s;
+            let originalHandType = "other";
+
+            if (d1 === d2 && d2 === d3) originalHandType = "zoro";
+            else if (d1 === 4 && d2 === 5 && d3 === 6) originalHandType = "shigoro";
+
+            if (originalHandType === "zoro" || originalHandType === "shigoro") {
+                const suppressChance = [0.15, 0.25, 0.40][trueBlindingLevel - 1];
+                console.log(` -> Target hand (${originalHandType}) detected. Suppress chance: ${suppressChance * 100}%`);
+
+                if (Math.random() < suppressChance) {
+                    console.log(`%c -> True Blinding SUCCESS! Rerolling one die to disrupt the hand.`, 'color: red; font-weight: bold;');
+                    let rerollIndex = Math.floor(Math.random() * 3);
+                    let newValue;
+                    let attempts = 0;
+                    const maxRerollAttempts = 10;
+
+                    do {
+                        newValue = rollSingleDice();
+                        let potentialNewDice = [...dice];
+                        potentialNewDice[rerollIndex] = newValue;
+                        const sNew = [...potentialNewDice].sort((a, b) => a - b);
+                        const [n1, n2, n3] = sNew;
+                        let newHandType = "other";
+                        if (n1 === n2 && n2 === n3) newHandType = "zoro";
+                        else if (n1 === 4 && n2 === 5 && n3 === 6) newHandType = "shigoro";
+                        attempts++;
+                        if (newHandType !== originalHandType) break;
+                    } while (attempts < maxRerollAttempts);
+
+                    if (attempts < maxRerollAttempts) {
+                        console.log(` -> Rerolled dice at index ${rerollIndex} from ${dice[rerollIndex]} to ${newValue}. Final dice: [${dice.map((d, i) => i === rerollIndex ? newValue : d).join(',')}]`); // ★ ログ追加
+                        dice[rerollIndex] = newValue;
+                    } else {
+                        console.warn(` -> True Blinding: Max reroll attempts reached, could not disrupt hand.`);
+                    }
+                } else {
+                    console.log(` -> True Blinding FAILED. Hand remains ${originalHandType}.`);
+                }
+            } else {
+                 console.log(` -> No target hand detected for True Blinding.`); 
+            }
+        }
+        console.log(`Final dice result (${isNpc ? 'NPC' : 'Player'}): ${dice.join(',')}`);
+        return dice;
     }
     function getHandResult(dice, isNpc = false, blindingDiceLevel = 0, soulRollLevel = 0) { 
         const s = [...dice].sort((a, b) => a - b); const [d1, d2, d3] = s; let result;
@@ -1258,6 +1343,37 @@ function setMessage(msg, buttonType = 'none') {
             case 'shigoroBonus': conditionText = "シゴロで勝利した時 (パッシブ)"; effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`; break;
             case 'oneEyeBonus': conditionText = "「1の目」で勝利した時 (パッシブ)"; effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`; break;
             case 'sixEyeBonus': conditionText = "「6の目」で勝利した時 (パッシブ)"; effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`; break;
+            case 'twoEyeBonus':
+            conditionText = "「2の目」で勝利した時 (パッシブ)";
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'threeEyeBonus':
+            conditionText = "「3の目」で勝利した時 (パッシブ)";
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'fourEyeBonus':
+            conditionText = "「4の目」で勝利した時 (パッシブ)";
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'fiveEyeBonus':
+            conditionText = "「5の目」で勝利した時 (パッシブ)";
+            effectText = `獲得スコア計算時の基本倍率に +${level} 加算される。`;
+            break;
+        case 'allEyeBonus':
+            conditionText = "いずれかの「目」で勝利した時 (パッシブ)";
+            const allEyeBonusValue = [0.5, 1.0, 1.5][level - 1].toFixed(1);
+            effectText = `獲得スコア計算時の基本倍率に +${allEyeBonusValue} 加算される。`;
+            break;
+        case 'eyeDefense':
+            conditionText = "相手が「目」で自分が敗北した時 (パッシブ)";
+            const eyeDefenseReductionValue = [0.5, 1.0, 1.5][level - 1].toFixed(1);
+            effectText = `支払いスコア計算時の基本倍率から ${eyeDefenseReductionValue} 軽減される (最低0倍)。`;
+            break;
+        case 'trueBlinding': 
+            conditionText = "自分のロール前 (アクティブ)"; 
+            const blindingEffectText = level === 1 ? '少し低下' : level === 2 ? '低下' : '大きく低下';
+            effectText = `WAVE中 ${level}回 使用可能。使用したラウンド中、相手が良い役（ピンゾロ、アラシ、シゴロ）を出す確率を${blindingEffectText}させる。`; // 効果説明も仮
+            break;
             case 'hifumiHalf':
                 conditionText = "ヒフミで敗北した時 (パッシブ)";
                 let hifumiReductionText = "不明"; 
@@ -1398,6 +1514,11 @@ function setMessage(msg, buttonType = 'none') {
                 effectText = `WAVE中 ${destinyUses}回 使用可能。${destinyTargetText} が出た場合、追加の振り直し権利を得る（ロール回数上限無視）。振り直すか選択でき、振り直した場合は結果が必ず ${destinyTargetText} 以外になる。`;
                 break;
             default: conditionText = "---"; effectText = '---'; break;
+            case 'adjustEyeValue':
+                conditionText = "自分のロール結果が「目」になった後 (アクティブ)";
+                const adjustEyeValueUses = level;
+                effectText = `WAVE中 ${adjustEyeValueUses}回 使用可能。「目」としてカウントされている数字（ペアでない方の数字）の出目を ±1 できる（1未満や6超過は不可）。使用時に調整方向を選択する。`;
+                break;
         }
         const conditionHtml = conditionText ? `<b>【発動条件/タイミング】</b><br>${conditionText}<br>` : '';
         return `${conditionHtml}<b>【効果】</b><br>${effectText}`;
@@ -2458,11 +2579,16 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
         playerRollCount = 0; npcRollCount = 0;
         rollButton.disabled = true; historyButton.disabled = false;
         currentBet = 0;
-
+    
         // === フラグリセット ===
-        activeCardBeingUsed = null; ignoreMinBetActive = false; zoroChanceUpActive = false; avoid123_456Active = false; blessingDiceActive = false; stormWarningActive = false; stormWarningRerollsLeft = 0; blindingDiceActive = false; doubleUpBetActive = false; rewardAmplifierActive = false; giveUpEyeUsedThisTurn = false; adjustEyeUsedThisTurn = false; nextChanceUsedThisTurn = false; soulRollUsedThisTurn = false; waitingForUserChoice = false; userChoiceResolver = null;
-        riskyBetActive = false; 
+        activeCardBeingUsed = null; ignoreMinBetActive = false; zoroChanceUpActive = false; avoid123_456Active = false; blessingDiceActive = false; stormWarningActive = false; stormWarningRerollsLeft = 0; blindingDiceActive = false; doubleUpBetActive = false;
+        rewardAmplifierActive = false; 
+        giveUpEyeUsedThisTurn = false; adjustEyeUsedThisTurn = false; nextChanceUsedThisTurn = false; soulRollUsedThisTurn = false; waitingForUserChoice = false; userChoiceResolver = null;
+        riskyBetActive = false;
         waitingForPlayerActionAfterRoll = false; drawBonusActive = false; isShowingRoleResult = false; isShowingGameResult = false;
+        blindingDiceActive = false; // 蜃気楼フラグ
+        trueBlindingActive = false; // 目くらましフラグ リセット追加
+        trueBlindingLevel = 0;      // 目くらましレベル リセット追加
 
         if (betMainControls) betMainControls.style.display = 'flex';
         if (betActionContainer) betActionContainer.style.display = 'flex';
@@ -3396,7 +3522,12 @@ async function displayScoreCalculationAnimation(data) {
             npcConsecutiveWins++; // 相手連勝数+1
             consecutiveWins = 0; // プレイヤー連勝リセット
         } else { // プレイヤーが親だった
-            consecutiveWins = 0; // プレイヤー連勝リセット
+            if (!parentKeptByCard) { // 親権維持カードを使用していない場合のみリセット
+                consecutiveWins = 0; // プレイヤー連勝リセット
+            } else {
+                console.log("Parent kept by card, consecutiveWins not reset.");
+                // 親権維持カード使用時はプレイヤー連勝数はリセットしない
+            }
             npcConsecutiveWins = 1; // 相手が新しく親になり1勝目
             if (!preventParentChange) { // 親権維持を使わなかった場合
                 parentChanged = true; // 親交代フラグ
@@ -3469,19 +3600,128 @@ async function displayScoreCalculationAnimation(data) {
                  else { baseMultiplier = Math.max(1, winnerHand?.payoutMultiplier || 1); }
                  // ダブルアップ失敗ペナルティ (保険なしの場合のみ影響)
                  const doubleUpCardCheck = playerCards.find(c => c.id === 'doubleUpBet');
-                 const usedDoubleUpThisRound = (activeCardUses['doubleUpBet'] || 0) > (activeCardUses['doubleUpBet_roundStartCount'] || 0);
-                 if (doubleUpCardCheck && usedDoubleUpThisRound && !isPlayerParent) { if (doubleUpCardCheck.level <= 2) { isHifumiLoss = true; isShonbenLoss = false; baseMultiplier = Math.abs(ROLES.HIFUMI.payoutMultiplier); appliedCardEffects.push({ name: `ダブルアップ失敗 Lv.${doubleUpCardCheck.level}`, value: `(ヒフミ扱い x${baseMultiplier})`, type: 'negative' }); } else { appliedCardEffects.push({ name: `ダブルアップ失敗 Lv.${doubleUpCardCheck.level}`, value: `(ペナルティなし)`, type: 'info' }); } }
-             }
+                 if (doubleUpBetActive && doubleUpCardCheck && !isPlayerParent) {
+                     if (doubleUpCardCheck.level <= 2) {
+                         isHifumiLoss = true; isShonbenLoss = false;
+                         const penaltyBonus = Math.abs(ROLES.HIFUMI.payoutMultiplier) - baseMultiplier;
+                         multiplierBonus += penaltyBonus;
+                         appliedCardEffects.push({ name: `ダブルアップ失敗 Lv.${doubleUpCardCheck.level}`, value: `(ヒフミ扱い x${Math.abs(ROLES.HIFUMI.payoutMultiplier)})`, type: 'negative' });
+                         console.log(`Double Up Failure Penalty Applied: Multiplier Bonus adjusted by ${penaltyBonus.toFixed(1)}`);
+                     } else {
+                         appliedCardEffects.push({ name: `ダブルアップ失敗 Lv.${doubleUpCardCheck.level}`, value: `(ペナルティなし)`, type: 'info' });
+                     }
+                 }
+            }   
 
              // 2. カード効果による倍率ボーナス/ペナルティ計算 (riskyBet含む)
-             if (winnerIsPlayer) {
-                 playerCards.forEach(cardData => { const cardDef = allCards.find(c => c.id === cardData.id); if (!cardDef || !cardDef.effectTag) return; const level = cardData.level; let effectApplied = false; let bonusVal = 0; let effectType = 'bonus'; switch (cardDef.effectTag) { case 'arashiBonus': if (winnerHand?.name === ROLES.ARASHI.name) { bonusVal = level; effectApplied = true; } break; case 'shigoroBonus': if (winnerHand?.name === ROLES.SHIGORO.name) { bonusVal = level; effectApplied = true; } break; case 'oneEyeBonus': if (winnerHand?.type === '目' && winnerHand.value === 1) { bonusVal = level; effectApplied = true; } break; case 'sixEyeBonus': if (winnerHand?.type === '目' && winnerHand.value === 6) { bonusVal = level; effectApplied = true; } break; } if(effectApplied){ multiplierBonus += bonusVal; appliedCardEffects.push({ name: `${cardDef.name} Lv.${level}`, value: `+${bonusVal.toFixed(1)}倍`, type: effectType }); } });
-                 const amplifierCard = playerCards.find(c => c.id === 'rewardAmplifier'); const usedAmplifierThisRound = (activeCardUses['rewardAmplifier'] || 0) > (activeCardUses['rewardAmplifier_roundStartCount'] || 0); if (amplifierCard && usedAmplifierThisRound && (winnerHand?.type === '役' || winnerHand?.type === '目')) { const bonusValue = (amplifierCard.level >= 2) ? 2 : 1; multiplierBonus += bonusValue; appliedCardEffects.push({ name: `報酬増幅 Lv.${amplifierCard.level}`, value: `+${bonusValue.toFixed(1)}倍`, type: 'bonus' }); }
-                 const doubleUpCard = playerCards.find(c => c.id === 'doubleUpBet'); const usedDoubleUpThisRoundWin = (activeCardUses['doubleUpBet'] || 0) > (activeCardUses['doubleUpBet_roundStartCount'] || 0); if (doubleUpCard && usedDoubleUpThisRoundWin && !isPlayerParent) { const bonusValue = [1.0, 1.5, 2.0][(doubleUpCard.level || 1) - 1]; multiplierBonus += bonusValue; appliedCardEffects.push({ name: `ダブルアップ成功 Lv.${doubleUpCard.level}`, value: `+${bonusValue.toFixed(1)}倍`, type: 'bonus' }); }
-             } else { // 敗北時の軽減 (保険なし)
-                  playerCards.forEach(cardData => { const cardDef = allCards.find(c => c.id === cardData.id); if (!cardDef) return; const level = cardData.level; let effectApplied = false; let reductionVal = 0; let effectType = 'negative'; if (cardDef.effectTag === 'hifumiHalf' && isHifumiLoss) { reductionVal = -level; effectApplied = true; } if (cardDef.effectTag === 'shonbenHalf' && isShonbenLoss && !giveUpEyeUsedThisTurn) { if (level === 1) { reductionVal = -0.5; } else if (level === 2) { reductionVal = -1.0; } else if (level >= 3) { reductionVal = -1.5; } effectApplied = true; } if(effectApplied){ multiplierBonus += reductionVal; appliedCardEffects.push({ name: `${cardDef.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: effectType }); } });
-                  const giveUpCard = playerCards.find(c => c.id === 'giveUpEye'); if (isShonbenLoss && giveUpEyeUsedThisTurn && giveUpCard && giveUpCard.level >= 2) { const reduction = -0.5; multiplierBonus += reduction; appliedCardEffects.push({ name: `見切り Lv.${giveUpCard.level}`, value: `-0.5倍`, type: 'negative' }); }
-             }
+            multiplierBonus = 0; // 計算前にリセット
+            appliedCardEffects = appliedCardEffects.filter(eff => eff.type === 'info' || eff.name.includes('危険な賭け')); // ★ infoとriskyBet以外をリセット
+
+            if (winnerIsPlayer) {
+                // --- 勝利時のカード効果適用 ---
+                playerCards.forEach(cardData => {
+                    const cardDef = allCards.find(c => c.id === cardData.id);
+                    if (!cardDef || !cardDef.effectTag) return;
+                    const level = cardData.level;
+                    let effectApplied = false;
+                    let bonusVal = 0;
+                    let effectType = 'bonus';
+
+                    switch (cardDef.effectTag) {
+                        case 'arashiBonus':
+                            if (winnerHand?.name === ROLES.ARASHI.name) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'shigoroBonus':
+                            if (winnerHand?.name === ROLES.SHIGORO.name) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'oneEyeBonus':
+                            if (winnerHand?.type === '目' && winnerHand.value === 1) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'twoEyeBonus':
+                            if (winnerHand?.type === '目' && winnerHand.value === 2) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'threeEyeBonus':
+                            if (winnerHand?.type === '目' && winnerHand.value === 3) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'fourEyeBonus':
+                            if (winnerHand?.type === '目' && winnerHand.value === 4) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'fiveEyeBonus':
+                            if (winnerHand?.type === '目' && winnerHand.value === 5) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'sixEyeBonus':
+                            if (winnerHand?.type === '目' && winnerHand.value === 6) { bonusVal = level; effectApplied = true; }
+                            break;
+                        case 'allEyeBonus': 
+                            if (winnerHand?.type === '目') { bonusVal = [0.5, 1.0, 1.5][level - 1]; effectApplied = true; }
+                            break;
+                    }
+
+                    if (effectApplied) {
+                        multiplierBonus += bonusVal;
+                        appliedCardEffects.push({ name: `${cardDef.name} Lv.${level}`, value: `+${bonusVal.toFixed(1)}倍`, type: effectType });
+                        console.log(`Card Effect Applied (Win): ${cardDef.name} Lv.${level} -> Multiplier Bonus +${bonusVal}`);
+                    }
+                });
+
+                // --- 報酬増幅、ダブルアップ成功の処理 ---
+                const amplifierCard = playerCards.find(c => c.id === 'rewardAmplifier');
+                if (rewardAmplifierActive && amplifierCard && (winnerHand?.type === '役' || winnerHand?.type === '目')) {
+                    const bonusValue = (amplifierCard.level >= 2) ? 2 : 1;
+                    multiplierBonus += bonusValue;
+                    appliedCardEffects.push({ name: `報酬増幅 Lv.${amplifierCard.level}`, value: `+${bonusValue.toFixed(1)}倍`, type: 'bonus' });
+                    console.log(`Card Effect Applied (Win): Reward Amplifier Lv.${amplifierCard.level} -> Multiplier Bonus +${bonusValue}`);
+                    // フラグリセットは handleRoundEnd の最後で行う
+                }
+                const doubleUpCard = playerCards.find(c => c.id === 'doubleUpBet');
+                if (doubleUpBetActive && doubleUpCard && !isPlayerParent) { // 子の場合のみ適用
+                    const bonusValue = [1.0, 1.5, 2.0][(doubleUpCard.level || 1) - 1];
+                    multiplierBonus += bonusValue;
+                    appliedCardEffects.push({ name: `ダブルアップ成功 Lv.${doubleUpCard.level}`, value: `+${bonusValue.toFixed(1)}倍`, type: 'bonus' });
+                    console.log(`Card Effect Applied (Win): Double Up Success Lv.${doubleUpCard.level} -> Multiplier Bonus +${bonusValue}`);
+                }
+
+            } else { // プレイヤー敗北時の軽減 (保険なし)
+                 playerCards.forEach(cardData => {
+                    const cardDef = allCards.find(c => c.id === cardData.id);
+                    if (!cardDef) return;
+                    const level = cardData.level;
+                    let effectApplied = false;
+                    let reductionVal = 0;
+                    let effectType = 'negative';
+
+                    if (cardDef.effectTag === 'hifumiHalf' && isHifumiLoss) {
+                         reductionVal = -level; // ヒフミ軽減
+                         effectApplied = true;
+                    }
+                    if (cardDef.effectTag === 'shonbenHalf' && isShonbenLoss && !giveUpEyeUsedThisTurn) {
+                         // ションベン軽減 (見切り未使用時)
+                         reductionVal = [-0.5, -1.0, -1.5][level - 1];
+                         effectApplied = true;
+                    }
+                    if (cardDef.effectTag === 'eyeDefense' && loserHand?.type === '目' && winnerHand?.type === '目') { // 自分が目で負けた場合
+                         // 相手が目で、自分が敗北した場合に適用
+                         reductionVal = [-0.5, -1.0, -1.5][level - 1];
+                         effectApplied = true;
+                         console.log(`Card Effect Applied (Loss): Eye Defense Lv.${level} -> Multiplier Reduction ${reductionVal}`);
+                     }
+
+                    if (effectApplied) {
+                         multiplierBonus += reductionVal; // 負の値が加算される
+                         appliedCardEffects.push({ name: `${cardDef.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: effectType });
+                         console.log(`Card Effect Applied (Loss): ${cardDef.name} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
+                    }
+                 });
+                 // 見切り使用時のションベン半減 
+                 const giveUpCard = playerCards.find(c => c.id === 'giveUpEye');
+                 if (isShonbenLoss && giveUpEyeUsedThisTurn && giveUpCard && giveUpCard.level >= 2) {
+                    const reduction = -0.5; // 見切りLv2以上なら支払い半減
+                    multiplierBonus += reduction;
+                    appliedCardEffects.push({ name: `見切り Lv.${giveUpCard.level}`, value: `-0.5倍`, type: 'negative' });
+                    console.log(`Card Effect Applied (Loss): Give Up Eye Lv.${giveUpCard.level} -> Multiplier Bonus -0.5`);
+                 }
+            }
+            // 危険な賭けの勝利ボーナスを加算
              multiplierBonus += riskyBetWinBonus;
 
              // 3. 連勝ボーナス計算
@@ -3576,7 +3816,9 @@ async function displayScoreCalculationAnimation(data) {
         else if (parentKeptByCard) { finalMsg += ` (${playerNameStr}が親権維持発動！)`; }
         setMessage(finalMsg);
         if (giveUpEyeUsedThisTurn) { giveUpEyeUsedThisTurn = false; }
-
+        rewardAmplifierActive = false;
+        doubleUpBetActive = false;
+        console.log("Resetting rewardAmplifierActive and doubleUpBetActive flags after round end processing.");
         if (scoreCalculationAnimationEl) scoreCalculationAnimationEl.classList.remove('visible');
         if (diceAreaEl) diceAreaEl.classList.remove('calculating');
         if(scoreCalculationAnimationEl) scoreCalculationAnimationEl.innerHTML = '';
@@ -3806,7 +4048,7 @@ async function displayScoreCalculationAnimation(data) {
         if (cardDetailModal && cardDetailModal.style.display === 'flex') { cardDetailModal.style.display = 'none'; } // ★ 詳細モーダルも閉じる
         console.log("Opening Card Action Modal"); displayCardsInModal(); cardActionModal.style.display = 'flex';
     }
-    function displayCardsInModal() { // (変更なし)
+    function displayCardsInModal() { 
         const activeCardDisplay = document.getElementById('active-card-display');
         const passiveCardDisplay = document.getElementById('passive-card-display');
         const activeCardMessage = document.getElementById('active-card-message');
@@ -4055,7 +4297,18 @@ async function displayScoreCalculationAnimation(data) {
                  postUseMessage = `このカードは「目」が出ている時しか使用できません。`;
                  useConsumed = false;
             }
-            // ★ フラグ解除は共通処理で行う
+            // フラグ解除は共通処理で行う
+        }
+        else if (cardId === 'adjustEyeValue') {
+            if (playerHand?.type !== '目') {
+                postUseMessage = "このカードは「目」が出ている時しか使用できません。";
+                useConsumed = false;
+                playSound('error');
+                activeCardBeingUsed = null; 
+            } else {
+                showDiceChoiceOverlay(cardId);
+                return; // handleDiceChoice に処理を委譲するため、ここで return
+            }
         }
         else if (cardId === 'nextChance') {
             let changed = false; // ループ外で宣言
@@ -4166,10 +4419,11 @@ async function displayScoreCalculationAnimation(data) {
             }
        }
        else if (cardId === 'doubleUpBet') {
-           doubleUpBetActive = true; useConsumed = true;
-           postUseMessage = "ダブルアップ準備完了！勝負！"; requiresDelay = true;
-           requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
-       }
+        doubleUpBetActive = true; // フラグを立てる (これは維持)
+        useConsumed = true;
+        postUseMessage = "ダブルアップ準備完了！勝負！"; requiresDelay = true;
+        requiresPlayerActionAfterCard = true;
+    }
        else if (cardId === 'blindingDice') { // または 'shinkirou'
            blindingDiceActive = true; requiresDelay = true; useConsumed = true; // 使用確定
            postUseMessage = `蜃気楼！このラウンド中、相手のロールに影響します。`; // 名前変更反映
@@ -4196,15 +4450,16 @@ async function displayScoreCalculationAnimation(data) {
             // return しない（共通処理に進む）
         }
    }
-        else if (cardId === 'rewardAmplifier') {
-            rewardAmplifierActive = true; useConsumed = true; // 使用確定
-            postUseMessage = `報酬増幅！このラウンドの役での勝利時、配当倍率が増加します。`; requiresDelay = true;
-            requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
-        }
+   else if (cardId === 'rewardAmplifier') {
+    rewardAmplifierActive = true; // フラグを立てる (これは維持)
+    useConsumed = true; // 使用確定
+    postUseMessage = `報酬増幅！このラウンドの役での勝利時、配当倍率が増加します。`; requiresDelay = true;
+    requiresPlayerActionAfterCard = true;
+}
         else if (cardId === 'drawBonus') {
             drawBonusActive = true; useConsumed = true; // 使用確定
             postUseMessage = `引き分けボーナス準備完了！このラウンド引き分け時に効果発動。`; requiresDelay = true;
-            requiresPlayerActionAfterCard = true; // 変更: 再度アクション判断へ
+            requiresPlayerActionAfterCard = true; 
         }
         else if (cardId === 'stormRoulette') {
              if (playerHand?.name === ROLES.ARASHI.name) {
@@ -4266,6 +4521,24 @@ async function displayScoreCalculationAnimation(data) {
             }
             activeCardBeingUsed = null;
         }
+        else if (cardId === 'trueBlinding') {
+            const isPlayerInitialRollPhaseNow = isGameActive && isPlayerTurn && playerRollCount === 0; 
+
+            if (!isPlayerInitialRollPhaseNow) { 
+                postUseMessage = "このカードは自分の最初のロール前にのみ使用できます。";
+                useConsumed = false;
+                playSound('error');
+                activeCardBeingUsed = null;
+            } else {
+                trueBlindingActive = true;
+                trueBlindingLevel = playerCardData.level;
+                useConsumed = true; 
+                requiresRoll = true;
+                requiresDelay = false;
+                postUseMessage = `目くらまし Lv.${trueBlindingLevel} 発動！ このラウンド中、相手の良い役が出にくくなります。サイコロを振ってください。`;
+                console.log(`True Blinding Lv.${trueBlindingLevel} activated for this round.`);
+            }            
+        }
         else { console.warn(`Active card effect for ${cardId} is not fully implemented yet.`); postUseMessage = `カード「${card.name}」の効果処理が未実装です。`; useConsumed = false; }
 
         // --- 処理分岐前の共通処理 ---
@@ -4324,27 +4597,98 @@ async function displayScoreCalculationAnimation(data) {
     } // handleActiveCardUse 関数の終わり
 
     rollButton.addEventListener('click', async () => {
-        if (playerScore <= 0 || !isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll || isShowingRoleResult || isShowingGameResult) { checkGameEnd(); return; }
-        let isFreeRoll = stormWarningRerollsLeft > 0;
-        const canRoll = playerRollCount < currentMaxRolls || isFreeRoll; 
-        if (!canRoll) { 
-            playSound('error'); setMessage("振り残り回数がありません。"); return;
+        // --- (早期リターン条件に soulRollUsedThisTurn を追加) ---
+        const canBypassChecksForSoulRoll = soulRollUsedThisTurn; // 魂の一振りが使われた直後か？
+
+        if (!canBypassChecksForSoulRoll && (playerScore <= 0 || !isGameActive || !isPlayerTurn || diceAnimationId || waitingForUserChoice || waitingForPlayerActionAfterRoll || isShowingRoleResult || isShowingGameResult)) {
+            // 魂の一振り直後でなければ、通常のチェックを行う
+            console.log("Roll button clicked, but conditions not met or Soul Roll not active.");
+            checkGameEnd(); // ゲーム終了条件をチェック
+            return; // 条件を満たさない場合はリターン
         }
-        playSound('diceRollButton');
-        if (isFreeRoll) { stormWarningRerollsLeft--; console.log("Using Storm Warning free reroll."); }
-        else { playerRollCount++; } 
-        playSound('diceRoll');
-        rollButton.disabled = true; historyButton.disabled = true; const playerName = selectedCharacter?.name || 'あなた'; setMessage(`${playerName}(${isPlayerParent ? '親' : '子'}): 振っています...`); showDiceRollModal(); updateUI();
-        const soulRollCard = playerCards.find(c => c.id === 'soulRoll'); // soulRollLvFor判定用に取得
-        const soulRollLvFor判定 = 0; 
+
+        // ロール可能かどうかの判定 
+        const isNormalRollAvailable = playerRollCount < currentMaxRolls;
+        const isStormWarningRollAvailable = stormWarningRerollsLeft > 0;
+        // const isSoulRollAvailable = soulRollUsedThisTurn; // この変数は canBypassChecksForSoulRoll で代用可能
+        const canRoll = isNormalRollAvailable || isStormWarningRollAvailable || canBypassChecksForSoulRoll;
+
+        // --- 魂の一振り使用直後ではないのにロールできない場合 (安全策) ---
+        if (!canRoll && !canBypassChecksForSoulRoll) {
+            playSound('error');
+            setMessage("振り残り回数がありません。");
+            console.warn("Roll button clicked, but canRoll is false and not bypassing for Soul Roll.");
+            return;
+        }
+
+        playSound('diceRollButton'); // ロールボタン SE
+
+        let isFreeRoll = false;
+
+        // ロール回数の消費/フラグリセット
+        if (canBypassChecksForSoulRoll) { // 魂の一振りによるロールの場合
+            soulRollUsedThisTurn = false; // フラグをここでリセット
+            console.log("Using Soul Roll additional roll.");
+            // コストはカード使用時に消費済み
+        } else if (isStormWarningRollAvailable) {
+            stormWarningRerollsLeft--;
+            isFreeRoll = true;
+            console.log("Using Storm Warning free reroll.");
+        } else {
+            // 通常のロール
+            playerRollCount++;
+        }
+
+        playSound('diceRoll'); // ダイスロール SE
+        rollButton.disabled = true;
+        historyButton.disabled = true;
+        const playerNameDisp = playerName || selectedCharacter?.name || 'あなた';
+        setMessage(`${playerNameDisp}(${isPlayerParent ? '親' : '子'}): 振っています...`);
+        showDiceRollModal();
+        updateUI(); // UI更新
+
+        const soulRollCard = playerCards.find(c => c.id === 'soulRoll');
+        const soulRollLvFor判定 = soulRollCard ? soulRollCard.level : 0;
+
         const finalDice = rollDice(false, 0, soulRollLvFor判定);
+
         animateDiceRoll(finalDice, async () => {
-            playerDice = finalDice; if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' '); hideDiceRollModal(); diceDisplayEl.textContent = finalDice.join(' ');
-            const result = getHandResult(playerDice, false, 0, soulRollLvFor判定); const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目')); playerHand = rk ? { ...ROLES[rk], ...result } : result;
-            console.log("Player Rolled:", playerDice, "Hand:", playerHand); updateUI(); highlightHand(playerHandEl, playerHand);
-            let stormWarningAppliedThisRoll = false; const stormCardCheck = playerCards.find(c => c.id === 'stormWarning');
-            if (stormWarningActive && stormCardCheck) { const stormLevelCheck = stormCardCheck.level; const targetRoles = (stormLevelCheck >= 3) ? [ROLES.ARASHI.name, ROLES.PINZORO.name] : [ROLES.ARASHI.name]; if (!(playerHand.type === '役' && targetRoles.includes(playerHand.name))) { stormWarningRerollsLeft = (stormLevelCheck >= 2) ? 2 : 1; stormWarningAppliedThisRoll = true; console.log(`Card Effect: 嵐の予感発動！ Target role not hit. ${stormWarningRerollsLeft} free rerolls available.`); setMessage(`${playerName}(${isPlayerParent ? '親' : '子'}): 嵐の予感効果！ アラシ/ピンゾロが出なかったので無料振り直しが ${stormWarningRerollsLeft} 回可能です。再度振ってください。`); rollButton.disabled = false; historyButton.disabled = false; updateCardButtonHighlight(); stormWarningActive = false; activeCardUses['stormWarning'] = (activeCardUses['stormWarning'] || 0) + 1; return; } else { console.log(`Card Effect: 嵐の予感 - Target role ${playerHand.name} hit! No free reroll.`); stormWarningActive = false; activeCardUses['stormWarning'] = (activeCardUses['stormWarning'] || 0) + 1; } }
-            await handlePostRollPlayerAction();
+            playerDice = finalDice;
+            if(playerDiceEl) playerDiceEl.textContent = playerDice.join(' ');
+            hideDiceRollModal();
+            diceDisplayEl.textContent = finalDice.join(' ');
+
+            const result = getHandResult(playerDice, false, 0, soulRollLvFor判定);
+            const rk = Object.keys(ROLES).find(k => ROLES[k].name === result.name || (result.type === '目' && ROLES[k].name === '目'));
+            playerHand = rk ? { ...ROLES[rk], ...result } : result;
+
+            console.log("Player Rolled:", playerDice, "Hand:", playerHand);
+            updateUI();
+            highlightHand(playerHandEl, playerHand);
+
+            // 嵐の予感の無料ロール判定 
+            let stormWarningAppliedThisRoll = false;
+            const stormCardCheck = playerCards.find(c => c.id === 'stormWarning');
+            if (stormWarningActive && stormCardCheck) {
+                const stormLevelCheck = stormCardCheck.level;
+                const targetRoles = (stormLevelCheck >= 3) ? [ROLES.ARASHI.name, ROLES.PINZORO.name] : [ROLES.ARASHI.name];
+                if (!(playerHand.type === '役' && targetRoles.includes(playerHand.name))) {
+                    stormWarningRerollsLeft = (stormLevelCheck >= 2) ? 2 : 1;
+                    stormWarningAppliedThisRoll = true;
+                    console.log(`Card Effect: 嵐の予感発動！ Target role not hit. ${stormWarningRerollsLeft} free rerolls available.`);
+                    setMessage(`${playerNameDisp}(${isPlayerParent ? '親' : '子'}): 嵐の予感効果！ アラシ/ピンゾロが出なかったので無料振り直しが ${stormWarningRerollsLeft} 回可能です。再度振ってください。`);
+                    rollButton.disabled = false;
+                    historyButton.disabled = false;
+                    updateCardButtonHighlight();
+                    stormWarningActive = false;
+                    return; // 無料ロール発生時は処理中断
+                } else {
+                    console.log(`Card Effect: 嵐の予感 - Target role ${playerHand.name} hit! No free reroll.`);
+                    stormWarningActive = false;
+                }
+            }
+
+            await handlePostRollPlayerAction(); // ロール後の処理へ
         });
     });
 
@@ -4359,23 +4703,25 @@ async function displayScoreCalculationAnimation(data) {
         // 他のアクション実行中やモーダル表示中は使用不可
         if (activeCardBeingUsed || waitingForUserChoice || waitingForPlayerActionAfterRoll || isShowingRoleResult || isShowingGameResult) return false;
 
-        // isPlayerRollPhase の代わりに直接条件を記述
+        // 現在のフェーズを判定
         const isPlayerInitialRollPhase = isGameActive && isPlayerTurn && playerRollCount === 0;
-        const isBetPhase = !isGameActive && isPlayerParent; // isPlayerParent もチェック
+        const isBetPhase = !isGameActive && isPlayerParent; 
 
         switch (card.id) {
             case 'ignoreMinBet':
-                return isBetPhase && !ignoreMinBetActive; // ベットフェーズ、効果未適用
+                return isBetPhase && !ignoreMinBetActive;
             case 'riskyBet':
-                return isBetPhase && !riskyBetActive; // ベットフェーズ、効果未適用
+                return isBetPhase && !riskyBetActive;
             case 'zoroChanceUp':
-                return isPlayerInitialRollPhase && !zoroChanceUpActive; // 最初のロール前、効果未適用
+                return isPlayerInitialRollPhase && !zoroChanceUpActive;
             case 'avoid123_456':
-                return isPlayerInitialRollPhase && !avoid123_456Active; // 最初のロール前、効果未適用
+                return isPlayerInitialRollPhase && !avoid123_456Active;
             case 'blessingDice':
-                return isPlayerInitialRollPhase && !blessingDiceActive; // 最初のロール前、効果未適用
+                return isPlayerInitialRollPhase && !blessingDiceActive;
             case 'stormWarning':
-                return isPlayerInitialRollPhase && !stormWarningActive; // 最初のロール前、効果未適用
+                return isPlayerInitialRollPhase && !stormWarningActive;
+            case 'trueBlinding': 
+                return isPlayerInitialRollPhase && !trueBlindingActive; 
             // 他の「ロール前」に使用するカードがあればここに追加
             default:
                 // ロール後や他のタイミングで使用するカードはここでは false
@@ -4422,6 +4768,24 @@ async function displayScoreCalculationAnimation(data) {
             if (playerHand?.type !== '目') { setMessage("「目」が出ていないため使用できません。"); hideDiceChoiceOverlay(); activeCardBeingUsed = null; setMessageAfterActionCancel(card.name); return; }
             instruction = `変更する「${playerHand.value}の目」を選んでください`;
              playerDice.forEach((diceValue, index) => { if (diceValue === playerHand.value) diceIndicesToSelect.push(index); });
+        }else if (cardId === 'adjustEyeValue') { 
+            if (playerHand?.type !== '目') {
+                setMessage("「目」が出ていないため使用できません。");
+                hideDiceChoiceOverlay();
+                activeCardBeingUsed = null;
+                setMessageAfterActionCancel(card.name);
+                return;
+            }
+            instruction = `調整する「${playerHand.value}の目」を選んでください`;
+            // 「目」の値を持つダイスのインデックスのみを選択対象とする
+            playerDice.forEach((diceValue, index) => {
+                if (diceValue === playerHand.value) {
+                    diceIndicesToSelect.push(index);
+                }
+            });
+            if (diceIndicesToSelect.length > 0) {
+                requiresAdjustChoice = true; // 調整方向を選択させるフラグ
+            }     
         }else if (cardId === 'menashiAdjust') { 
             if (playerHand?.type !== '目なし') {
                  setMessage("「目なし」でないため使用できません。");
@@ -4452,9 +4816,11 @@ async function displayScoreCalculationAnimation(data) {
                 button.textContent = playerDice[index];
                 button.dataset.diceIndex = index;
                 if (requiresAdjustChoice) {
-                    button.onclick = () => { playSound('click'); showAdjustOptions(index); }; // ★ SE追加
+                    // cardId によって showAdjustOptions の挙動が変わる可能性があるため、
+                    // cardId も渡すか、showAdjustOptions 側で activeCardBeingUsed を参照する
+                    button.onclick = () => { playSound('click'); showAdjustOptions(index); }; // showAdjustOptions を呼び出す
                 } else {
-                    button.onclick = handleDiceChoice; // handleDiceChoice内でSE
+                    button.onclick = handleDiceChoice;
                 }
                 buttonContainer.appendChild(button);
             });
@@ -4463,7 +4829,7 @@ async function displayScoreCalculationAnimation(data) {
         cancelButton.className = 'button-subtle';
         cancelButton.textContent = 'キャンセル';
         cancelButton.style.marginTop = '15px';
-        cancelButton.onclick = () => { playSound('click'); hideDiceChoiceOverlay(); }; // ★ SE追加
+        cancelButton.onclick = () => { playSound('click'); hideDiceChoiceOverlay(); }; // SE追加
         buttonContainer.appendChild(cancelButton);
         diceChoiceOverlay.appendChild(buttonContainer);
         diceChoiceOverlay.style.display = 'flex';
@@ -4660,7 +5026,7 @@ async function rerollWithGuarantee(level, currentDice) {
             if (adjustedValue !== originalValue) {
                 newDice[diceIndex] = adjustedValue;
                 message = `出目を ${originalValue} から ${adjustedValue} に調整しました。`;
-                adjustEyeUsedThisTurn = true; // ★ adjustEye 使用フラグ
+                adjustEyeUsedThisTurn = true; 
             } else {
                 message = "調整しても値が変わりませんでした。";
                 useConsumed = false;
@@ -4669,8 +5035,22 @@ async function rerollWithGuarantee(level, currentDice) {
             console.error(`handleDiceChoice called unexpectedly for ${cardId}`);
             hideDiceChoiceOverlay();
             return;
-        } else if (cardId === 'menashiAdjust' && adjustDir) { // ★ 目なし調整カードの処理
-            const adjustAmount = 1; // 常に±1
+        }else if (cardId === 'adjustEyeValue' && adjustDir) { 
+            const adjustAmount = 1; 
+            let originalValue = newDice[diceIndex];
+            let adjustedValue = originalValue;
+            if (adjustDir === 'plus') { adjustedValue = Math.min(6, originalValue + adjustAmount); }
+            else if (adjustDir === 'minus') { adjustedValue = Math.max(1, originalValue - adjustAmount); }
+
+            if (adjustedValue !== originalValue) {
+                newDice[diceIndex] = adjustedValue;
+                message = `出目を ${originalValue} から ${adjustedValue} に調整しました。`;
+            } else {
+                message = "調整しても値が変わりませんでした。";
+                useConsumed = false;
+            }           
+        } else if (cardId === 'menashiAdjust' && adjustDir) { 
+            const adjustAmount = 1; 
             let originalValue = newDice[diceIndex];
             let adjustedValue = originalValue;
             if (adjustDir === 'plus') { adjustedValue = Math.min(6, originalValue + adjustAmount); }
@@ -4678,7 +5058,6 @@ async function rerollWithGuarantee(level, currentDice) {
             if (adjustedValue !== originalValue) {
                 newDice[diceIndex] = adjustedValue;
                 message = `出目を ${originalValue} から ${adjustedValue} に調整しました。`;
-                // 必要なら目なし調整カード使用フラグを立てる
             } else {
                 message = "調整しても値が変わりませんでした。";
                 useConsumed = false;
@@ -4791,10 +5170,16 @@ async function rerollWithGuarantee(level, currentDice) {
             case 'blindingDice':
                 totalUses = 1;
                 break;
+            case 'trueBlinding': 
+                totalUses = level; 
+                break;    
             default:
                 totalUses = card.usesPerWave || 1;
                 console.warn(`Card ${cardId} usesPerWave might not be explicitly handled by level. Using base value: ${totalUses}`);
                 break;
+            case 'adjustEyeValue': 
+                totalUses = level; 
+                break;    
         }
         return totalUses;
     }
@@ -4839,6 +5224,8 @@ async function rerollWithGuarantee(level, currentDice) {
             case 'changeEyeToOne':
             case 'changeEyeToSix':
                 return isPlayerPostRollEye;
+            case 'adjustEyeValue': 
+                return isPlayerPostRollEye;    
 
             // --- 特定の役/目で使用可能 ---
             case 'stormRoulette':
