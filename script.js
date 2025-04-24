@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char11', name: 'カラスマ', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['soulRoll'] },
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
-        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['overallLossGuard'] },
+        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['activeHandExpansion'] },
         { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['adjustEyeValue'] },
     ];
     let selectedCharacter = characters[0];
@@ -194,8 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
      const BET_HOLD_DELAY = 500, BET_HOLD_INTERVAL = 80;
      const CONSECUTIVE_WIN_BONUS_RATE = 0.1;
      const NPC_BET_DELAY = 1500;
-     const MAX_ACTIVE_CARDS = 4;
-     const MAX_PASSIVE_CARDS = 4;
+     let MAX_ACTIVE_CARDS = 4; // const から let に変更
+     let MAX_PASSIVE_CARDS = 4; // const から let に変更
      const REROLL_COST = 20;
      const MAX_CARD_LEVEL = 3;
      const SELL_PRICE_RATE = 0.5;
@@ -283,13 +283,19 @@ const boostItems = [
         { id: 'fourEyeBonus', name: '4の目ボーナス', type: 'score', cost: 80, rarity: 1, flavor: '四合わせ（しあわせ）の目？', effectTag: 'fourEyeBonus', image: './Card Image/38.png' },
         { id: 'fiveEyeBonus', name: '5の目ボーナス', type: 'score', cost: 90, rarity: 1, flavor: '五分の魂、いや五分の勝利。', effectTag: 'fiveEyeBonus', image: './Card Image/39.png' },
         { id: 'allEyeBonus', name: '全目ボーナス', type: 'score', cost: 150, rarity: 2, flavor: 'どの目が出ようと、勝てば良いのだ。', effectTag: 'allEyeBonus', image: './Card Image/40.png' }, 
-        { id: 'eyeDefense', name: '見切り防御', type: 'score', cost: 180, rarity: 2, flavor: '相手の目がなんだ。かすり傷にもならんわ。', effectTag: 'eyeDefense', image: './Card Image/41.png' }, 
+        { id: 'eyeDefense', name: 'アイマスク', type: 'score', cost: 180, rarity: 2, flavor: '相手の目がなんだ。かすり傷にもならんわ。', effectTag: 'eyeDefense', image: './Card Image/41.png' }, 
         { id: 'trueBlinding', name: '目くらまし', type: 'dice', cost: 180, rarity: 3, flavor: '相手の目を眩ませ、好機を潰す。', usesPerWave: 1, image: './Card Image/42.png' }, 
         { id: 'adjustEyeValue', name: '出目調整', type: 'dice', cost: 90, rarity: 2, flavor: 'その目を、狙った目に近づける。', usesPerWave: true, image: './Card Image/43.png' },
         { id: 'pinzoroLossGuard', name: 'ピンゾロガード', type: 'score', cost: 160, rarity: 3, flavor: '最悪の目だけは、避けさせてもらう。', effectTag: 'pinzoroLossGuard', image: './Card Image/44.png' },
         { id: 'arashiLossGuard', name: 'アラシガード', type: 'score',cost: 140,rarity: 2, flavor: '嵐の直撃は避けたいものだ。', effectTag: 'arashiLossGuard', image: './Card Image/45.png' },
         { id: 'shigoroLossGuard', name: 'シゴロガード', type: 'score', cost: 100, rarity: 1, flavor: '4-5-6… あんまり痛くないといいな。', effectTag: 'shigoroLossGuard', image: './Card Image/46.png' },
         { id: 'overallLossGuard', name: '鉄壁防御', type: 'score', cost: 250, rarity: 4, flavor: 'どんな攻撃だろうと、受け止めてみせる！', effectTag: 'overallLossGuard', image: './Card Image/47.png' },
+        { id: 'activeHandExpansion', name: '道具袋拡張', type: 'support', cost: 180, rarity: 2, flavor: '備えあれば憂いなし。もっと道具を持てるように。', 
+            applyEffect: (level = 1) => { MAX_ACTIVE_CARDS = 4 + level; console.log(`Applied Active Hand Expansion Lv.${level}: MAX_ACTIVE_CARDS is now ${MAX_ACTIVE_CARDS}`); if (shopScreen && shopScreen.classList.contains('active')) {updateShopHandDisplay();}},
+            removeEffect: (level = 1) => { MAX_ACTIVE_CARDS = Math.max(4, MAX_ACTIVE_CARDS - level); console.log(`Removed Active Hand Expansion Lv.${level}: MAX_ACTIVE_CARDS returned to ${MAX_ACTIVE_CARDS}`); if (shopScreen && shopScreen.classList.contains('active')) {updateShopHandDisplay();}}, image: './Card Image/48.png' },
+        { id: 'passiveHandExpansion', name: '心得拡張', type: 'support', cost: 180, rarity: 2, flavor: '学びを深め、さらなる力をその身に宿す。', 
+            applyEffect: (level = 1) => {MAX_PASSIVE_CARDS = 4 + level; console.log(`Applied Passive Hand Expansion Lv.${level}: MAX_PASSIVE_CARDS is now ${MAX_PASSIVE_CARDS}`); if (shopScreen && shopScreen.classList.contains('active')) {updateShopHandDisplay();}},
+            removeEffect: (level = 1) => {MAX_PASSIVE_CARDS = Math.max(4, MAX_PASSIVE_CARDS - level); console.log(`Removed Passive Hand Expansion Lv.${level}: MAX_PASSIVE_CARDS returned to ${MAX_PASSIVE_CARDS}`); if (shopScreen && shopScreen.classList.contains('active')) {updateShopHandDisplay();}}, image: './Card Image/49.png' },    
     ];
 
      // --- three.js 関連変数 --- 
@@ -1369,12 +1375,12 @@ function setMessage(msg, buttonType = 'none') {
                 effectText = `支払いスコア計算時の基本倍率から ${reductionText} 軽減される (最低0倍)。※「見切り」使用時は適用外`; break;
             case 'pinzoroLossGuard':
                     conditionText = "相手が「ピンゾロ」で自分が敗北した時 (パッシブ)";
-                    const pinzoroReduction = [1.0, 1.5, 2.0][level - 1].toFixed(1); 
+                    const pinzoroReduction = [1.0, 2.0, 3.0][level - 1].toFixed(1); 
                     effectText = `支払いスコア計算時の基本倍率から ${pinzoroReduction} 軽減される (最低0倍)。`;
                     break;
             case 'arashiLossGuard':
                     conditionText = "相手が「アラシ」で自分が敗北した時 (パッシブ)";
-                    const arashiReduction = [1.0, 1.5, 2.0][level - 1].toFixed(1); 
+                    const arashiReduction = [1.0, 1.5, 2.5][level - 1].toFixed(1); 
                     effectText = `支払いスコア計算時の基本倍率から ${arashiReduction} 軽減される (最低0倍)。`;
                     break;
             case 'shigoroLossGuard':
@@ -1517,6 +1523,14 @@ function setMessage(msg, buttonType = 'none') {
                 const adjustEyeValueUses = level;
                 effectText = `WAVE中 ${adjustEyeValueUses}回 使用可能。「目」としてカウントされている数字（ペアでない方の数字）の出目を ±1 できる（1未満や6超過は不可）。使用時に調整方向を選択する。`;
                 break;
+            case 'activeHandExpansion':
+                    conditionText = "常時 (パッシブ)";
+                    effectText = `アクティブカードの手札上限が +${level} される。(合計: ${4 + level}枚)`;
+                    break;
+            case 'passiveHandExpansion':
+                    conditionText = "常時 (パッシブ)";
+                    effectText = `パッシブカードの手札上限が +${level} される。(合計: ${4 + level}枚)`;
+                    break;    
         }
         const conditionHtml = conditionText ? `<b>【発動条件/タイミング】</b><br>${conditionText}<br>` : '';
         return `${conditionHtml}<b>【効果】</b><br>${effectText}`;
@@ -3681,91 +3695,103 @@ async function displayScoreCalculationAnimation(data) {
 
             } else { // プレイヤー敗北時の軽減 (保険なし)
                 let roleLossReduction = 0; // このラウンドでの役敗北軽減値合計
-                 const winnerHandName = winnerHand?.name; // 勝者(NPC)の手の名前
+                const winnerHandName = winnerHand?.name; // 勝者(NPC)の手の名前
+                const overallGuardCardData = playerCards.find(c => c.id === 'overallLossGuard'); 
+                let overallGuardApplied = false;
 
-                 // 総合敗北軽減チェック
-                 const overallGuardCard = playerCards.find(c => c.id === 'overallLossGuard');
-                 if (overallGuardCard) {
-                     const level = overallGuardCard.level;
-                     // 例: Lv1で-1.0, Lv2で-2.0, Lv3で-3.0 軽減
-                     const reductionVal = -(level); // マイナス値で定義
-                     roleLossReduction += reductionVal;
-                     appliedCardEffects.push({ name: `${overallGuardCard.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
-                     console.log(`Card Effect Applied (Loss): ${overallGuardCard.name} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
-                 } else {
-                     // 総合ガードがない場合のみ、個別のガードをチェック
-                     const pinzoroGuardCard = playerCards.find(c => c.id === 'pinzoroLossGuard');
-                     if (pinzoroGuardCard && winnerHandName === ROLES.PINZORO.name) {
-                         const level = pinzoroGuardCard.level;
-                         const reductionVal = [-1.0, -1.5, -2.0][level - 1]; // 例: Lv1で-1.0, Lv2で-1.5, Lv3で-2.0
-                         roleLossReduction += reductionVal;
-                         appliedCardEffects.push({ name: `${pinzoroGuardCard.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
-                         console.log(`Card Effect Applied (Loss): ${pinzoroGuardCard.name} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
-                     }
+                // --- 総合敗北軽減チェック (最優先) ---
+                if (overallGuardCardData) { 
+                    overallGuardApplied = true;
+                    const level = overallGuardCardData.level; 
+                    const reductionVal = -(level);
+                    roleLossReduction += reductionVal;
+                    const overallGuardCardDef = allCards.find(c => c.id === overallGuardCardData.id); // カード定義を取得
+                    const cardName = overallGuardCardDef ? overallGuardCardDef.name : '鉄壁防御'; // 名前を取得 (フォールバック付き)
+                    appliedCardEffects.push({ name: `${cardName} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
+                    console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
+                }
 
-                     const arashiGuardCard = playerCards.find(c => c.id === 'arashiLossGuard');
-                     if (arashiGuardCard && winnerHandName === ROLES.ARASHI.name) {
-                         const level = arashiGuardCard.level;
-                         const reductionVal = [-1.0, -1.5, -2.0][level - 1]; // 例
-                         roleLossReduction += reductionVal;
-                         appliedCardEffects.push({ name: `${arashiGuardCard.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
-                         console.log(`Card Effect Applied (Loss): ${arashiGuardCard.name} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
-                     }
-
-                     const shigoroGuardCard = playerCards.find(c => c.id === 'shigoroLossGuard');
-                     if (shigoroGuardCard && winnerHandName === ROLES.SHIGORO.name) {
-                         const level = shigoroGuardCard.level;
-                         const reductionVal = [-0.5, -1.0, -1.5][level - 1]; // 例 (シゴロは少し軽減率低め)
-                         roleLossReduction += reductionVal;
-                         appliedCardEffects.push({ name: `${shigoroGuardCard.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
-                         console.log(`Card Effect Applied (Loss): ${shigoroGuardCard.name} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
-                     }
-                 }
-                 // 計算した軽減値を multiplierBonus に加算
-                 multiplierBonus += roleLossReduction;
-
-                 // --- 既存の敗北時軽減処理 (ヒフミ、ションベン、目防御) ---
-                 playerCards.forEach(cardData => {
-                    const cardDef = allCards.find(c => c.id === cardData.id);
-                    if (!cardDef) return;
-                    const level = cardData.level;
-                    let effectApplied = false;
-                    let reductionVal = 0;
-                    let effectType = 'negative'; // 軽減系は基本的に negative
-
-                    // ヒフミ/ションベン/目防御の判定 (既存のロジックは変更なし)
-                    if (cardDef.effectTag === 'hifumiHalf' && isHifumiLoss) {
-                         reductionVal = -level; // ヒフミ軽減
-                         effectApplied = true;
+                // --- 個別の役敗北軽減チェック (総合防御が適用されていない場合のみ) ---
+                if (!overallGuardApplied) {
+                    const pinzoroGuardCardData = playerCards.find(c => c.id === 'pinzoroLossGuard'); 
+                    if (pinzoroGuardCardData && winnerHandName === ROLES.PINZORO.name) { 
+                        const level = pinzoroGuardCardData.level; 
+                        const reductionVal = [-1.0, -2.0, -3.0][level - 1];
+                        roleLossReduction += reductionVal;
+                        const pinzoroGuardCardDef = allCards.find(c => c.id === pinzoroGuardCardData.id);
+                        const cardName = pinzoroGuardCardDef ? pinzoroGuardCardDef.name : 'ピンゾロガード';
+                        appliedCardEffects.push({ name: `${cardName} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
+                        console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
                     }
-                    if (cardDef.effectTag === 'shonbenHalf' && isShonbenLoss && !giveUpEyeUsedThisTurn) {
-                         reductionVal = [-0.5, -1.0, -1.5][level - 1];
-                         effectApplied = true;
-                    }
-                    if (cardDef.effectTag === 'eyeDefense' && loserHand?.type === '目' && winnerHand?.type === '目') {
-                         reductionVal = [-0.5, -1.0, -1.5][level - 1];
-                         effectApplied = true;
-                         console.log(`Card Effect Applied (Loss): Eye Defense Lv.${level} -> Multiplier Reduction ${reductionVal}`);
-                     }
 
-                    if (effectApplied) {
-                         // ★★★ 修正: 既存の軽減効果も multiplierBonus に加算する ★★★
-                         multiplierBonus += reductionVal; // 負の値が加算される
-                         // appliedCardEffects への追加は役敗北軽減の処理で行われているので、重複しないように注意
-                         // → appliiedCardEffects への追加はここで行うのが自然
-                         // appliedCardEffects.push({ name: `${cardDef.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: effectType }); // ← 役敗北軽減と重複する可能性があるのでコメントアウト、役敗北軽減側でまとめて追加
-                         console.log(`Card Effect Applied (Loss - Existing): ${cardDef.name} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
+                    const arashiGuardCardData = playerCards.find(c => c.id === 'arashiLossGuard'); 
+                    if (arashiGuardCardData && winnerHandName === ROLES.ARASHI.name) { 
+                        const level = arashiGuardCardData.level; 
+                        const reductionVal = [-1.0, -1.5, -2.5][level - 1];
+                        roleLossReduction += reductionVal;
+                        const arashiGuardCardDef = allCards.find(c => c.id === arashiGuardCardData.id);
+                        const cardName = arashiGuardCardDef ? arashiGuardCardDef.name : 'アラシガード';
+                        appliedCardEffects.push({ name: `${cardName} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
+                        console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
                     }
-                 });
-                 // 見切り使用時のションベン半減 
-                 const giveUpCard = playerCards.find(c => c.id === 'giveUpEye');
-                 if (isShonbenLoss && giveUpEyeUsedThisTurn && giveUpCard && giveUpCard.level >= 2) {
-                    const reduction = -0.5; // 見切りLv2以上なら支払い半減
-                    multiplierBonus += reduction;
-                    appliedCardEffects.push({ name: `見切り Lv.${giveUpCard.level}`, value: `-0.5倍`, type: 'negative' });
-                    console.log(`Card Effect Applied (Loss): Give Up Eye Lv.${giveUpCard.level} -> Multiplier Bonus -0.5`);
-                 }
-            }
+
+                    const shigoroGuardCardData = playerCards.find(c => c.id === 'shigoroLossGuard'); 
+                    if (shigoroGuardCardData && winnerHandName === ROLES.SHIGORO.name) { 
+                        const level = shigoroGuardCardData.level; 
+                        const reductionVal = [-0.5, -1.0, -1.5][level - 1];
+                        roleLossReduction += reductionVal;
+                        const shigoroGuardCardDef = allCards.find(c => c.id === shigoroGuardCardData.id);
+                        const cardName = shigoroGuardCardDef ? shigoroGuardCardDef.name : 'シゴロガード';
+                        appliedCardEffects.push({ name: `${cardName} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
+                        console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
+                    }
+                } 
+
+                // multiplierBonus に役敗北軽減の合計を加算
+                multiplierBonus += roleLossReduction;
+
+                // --- 既存の敗北時軽減処理 (ヒフミ、ションベン、目防御) ---
+                if (!overallGuardApplied) {
+                    playerCards.forEach(cardData => {
+                       const cardDef = allCards.find(c => c.id === cardData.id);
+                       if (!cardDef) return;
+                       const level = cardData.level;
+                       let effectApplied = false;
+                       let reductionVal = 0;
+                       let effectType = 'negative';
+
+                       // ヒフミ/ションベン/目防御の判定
+                       if (cardDef.effectTag === 'hifumiHalf' && isHifumiLoss) {
+                            reductionVal = -level;
+                            effectApplied = true;
+                       }
+                       if (cardDef.effectTag === 'shonbenHalf' && isShonbenLoss && !giveUpEyeUsedThisTurn) {
+                            reductionVal = [-0.5, -1.0, -1.5][level - 1];
+                            effectApplied = true;
+                       }
+                       if (cardDef.effectTag === 'eyeDefense' && loserHand?.type === '目' && winnerHand?.type === '目') {
+                            reductionVal = [-0.5, -1.0, -1.5][level - 1];
+                            effectApplied = true;
+                            console.log(`Card Effect Applied (Loss): Eye Defense Lv.${level} -> Multiplier Reduction ${reductionVal}`);
+                        }
+
+                       if (effectApplied) {
+                            multiplierBonus += reductionVal; // 倍率計算には含める
+                            appliedCardEffects.push({ name: `${cardDef.name} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: effectType });
+                            console.log(`Card Effect Applied (Loss - Existing): ${cardDef.name} Lv.${level} -> Multiplier Bonus ${reductionVal}. Added to effects log.`);
+                       }
+                    }); 
+
+                    // 見切り使用時のションベン半減処理
+                    const giveUpCard = playerCards.find(c => c.id === 'giveUpEye');
+                    if (isShonbenLoss && giveUpEyeUsedThisTurn && giveUpCard && giveUpCard.level >= 2) {
+                       const reduction = -0.5;
+                       multiplierBonus += reduction;
+                       appliedCardEffects.push({ name: `見切り Lv.${giveUpCard.level}`, value: `-0.5倍`, type: 'negative' });
+                       console.log(`Card Effect Applied (Loss): Give Up Eye Lv.${giveUpCard.level} -> Multiplier Bonus -0.5. Added to effects log.`);
+                    }
+                } 
+           } 
             // 危険な賭けの勝利ボーナスを加算
              multiplierBonus += riskyBetWinBonus;
 
