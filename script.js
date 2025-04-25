@@ -138,16 +138,16 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char03', name: 'ツキコ', image: './Character Image/Character03.png', initialCardId: null, initialCardPool: ['changeEyeToSix'] },
         { id: 'char04', name: 'カゲヤマ', image: './Character Image/Character04.png', initialCardId: null, initialCardPool: ['changeToOne'] },
         { id: 'char05', name: 'シグレ', image: './Character Image/Character05.png', initialCardId: null, initialCardPool: ['changeToSix'] },
-        { id: 'char06', name: 'アカギ', image: './Character Image/Character06.png', initialCardId: null, initialCardPool: ['sixEyeBonus'] },
-        { id: 'char07', name: 'サクラ', image: './Character Image/Character07.png', initialCardId: null, initialCardPool: ['oneEyeBonus'] },
+        { id: 'char06', name: 'アカギ', image: './Character Image/Character06.png', initialCardId: null, initialCardPool: ['activeHandExpansion'] },
+        { id: 'char07', name: 'サクラ', image: './Character Image/Character07.png', initialCardId: null, initialCardPool: ['passiveHandExpansion'] },
         { id: 'char08', name: 'シノブ', image: './Character Image/Character08.png', initialCardId: null, initialCardPool: ['riskyBet'] },
         { id: 'char09', name: 'アラシマル', image: './Character Image/Character09.png', initialCardId: null, initialCardPool: ['stormWarning'] },
         { id: 'char10', name: 'トウヤマ', image: './Character Image/Character10.png', initialCardId: null, initialCardPool: ['hifumiHalf'] },
         { id: 'char11', name: 'カラスマ', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['soulRoll'] },
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
-        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['greedyPot'] },
-        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['bountyHunter'] },
+        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['allEyeBonus'] },
+        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['greedyPot'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;
@@ -880,38 +880,61 @@ function handleSeVolumeChange(event) {
         const ratePinzoroEl = document.getElementById('role-rate-pinzoro');
         const rateArashiEl = document.getElementById('role-rate-arashi');
         const rateShigoroEl = document.getElementById('role-rate-shigoro');
-        const rateEye1El = document.getElementById('role-rate-eye1');
-        const rateEye6El = document.getElementById('role-rate-eye6');
         const rateHifumiEl = document.getElementById('role-rate-hifumi');
         const rateShonbenEl = document.getElementById('role-rate-shonben');
-        if (!ratePinzoroEl || !rateArashiEl || !rateShigoroEl || !rateEye1El || !rateEye6El || !rateHifumiEl || !rateShonbenEl) { return; }
+        const rateEyeEls = [];
+        for (let i = 1; i <= 6; i++) {
+            rateEyeEls[i] = document.getElementById(`role-rate-eye${i}`);
+        }
+        if (!ratePinzoroEl || !rateArashiEl || !rateShigoroEl || !rateHifumiEl || !rateShonbenEl || rateEyeEls.some(el => !el)) {
+            console.warn("Required role rate elements not found in updateRoleRatesDisplay.");
+            return;
+       }
+        // 基本倍率
         let baseRatePinzoro = ROLES.PINZORO.payoutMultiplier;
         let baseRateArashi = ROLES.ARASHI.payoutMultiplier;
         let baseRateShigoro = ROLES.SHIGORO.payoutMultiplier;
         let baseRateEye = ROLES.NORMAL_EYE.payoutMultiplier;
         let baseRateHifumi = Math.abs(ROLES.HIFUMI.payoutMultiplier);
         let baseRateShonben = Math.abs(ROLES.SHONBEN.payoutMultiplier);
-        let bonusArashi = 0, bonusShigoro = 0, bonusEye1 = 0, bonusEye6 = 0, reductionHifumi = 0, reductionShonben = 0;
+        // カード効果によるボーナス/軽減値の初期化
+        let bonusArashi = 0, bonusShigoro = 0, reductionHifumi = 0, reductionShonben = 0;
+        // 各目ボーナスと全目ボーナスの変数を初期化 
+        let bonusEye = [0, 0, 0, 0, 0, 0]; // index 0 は未使用, index 1 が 1の目...
+        let bonusAllEye = 0;
+        // プレイヤーカードの効果を集計
         playerCards.forEach(cardData => {
-            const cardDef = allCards.find(c => c.id === cardData.id); if (!cardDef) return; const level = cardData.level;
+            const cardDef = allCards.find(c => c.id === cardData.id); if (!cardDef || !cardDef.effectTag) return; // effectTagがないカードは無視
+            const level = cardData.level;
+
             switch (cardDef.effectTag) {
                 case 'arashiBonus': bonusArashi += level; break;
                 case 'shigoroBonus': bonusShigoro += level; break;
-                case 'oneEyeBonus': bonusEye1 += level; break;
-                case 'sixEyeBonus': bonusEye6 += level; break;
                 case 'hifumiHalf': reductionHifumi += level; break;
-                case 'shonbenHalf': reductionShonben = 0.5; break; // shonbenHalfはレベルに関わらず半減(0.5)とする仕様に見える
+                case 'shonbenHalf': reductionShonben = [-0.5, -1.0, -1.5][level - 1]; break; // 軽減値を直接代入
+                case 'oneEyeBonus': bonusEye[1] += level; break;
+                case 'twoEyeBonus': bonusEye[2] += level; break;
+                case 'threeEyeBonus': bonusEye[3] += level; break;
+                case 'fourEyeBonus': bonusEye[4] += level; break;
+                case 'fiveEyeBonus': bonusEye[5] += level; break;
+                case 'sixEyeBonus': bonusEye[6] += level; break;
+                case 'allEyeBonus': bonusAllEye += [0.5, 1.0, 1.5][level - 1]; break;
             }
         });
-        ratePinzoroEl.textContent = baseRatePinzoro;
-        rateArashiEl.textContent = baseRateArashi + bonusArashi;
-        rateShigoroEl.textContent = baseRateShigoro + bonusShigoro;
-        rateEye1El.textContent = baseRateEye + bonusEye1;
-        rateEye6El.textContent = baseRateEye + bonusEye6;
-        rateHifumiEl.textContent = Math.max(1, baseRateHifumi - reductionHifumi); // ヒフミは最低1倍支払い? (要確認) -> ルール上2倍なのでMax(1)不要かも
-        rateShonbenEl.textContent = Math.max(0.5, baseRateShonben * (1 - reductionShonben)); // ションベン軽減適用 (最低0.5倍?) -> 0.5軽減なので `base - 0.5` かも？ 現状は 乗算 になっている
+        // 各要素に最終的な倍率を設定
+        ratePinzoroEl.textContent = baseRatePinzoro; // ピンゾロは現在ボーナスなし
+        rateArashiEl.textContent = (baseRateArashi + bonusArashi).toFixed(1); // 小数点表示対応
+        rateShigoroEl.textContent = (baseRateShigoro + bonusShigoro).toFixed(1); // 小数点表示対応
+        rateHifumiEl.textContent = Math.max(0, baseRateHifumi + reductionHifumi).toFixed(1); // 軽減をマイナス値で加算、最低0倍
+        rateShonbenEl.textContent = Math.max(0, baseRateShonben + reductionShonben).toFixed(1); // 軽減をマイナス値で加算、最低0倍
+        // 各目の最終倍率を計算して表示 
+        for (let i = 1; i <= 6; i++) {
+            const finalEyeRate = baseRateEye + bonusAllEye + bonusEye[i];
+            rateEyeEls[i].textContent = finalEyeRate.toFixed(1); // 小数点表示
+        }
+
         console.log("Updated role rates display based on current cards.");
-    }
+    } // updateRoleRatesDisplay 関数の終わり
 // === カード使用後などの自動進行チェック関数 ===
 async function checkAndProceedAfterAction() {
     console.log("Checking if player can proceed after action...");
@@ -2664,7 +2687,12 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
             const greedyBonus = coinResult.greedyPotBonus;
             const greedyLevel = coinResult.greedyPotLevel;
             const clearReason = `${currentNpcCharacter?.name || '相手'}の持ち点(${npcScore}点)が最低賭け金(${currentMinBet}点)未満`;
-            addHistoryEntry({ /* ... 履歴データ ... */ message: `${clearReason}のため、WAVEクリア！ コイン ${finalEarnedCoins} G獲得！` + (greedyBonus > 0 ? ` (強欲な壺 Lv.${greedyLevel} +${greedyBonus}G)` : "") });
+            addHistoryEntry({
+                wave: currentWave, round: currentRoundInWave, result: 'clear',
+                scoreChange: finalEarnedCoins, isWaveClear: true, earnedCoins: finalEarnedCoins,
+                message: `${clearReason}のため、WAVEクリア！ コイン ${finalEarnedCoins} G獲得！` + (greedyBonus > 0 ? ` (強欲な壺 Lv.${greedyLevel} +${greedyBonus}G)` : ""),
+                clearReason: clearReason // 理由を別プロパティで保持
+            });
 
             // メッセージ生成
             let waveClearMessage = `${clearReason}のため、WAVEクリア！ コイン ${finalEarnedCoins} G獲得！`;
@@ -3896,20 +3924,59 @@ async function displayScoreCalculationAnimation(data) {
          if (npcImageArea && (npcImageArea.classList.contains('shake-happy') || npcImageArea.classList.contains('shake-damage'))) { setTimeout(() => { if (npcImageArea) npcImageArea.classList.remove('shake-happy', 'shake-damage') }, animationDuration); }
      });
 
-    // 履歴登録
+    // 使用されたアクティブカードのリストを作成 
+    const usedActiveCardsInRound = Object.entries(activeCardUses)
+        .filter(([cardId, count]) => {
+            // _roundStartCount があるものは、ラウンド中に使用回数が増えたかチェック
+            if (activeCardUses[`${cardId}_roundStartCount`] !== undefined) {
+                return count > (activeCardUses[`${cardId}_roundStartCount`] || 0);
+            }
+            // _roundStartCount がないものは、単純に使用回数が1以上かチェック (念のため)
+            // ただし、ラウンド開始時にリセットされる前提のものだけを対象とするのがより正確
+            // ここでは簡略化のため、usesPerWaveを持つカードでカウントが1以上のものを対象とする
+            const cardDef = allCards.find(c => c.id === cardId);
+            return cardDef && cardDef.usesPerWave && count > 0;
+        })
+        .map(([cardId, count]) => cardId); // カードIDの配列にする
+    console.log("Used active cards this round:", usedActiveCardsInRound);
+
+    // 金策カードによるコイン獲得情報をまとめる 
+    let coinBonusInfo = {};
+    if (pWin) {
+        const bountyHunterCard = playerCards.find(c => c.id === 'bountyHunter');
+        if (bountyHunterCard) {
+            const level = bountyHunterCard.level;
+            coinBonusInfo.bounty = [30, 40, 50][level - 1];
+        }
+    }
+    const offeringBoxCard = playerCards.find(c => c.id === 'offeringBox');
+    if (offeringBoxCard && Math.random() < 0.50) { // 注意: 確率判定が履歴登録と表示で2回行われる可能性
+                                                    // → 本来は確率判定を先に行い、結果を保持すべき
+                                                    // → 今回は簡略化のため、表示時に再度確率判定する可能性を許容
+         const level = offeringBoxCard.level;
+         coinBonusInfo.offering = [10, 20, 30][level - 1];
+    }
+
+    // 履歴登録 
     addHistoryEntry({
         wave: currentWave, round: currentRoundInWave,
-        playerDice: playerDice.join(','), playerHandName: getHandDisplayName(playerHand),
-        npcDice: npcDice.join(','), npcHandName: getHandDisplayName(npcHand),
+        parentBefore: parentBefore,
         result: rClass, scoreChange: sc, betAmount: currentBet,
+        playerDice: playerDice.join(' '), // スペース区切りで保存
+        playerHandName: getHandDisplayName(playerHand),
+        npcDice: npcDice.join(' '), // スペース区切りで保存
+        npcHandName: getHandDisplayName(npcHand),
         consecutiveWins: isPlayerParent ? consecutiveWins : 0,
         npcConsecutiveWins: !isPlayerParent ? npcConsecutiveWins : 0,
-        parentBefore: parentBefore
+        npcName: npcNameStr, // NPC名も渡す
+        calculationData: calculationData, // スコア計算詳細を追加
+        usedActiveCards: usedActiveCardsInRound, // 使用カードを追加
+        coinBonusInfo: coinBonusInfo // コインボーナス情報を追加
     });
 
     // UI更新とゲーム終了チェックの遅延実行
     const uiUpdateDelay = Math.max(SCORE_ANIMATION_DURATION, indicatorRemoveDelay) + 200;
-    setTimeout(async () => { // async を追加 (awaitを使うため)
+    setTimeout(async () => { 
         // 親交代メッセージなどの設定
         if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? playerNameStr : npcNameStr}が親です。`; }
         else if (parentKeptByCard) { finalMsg += ` (${playerNameStr}が親権維持発動！)`; }
@@ -3979,7 +4046,7 @@ async function displayScoreCalculationAnimation(data) {
         updateUI(); // UI更新
 
         // checkGameEnd を呼び出す前に少し待つ (アナウンス表示のため)
-        await new Promise(resolve => setTimeout(resolve, coinBonusMessage ? 2000 : 500)); // コインボーナスがあれば少し待つ
+        await new Promise(resolve => setTimeout(resolve, coinBonusMessage ? 2000 : 1300)); // コインボーナスがあれば少し待つ
 
         checkGameEnd(); // ゲーム終了チェック
     }, uiUpdateDelay); // setTimeout の終わり
@@ -3987,7 +4054,7 @@ async function displayScoreCalculationAnimation(data) {
 
     // 親権維持カード使用確認
     async function askKeepParentRight(cardLevel) {
-        playSound('cardUse'); // ★ SE追加
+        playSound('cardUse'); // SE追加
         setMessage(`親で敗北...「親権維持」を使用しますか？${cardLevel >= 3 ? ' (次ラウンド最低賭け金半額ボーナス付き)' : ''} (残${getRemainingUses('keepParentalRight') - 1}回)`, 'yesNo');
         const choice = await waitForUserChoice();
         if(choice) {
@@ -4004,18 +4071,16 @@ async function displayScoreCalculationAnimation(data) {
         console.log(`Checking game end: Player Score=${playerScore}, NPC Score=${npcScore}, Wave=${currentWave}, CurrentMinBet=${currentMinBet}`);
         if (npcScore <= 0) {
             defeatedCount++;
-            // calculateAndAwardCoins を呼び出し、戻り値を受け取る
             const coinResult = calculateAndAwardCoins();
             const finalEarnedCoins = coinResult.finalEarned;
             const greedyBonus = coinResult.greedyPotBonus;
             const greedyLevel = coinResult.greedyPotLevel;
-
             gameOverReason = `${currentNpcCharacter?.name || '相手'}の持ち点を0にしました！`;
-            // 履歴登録のメッセージも獲得コインを反映 
             addHistoryEntry({
                 wave: currentWave, round: currentRoundInWave, result: 'clear',
-                scoreChange: finalEarnedCoins, isWaveClear: true, earnedCoins: finalEarnedCoins, // scoreChange にも獲得コインを入れる（表示用）
-                message: `${gameOverReason} コイン ${finalEarnedCoins} G獲得！` + (greedyBonus > 0 ? ` (強欲な壺 Lv.${greedyLevel} +${greedyBonus}G)` : "")
+                scoreChange: finalEarnedCoins, isWaveClear: true, earnedCoins: finalEarnedCoins,
+                message: `${gameOverReason} コイン ${finalEarnedCoins} G獲得！` + (greedyBonus > 0 ? ` (強欲な壺 Lv.${greedyLevel} +${greedyBonus}G)` : ""),
+                clearReason: gameOverReason // 理由を別プロパティで保持
             });
 
             if (gameMode === 'normal' && currentWave >= MAX_WAVES) {
@@ -4142,17 +4207,188 @@ async function displayScoreCalculationAnimation(data) {
         let finalCalcScore = 0; const coinBonus = playerCoins * 3; const clearBonus = (gameMode === 'normal' && isClear) ? MAX_WAVES * 100 : 0; const waveBonusEndless = (gameMode === 'endless') ? (wave -1) * 50 : 0; finalCalcScore = Math.max(0, totalScoreChange + coinBonus + clearBonus + waveBonusEndless); finalScoreEl.textContent = `最終スコア: ${finalCalcScore}`;
         showScreen('result-screen');
     }
-     function addHistoryEntry(entry) { entry.npcName = currentNpcCharacter?.name || 'NPC不明'; gameHistory.push(entry); console.log("History entry added:", entry); } // (変更なし)
-     function displayHistory() { 
-        historyLogEl.innerHTML = ''; if (gameHistory.length === 0) { historyLogEl.innerHTML = '<li>履歴なし</li>'; return; }
-        [...gameHistory].reverse().forEach(e => {
-            const li = document.createElement('li'); li.className = e.result || 'unknown'; const isClearEntry = e.result === 'clear' || e.isWaveClear;
-            if (isClearEntry && e.message) { li.innerHTML = `<div class="wave-clear-info">${e.message}</div>`; }
-            else if (!isClearEntry || (isClearEntry && e.earnedCoins !== undefined)) { if (isClearEntry) { li.innerHTML = `<div class="wave-clear-info">WAVE ${e.wave} クリア！ コイン ${e.earnedCoins} G獲得！</div>`; } else { let resultText = ''; let resultClass = ''; if (e.result === 'win') { resultText = '勝ち'; resultClass = 'history-win'; } else if (e.result === 'lose') { resultText = '負け'; resultClass = 'history-lose'; } else { resultText = '引き分け'; resultClass = 'history-draw'; } const scoreStr = e.scoreChange !== 0 ? ` (<span class="${e.scoreChange > 0 ? 'gain' : 'loss'}">${e.scoreChange > 0 ? '+' : ''}${e.scoreChange}</span>)` : ''; const winStreakStr = e.consecutiveWins > 1 ? ` <span class="win-streak">(${e.consecutiveWins}連勝)</span>` : ''; const npcWinStreakStr = e.npcConsecutiveWins > 1 ? ` <span class="npc-losing-streak">(${e.npcName || '相手'}${e.npcConsecutiveWins}連勝中...)</span>` : ''; const parentName = e.parentBefore === 'Player' ? (playerName || selectedCharacter?.name || 'あなた') : (e.npcName || 'NPC不明'); const parentStr = e.parentBefore ? `<span class="parent-info">(親: ${parentName})</span>` : ''; const betStr = e.betAmount > 0 ? `<span class="bet-amount">賭け金: ${e.betAmount}</span>` : ''; const playerNameForHistory = playerName || selectedCharacter?.name || 'あなた'; const npcNameForHistory = e.npcName || 'NPC不明'; li.innerHTML = ` <span class="wave-num"><span class="wave-highlight">WAVE ${e.wave}</span> - <span class="round-normal">ROUND ${e.round}</span> ${parentStr}</span> <div class="details"> <div><span class="history-result ${resultClass}">${resultText}</span> ${playerNameForHistory}: ${e.playerDice || '-'} <span class="hand">${e.playerHandName || '-'}</span></div> <div class="npc-history">${npcNameForHistory}: ${e.npcDice || '-'} <span class="hand">${e.npcHandName || '-'}</span> ${betStr}</div> </div> <div class="score-change-history">${scoreStr}${winStreakStr}${npcWinStreakStr}</div> `; } }
-            else { console.warn("Skipping history entry due to missing/unexpected data:", e); li.innerHTML = `<span class="wave-num">WAVE ${e.wave} - ROUND ${e.round}</span> <div>履歴データエラー</div>`; li.style.color = 'red'; li.style.borderLeftColor = 'red'; }
+    function addHistoryEntry(entry) {
+        entry.npcName = entry.npcName || currentNpcCharacter?.name || 'NPC不明';
+        // ダイス目が配列で渡された場合、文字列に変換 (スペース区切り)
+        if (Array.isArray(entry.playerDice)) {
+            entry.playerDice = entry.playerDice.join(' ');
+        }
+        if (Array.isArray(entry.npcDice)) {
+            entry.npcDice = npcDice.join(' '); 
+        }
+        gameHistory.push(entry);
+        console.log("History entry added:", entry);
+     }
+     function displayHistory() {
+        historyLogEl.innerHTML = '';
+        if (gameHistory.length === 0) {
+            historyLogEl.innerHTML = '<li>履歴なし</li>';
+            return;
+        }
+
+        [...gameHistory].reverse().forEach((entry, index) => {
+            const li = document.createElement('li');
+            li.className = entry.result || 'unknown';
+            li.dataset.historyIndex = gameHistory.length - 1 - index;
+
+            let historyHtml = '';
+            const playerNameForHistory = playerName || selectedCharacter?.name || 'あなた';
+            const npcNameForHistory = entry.npcName || 'NPC不明';
+
+            // --- WAVE/ROUND/親 情報 (WAVEクリア時以外に表示) ---
+            if (!entry.isWaveClear) {
+                const parentName = entry.parentBefore === 'Player' ? playerNameForHistory : npcNameForHistory;
+                historyHtml += `<div class="history-meta">
+                                    <span class="wave-num">
+                                        <span class="wave-highlight">WAVE ${entry.wave}</span> -
+                                        <span class="round-normal">ROUND ${entry.round}</span>
+                                    </span>
+                                    <span class="parent-info">(親: ${parentName})</span>
+                                </div>`;
+            }
+            // --- WAVEクリア時の表示 ---
+            if (entry.isWaveClear) {
+                let clearMsg = `WAVE ${entry.wave} クリア！`; // WAVE番号はクリアメッセージ内に残す
+                if (entry.clearReason) {
+                    clearMsg = `${entry.clearReason}によりWAVE ${entry.wave} クリア！`; // 理由があれば理由とWAVE番号
+                }
+                let coinMsg = "";
+                if (entry.earnedCoins !== undefined && entry.earnedCoins > 0) {
+                    coinMsg += ` ${entry.earnedCoins} G獲得！`;
+                    const greedyBonus = entry.greedyPotBonus || 0; // entry から直接取得
+                    const greedyLevel = entry.greedyPotLevel || 0;
+                    if (greedyBonus > 0 && greedyLevel > 0) {
+                         coinMsg += ` (壺 Lv.${greedyLevel} +${greedyBonus}G)`;
+                    }
+                } else {
+                    coinMsg = " (コイン獲得なし)";
+                }
+                 historyHtml = `<div class="wave-clear-info">${clearMsg}${coinMsg}</div>`;
+                 li.style.padding = '8px 12px'; // クリア情報用のパディング調整 (任意)
+                 li.style.borderLeft = '4px solid #4CAF50'; // クリア用の左ボーダー (任意)
+            }
+            // --- 通常ラウンドの表示 ---
+            else {
+                // 勝敗ラベル
+                let resultText = '';
+                let resultClass = '';
+                if (entry.result === 'win') { resultText = '🏆 勝ち'; resultClass = 'history-win'; }
+                else if (entry.result === 'lose') { resultText = '💔 負け'; resultClass = 'history-lose'; }
+                else { resultText = '🤝 引き分け'; resultClass = 'history-draw'; }
+
+                // プレイヤー/NPC情報
+                const playerDiceStr = entry.playerDice || '-';
+                const playerHandStr = entry.playerHandName || '-';
+                const npcDiceStr = entry.npcDice || '-';
+                const npcHandStr = entry.npcHandName || '-';
+
+                historyHtml += `<div class="history-matchup">
+                                    <span class="history-result ${resultClass}">${resultText}</span>
+                                    <span class="player-name">${playerNameForHistory}:</span>
+                                    <span class="dice-roll">${playerDiceStr}</span>
+                                    <span class="hand-name">${playerHandStr}</span>
+                                    <span class="vs">vs</span>
+                                    <span class="hand-name">${npcHandStr}</span>
+                                    <span class="dice-roll">${npcDiceStr}</span>
+                                    <span class="npc-name">${npcNameForHistory}</span>
+                                </div>`;
+
+                // 賭け金/得失点/コイン/詳細ボタン
+                const betStr = entry.betAmount > 0 ? `賭: ${entry.betAmount}` : '賭: -';
+                const scoreStr = entry.scoreChange !== 0 ? `点: <span class="${entry.scoreChange > 0 ? 'gain' : 'loss'}">${entry.scoreChange > 0 ? '+' : ''}${entry.scoreChange}</span>` : '点: ±0';
+                let coinStr = "";
+                if (entry.coinBonusInfo) {
+                    if (entry.coinBonusInfo.bounty > 0) {
+                        coinStr += `💰賞金+${entry.coinBonusInfo.bounty}G `;
+                    }
+                    if (entry.coinBonusInfo.offering > 0) {
+                        coinStr += `💰賽銭+${entry.coinBonusInfo.offering}G `;
+                    }
+                }
+                 // 連勝表示
+                 const winStreakStr = entry.consecutiveWins > 1 ? ` <span class="win-streak">(${entry.consecutiveWins}連勝)</span>` : '';
+                 const npcWinStreakStr = entry.npcConsecutiveWins > 1 ? ` <span class="npc-losing-streak">(${npcNameForHistory}${entry.npcConsecutiveWins}連勝中...)</span>` : '';
+
+
+                historyHtml += `<div class="history-summary">
+                                    <span class="bet-amount">${betStr}</span>
+                                    <span class="score-change-history">${scoreStr}</span>
+                                    <span class="coin-bonus-history">${coinStr.trim()}</span>
+                                    <span class="streak-info">${winStreakStr}${npcWinStreakStr}</span>
+                                    <button class="history-detail-toggle button-subtle">詳細</button>
+                                </div>`;
+
+                // 詳細情報 (最初は非表示)
+                historyHtml += `<div class="history-details-content" style="display: none;">`;
+                // スコア計算詳細
+                if (entry.calculationData) {
+                    historyHtml += `<h5>スコア計算:</h5><ul>`;
+                    const data = entry.calculationData;
+                    historyHtml += `<li>賭け金: ${data.bet}</li>`;
+                    let baseMultText = data.draw ? "引き分け" : data.insuranceApplied ? "保険適用" : `${data.baseMultiplier.toFixed(1)}倍`;
+                    historyHtml += `<li>基本倍率/結果: ${baseMultText}</li>`;
+                    if (data.appliedCardEffects && data.appliedCardEffects.length > 0) {
+                        historyHtml += `<li>カード効果:<ul>`;
+                        data.appliedCardEffects.forEach(eff => {
+                             historyHtml += `<li>${eff.name}: ${eff.value} (${eff.type})</li>`;
+                        });
+                        historyHtml += `</ul></li>`;
+                    }
+                    if (!data.draw && !data.insuranceApplied && data.streakBonusRate > 0) {
+                        const streakParent = data.parent === 'Player' ? playerNameForHistory : npcNameForHistory;
+                        const streakCount = data.consecutiveWins || data.npcConsecutiveWins || 0;
+                         historyHtml += `<li>連勝ボーナス (${streakParent} ${streakCount}連勝): +${(data.streakBonusRate * 100).toFixed(0)}%</li>`;
+                    }
+                    historyHtml += `<li>最終変動: ${data.finalScoreChange > 0 ? '+' : ''}${data.finalScoreChange}</li>`;
+                    historyHtml += `</ul>`;
+                } else {
+                     historyHtml += `<p>スコア計算詳細なし</p>`;
+                }
+                // 使用アクティブカード
+                if (entry.usedActiveCards && entry.usedActiveCards.length > 0) {
+                    historyHtml += `<h5>使用カード:</h5><ul>`;
+                    entry.usedActiveCards.forEach(cardId => {
+                        const cardDef = allCards.find(c => c.id === cardId);
+                        historyHtml += `<li>${cardDef ? cardDef.name : cardId}</li>`;
+                    });
+                    historyHtml += `</ul>`;
+                } else {
+                     historyHtml += `<p>使用カードなし</p>`;
+                }
+                historyHtml += `</div>`; // history-details-content 終了
+            }
+
+            li.innerHTML = historyHtml;
             historyLogEl.appendChild(li);
         });
-    }
+
+        // 詳細ボタンのイベントリスナーを設定
+        document.querySelectorAll('.history-detail-toggle').forEach(button => {
+            button.removeEventListener('click', toggleHistoryDetails); // 念のため既存リスナー削除
+            button.addEventListener('click', toggleHistoryDetails);
+        });
+     }
+
+     // 詳細表示切り替え関数 
+     function toggleHistoryDetails(event) {
+         playSound('click'); // 詳細ボタンクリック音
+         const button = event.target;
+         const detailsContent = button.closest('.history-summary').nextElementSibling;
+         if (detailsContent && detailsContent.classList.contains('history-details-content')) {
+             if (detailsContent.style.display === 'none') {
+                 detailsContent.style.display = 'block';
+                 button.textContent = '閉じる';
+                 // スムーズな展開アニメーションを追加しても良い
+                 detailsContent.style.maxHeight = detailsContent.scrollHeight + "px"; // アニメーション用
+                 detailsContent.classList.add('details-visible'); // アニメーション用クラス
+             } else {
+                 detailsContent.style.display = 'none';
+                 button.textContent = '詳細';
+                 detailsContent.style.maxHeight = '0'; // アニメーション用
+                 detailsContent.classList.remove('details-visible'); // アニメーション用クラス
+             }
+         }
+     }
     function generateSettingsCardListHtml() { 
         const settingsListContainer = document.getElementById('settings-card-list-inner');
         if (!settingsListContainer) {

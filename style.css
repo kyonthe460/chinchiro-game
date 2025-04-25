@@ -1134,4 +1134,181 @@ animation: shopContainerPulse 6s infinite alternate; /* ★ 全体の脈動 */ }
     margin-bottom: 15px;
 }
 
+.mobile-break { display: none; } /* デフォルトでは非表示 */
+@media (max-width: 550px) { /* 例: 550px以下の画面幅で表示 */
+    .mobile-break { display: block; }
+    .card-effect-rate { line-height: 1.6; } /* 折り返し時の行間調整 */
+}
+
+/* ===== ゲーム履歴モーダル (新規/修正スタイル) ===== */
+#history-log li {
+    border-left-width: 4px; /* 少し細く */
+    padding: 10px 15px; /* パディング調整 */
+    margin-bottom: 8px; /* マージン調整 */
+    transition: background-color 0.2s ease; /* ホバー効果用 */
+}
+#history-log li:hover {
+     background-color: rgba(50, 55, 75, 0.8); /* ホバー色 */
+}
+
+.history-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+    color: #ccc;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+.history-meta .wave-num {
+    font-weight: normal;
+}
+.history-meta .parent-info {
+    font-size: 0.9em;
+    font-style: italic;
+    color: #bbb;
+}
+
+.history-matchup {
+    margin-bottom: 6px;
+    display: flex;
+    flex-wrap: wrap; /* 折り返し可能に */
+    align-items: baseline;
+    gap: 2px 8px; /* 隙間調整 */
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+.history-matchup .history-result {
+    padding: 2px 6px;
+    font-size: 0.9em;
+    margin-right: 5px; /* 結果ラベルと名前の間隔 */
+    flex-shrink: 0;
+}
+.history-matchup .player-name,
+.history-matchup .npc-name {
+    font-weight: bold;
+    color: #eee;
+}
+.history-matchup .dice-roll {
+    font-family: 'Orbitron', monospace; /* ダイス目に適したフォント */
+    color: #fff;
+    letter-spacing: 1px;
+    background-color: rgba(0,0,0,0.2);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.95em;
+}
+.history-matchup .hand-name {
+    color: #ffeb3b; /* 役/目名の基本色 */
+    font-weight: bold;
+    font-style: italic;
+    margin: 0 4px;
+}
+/* 特定の役で色を変える場合 */
+.history-matchup .hand-name:is(:contains('ピンゾロ'), :contains('アラシ'), :contains('シゴロ')) {
+    color: #ffcc70; /* 強い役はオレンジ系 */
+}
+.history-matchup .hand-name:is(:contains('ヒフミ'), :contains('ションベン')) {
+    color: #ff7b7b; /* 負け役は赤系 */
+}
+.history-matchup .vs {
+    color: #aaa;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+.history-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    font-size: 0.9em;
+    gap: 10px;
+    flex-wrap: wrap; /* 折り返し */
+}
+.history-summary .bet-amount {
+    color: #ccc;
+}
+.history-summary .score-change-history {
+    font-weight: bold;
+}
+.history-summary .coin-bonus-history {
+    color: #ffeb3b; /* コインの色 */
+    font-size: 0.95em;
+}
+.history-summary .streak-info {
+    font-style: italic;
+    font-size: 0.9em;
+    /* win-streak, npc-losing-streak のスタイルは既存のものを流用 */
+}
+.history-summary .history-detail-toggle {
+    padding: 3px 8px; /* ボタンサイズ調整 */
+    font-size: 0.8em; /* 文字サイズ調整 */
+    margin-left: auto; /* 右端に寄せる */
+    background: linear-gradient(180deg, #6c757d, #5a6268); /* 色調整 */
+    color: #eee;
+    border-radius: 10px;
+}
+.history-summary .history-detail-toggle:hover {
+    background: linear-gradient(180deg, #8a94a8, #6c757d);
+}
+
+.history-details-content {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 0.85em;
+    line-height: 1.5;
+    color: #bbb;
+    overflow: hidden; /* アニメーション用 */
+    max-height: 0;    /* アニメーション用 (初期状態) */
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out, margin-top 0.3s ease-out; /* アニメーション */
+}
+.history-details-content.details-visible {
+    /* max-height は JS で設定 */
+    padding: 8px 12px;
+    margin-top: 8px;
+}
+
+.history-details-content h5 {
+    color: #aaa;
+    font-size: 1.1em;
+    margin: 8px 0 4px 0;
+    padding-bottom: 2px;
+    border-bottom: 1px dotted rgba(255, 255, 255, 0.15);
+}
+.history-details-content ul {
+    list-style: none;
+    padding-left: 10px;
+    margin: 5px 0;
+}
+.history-details-content li {
+    margin-bottom: 3px;
+}
+/* スコア計算詳細のスタイル調整 */
+.history-details-content ul ul { /* カード効果リストなど */
+    padding-left: 15px;
+    margin-top: 2px;
+}
+.history-details-content ul ul li {
+    font-style: italic;
+    color: #a0a0a0;
+}
+
+.wave-clear-info { /* 既存のスタイル調整 */
+    display: block;
+    margin-bottom: 5px; /* 下マージン追加 */
+    font-size: 0.95em; /* 少し大きく */
+    color: #a0ffa0; /* 色調整 */
+    font-weight: bold;
+    text-align: center;
+    background-color: rgba(40, 167, 69, 0.25); /* 背景少し濃く */
+    padding: 5px 8px; /* パディング調整 */
+    border-radius: 4px;
+    border: 1px solid rgba(100, 255, 100, 0.3); /* 枠線追加 */
+}
+
 /* --- END OF style.css (Continuation) ---
