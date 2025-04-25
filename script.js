@@ -146,8 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char11', name: 'カラスマ', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['soulRoll'] },
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
-        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['activeHandExpansion'] },
-        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['adjustEyeValue'] },
+        { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['greedyPot'] },
+        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['bountyHunter'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;
@@ -296,6 +296,9 @@ const boostItems = [
         { id: 'passiveHandExpansion', name: '心得拡張', type: 'support', cost: 180, rarity: 2, flavor: '学びを深め、さらなる力をその身に宿す。', 
             applyEffect: (level = 1) => {MAX_PASSIVE_CARDS = 4 + level; console.log(`Applied Passive Hand Expansion Lv.${level}: MAX_PASSIVE_CARDS is now ${MAX_PASSIVE_CARDS}`); if (shopScreen && shopScreen.classList.contains('active')) {updateShopHandDisplay();}},
             removeEffect: (level = 1) => {MAX_PASSIVE_CARDS = Math.max(4, MAX_PASSIVE_CARDS - level); console.log(`Removed Passive Hand Expansion Lv.${level}: MAX_PASSIVE_CARDS returned to ${MAX_PASSIVE_CARDS}`); if (shopScreen && shopScreen.classList.contains('active')) {updateShopHandDisplay();}}, image: './Card Image/49.png' },    
+        { id: 'greedyPot', name: '強欲な壺', type: 'support', cost: 150, rarity: 2, flavor: 'もっと、もっとだ…！勝利の報酬は全て我が手に！', effectTag: 'greedyPot', image: './Card Image/50.png' },
+        { id: 'bountyHunter', name: '賞金稼ぎ', type: 'support', cost: 220, rarity: 3, flavor: '一勝ごとに、チャリンと鳴る。それが俺の流儀さ。', effectTag: 'bountyHunter', image: './Card Image/51.png' },
+        { id: 'offeringBox', name: '賽銭箱', type: 'support', cost: 50, rarity: 1, flavor: '日頃の行いが大事、ってね。', effectTag: 'offeringBox', image: './Card Image/52.png' },    
     ];
 
      // --- three.js 関連変数 --- 
@@ -1434,6 +1437,21 @@ function setMessage(msg, buttonType = 'none') {
             }
             effectText = `次にショップを開いた時、リロールが ${freeRerollsText} 無料になる。`;
             break;
+            case 'greedyPot':
+                conditionText = "WAVEクリア時 (パッシブ)";
+                const greedyBonus = [30, 40, 50][level - 1];
+                effectText = `獲得するコイン量が ${greedyBonus}% 増加する。(獲得コインの最低/最高制限値を超えて加算される)`;
+                break;
+            case 'bountyHunter':
+                conditionText = "ラウンド勝利時 (パッシブ)";
+                const bountyCoins = [30, 40, 50][level - 1];
+                effectText = `スコアとは別に、${bountyCoins} コインを獲得する。`;
+                break;
+            case 'offeringBox':
+                conditionText = "ラウンド終了時 (パッシブ)";
+                const offeringCoins = [10, 20, 30][level - 1];
+                effectText = `50% の確率で ${offeringCoins} コインを獲得する。(勝敗問わず)`;
+                break;
             case 'soulRoll':
                 conditionText = "振り残り回数が0になった後 (アクティブ)";
                 const soulCostPercent = [10, 5, 5][level - 1];
@@ -2639,12 +2657,21 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
         }
         // NPC持ち点不足チェック
         if (npcScore < currentMinBet) {
-            console.log(`NPC Score (${npcScore}) is less than Current Min Bet (${currentMinBet}) BEFORE endless adjustment. WAVE CLEAR.`); // ログ変更
+            console.log(`NPC Score (${npcScore}) is less than Current Min Bet (${currentMinBet}). WAVE CLEAR.`);
             defeatedCount++;
-            const earnedCoins = calculateEarnedCoins();
-            calculateAndAwardCoins();
-            addHistoryEntry({ wave: currentWave, round: currentRoundInWave, result: 'clear', scoreChange: earnedCoins, isWaveClear: true, earnedCoins: earnedCoins, message: `${currentNpcCharacter?.name || '相手'}の持ち点(${npcScore}点)が最低賭け金(${currentMinBet}点)未満のため、WAVEクリア！ コイン ${earnedCoins} G獲得！` });
-            setMessage(`${currentNpcCharacter?.name || '相手'}の持ち点(${npcScore}点)が最低賭け金(${currentMinBet}点)未満のため、WAVEクリア！ コイン ${earnedCoins} G獲得！`);
+            const coinResult = calculateAndAwardCoins();
+            const finalEarnedCoins = coinResult.finalEarned;
+            const greedyBonus = coinResult.greedyPotBonus;
+            const greedyLevel = coinResult.greedyPotLevel;
+            const clearReason = `${currentNpcCharacter?.name || '相手'}の持ち点(${npcScore}点)が最低賭け金(${currentMinBet}点)未満`;
+            addHistoryEntry({ /* ... 履歴データ ... */ message: `${clearReason}のため、WAVEクリア！ コイン ${finalEarnedCoins} G獲得！` + (greedyBonus > 0 ? ` (強欲な壺 Lv.${greedyLevel} +${greedyBonus}G)` : "") });
+
+            // メッセージ生成
+            let waveClearMessage = `${clearReason}のため、WAVEクリア！ コイン ${finalEarnedCoins} G獲得！`;
+            if (greedyBonus > 0) {
+                waveClearMessage += ` (強欲な壺 Lv.${greedyLevel} 効果: +${greedyBonus}G)`;
+            }
+            setMessage(waveClearMessage); // メッセージを設定
             showGameResultModal(true, "相手の最低賭け金不足");
             updateUI();
             if (betMainControls) betMainControls.style.display = 'none';
@@ -3882,11 +3909,66 @@ async function displayScoreCalculationAnimation(data) {
 
     // UI更新とゲーム終了チェックの遅延実行
     const uiUpdateDelay = Math.max(SCORE_ANIMATION_DURATION, indicatorRemoveDelay) + 200;
-    setTimeout(() => {
+    setTimeout(async () => { // async を追加 (awaitを使うため)
+        // 親交代メッセージなどの設定
         if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? playerNameStr : npcNameStr}が親です。`; }
         else if (parentKeptByCard) { finalMsg += ` (${playerNameStr}が親権維持発動！)`; }
-        setMessage(finalMsg);
+        let coinBonusMessage = ""; // コインボーナス用メッセージ
+
+        // 賞金稼ぎの効果 (プレイヤー勝利時)
+        if (pWin) {
+            const bountyHunterCard = playerCards.find(c => c.id === 'bountyHunter');
+            if (bountyHunterCard) {
+                const level = bountyHunterCard.level;
+                const coinGain = [30, 40, 50][level - 1];
+                if (coinGain > 0) {
+                    const startCoins = playerCoins;
+                    playerCoins += coinGain;
+                    console.log(`Card Effect Applied (Coin): 賞金稼ぎ Lv.${level} -> +${coinGain} G`);
+                    playCoinAnimation(coinGain);
+                    animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
+                    if (shopScreen.classList.contains('active')) {
+                         animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
+                    }
+                    // アナウンス用メッセージ作成
+                    coinBonusMessage += ` 賞金稼ぎ効果！+${coinGain}G！`;
+                    // 履歴追加 (任意)
+                    // addHistoryEntry({ type: 'coin_bonus', card: 'bountyHunter', level: level, amount: coinGain });
+                }
+            }
+        }
+
+        // 賽銭箱の効果 (ラウンド終了時、確率)
+        const offeringBoxCard = playerCards.find(c => c.id === 'offeringBox');
+        if (offeringBoxCard) {
+            if (Math.random() < 0.50) {
+                 const level = offeringBoxCard.level;
+                 const coinGain = [10, 20, 30][level - 1];
+                 if (coinGain > 0) {
+                     const startCoins = playerCoins;
+                     playerCoins += coinGain;
+                     console.log(`Card Effect Applied (Coin): 賽銭箱 Lv.${level} (Success!) -> +${coinGain} G`);
+                     playCoinAnimation(coinGain);
+                     animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
+                     if (shopScreen.classList.contains('active')) {
+                          animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
+                     }
+                     // アナウンス用メッセージ作成
+                     coinBonusMessage += ` 賽銭箱効果！+${coinGain}G！`;
+                     // 履歴追加 (任意)
+                     // addHistoryEntry({ type: 'coin_bonus', card: 'offeringBox', level: level, amount: coinGain });
+                 }
+            } else {
+                 console.log(`Card Effect Skipped (Coin): 賽銭箱 Lv.${offeringBoxCard.level} (Failed probability check)`);
+            }
+        }
+
+        // 最終メッセージにコインボーナスアナウンスを追記
+        finalMsg += coinBonusMessage;
+        setMessage(finalMsg); // 最終的なメッセージを設定
         if (giveUpEyeUsedThisTurn) { giveUpEyeUsedThisTurn = false; }
+
+        // フラグリセットなど
         rewardAmplifierActive = false;
         doubleUpBetActive = false;
         console.log("Resetting rewardAmplifierActive and doubleUpBetActive flags after round end processing.");
@@ -3894,8 +3976,12 @@ async function displayScoreCalculationAnimation(data) {
         if (diceAreaEl) diceAreaEl.classList.remove('calculating');
         if(scoreCalculationAnimationEl) scoreCalculationAnimationEl.innerHTML = '';
 
-        updateUI();
-        checkGameEnd();
+        updateUI(); // UI更新
+
+        // checkGameEnd を呼び出す前に少し待つ (アナウンス表示のため)
+        await new Promise(resolve => setTimeout(resolve, coinBonusMessage ? 2000 : 500)); // コインボーナスがあれば少し待つ
+
+        checkGameEnd(); // ゲーム終了チェック
     }, uiUpdateDelay); // setTimeout の終わり
 } // handleRoundEnd 関数の終わり
 
@@ -3916,7 +4002,44 @@ async function displayScoreCalculationAnimation(data) {
     async function checkGameEnd() { 
         let isGO = false, isC = false, gameOverReason = "";
         console.log(`Checking game end: Player Score=${playerScore}, NPC Score=${npcScore}, Wave=${currentWave}, CurrentMinBet=${currentMinBet}`);
-        if (npcScore <= 0) { defeatedCount++; const earnedCoins = calculateEarnedCoins(); calculateAndAwardCoins(); gameOverReason = `${currentNpcCharacter?.name || '相手'}の持ち点を0にしました！`; addHistoryEntry({ wave: currentWave, round: currentRoundInWave, result: 'clear', scoreChange: earnedCoins, isWaveClear: true, earnedCoins: earnedCoins, message: `${gameOverReason} コイン ${earnedCoins} G獲得！` }); if (gameMode === 'normal' && currentWave >= MAX_WAVES) { isC = true; await showGameResultModal(true, gameOverReason); } else if (gameMode === 'endless' || currentWave < MAX_WAVES) { console.log("NPC defeated, proceeding to shop."); await showGameResultModal(true, gameOverReason); setMessage(`${gameOverReason} コイン ${earnedCoins} G獲得！ ショップへどうぞ！`); updateUI(); if (betMainControls) betMainControls.style.display = 'none'; if (betActionContainer) betActionContainer.style.display = 'none'; if (actionArea) actionArea.style.display = 'none'; if (nextWaveArea) nextWaveArea.style.display = 'flex'; historyButton.disabled = true; return; } }
+        if (npcScore <= 0) {
+            defeatedCount++;
+            // calculateAndAwardCoins を呼び出し、戻り値を受け取る
+            const coinResult = calculateAndAwardCoins();
+            const finalEarnedCoins = coinResult.finalEarned;
+            const greedyBonus = coinResult.greedyPotBonus;
+            const greedyLevel = coinResult.greedyPotLevel;
+
+            gameOverReason = `${currentNpcCharacter?.name || '相手'}の持ち点を0にしました！`;
+            // 履歴登録のメッセージも獲得コインを反映 
+            addHistoryEntry({
+                wave: currentWave, round: currentRoundInWave, result: 'clear',
+                scoreChange: finalEarnedCoins, isWaveClear: true, earnedCoins: finalEarnedCoins, // scoreChange にも獲得コインを入れる（表示用）
+                message: `${gameOverReason} コイン ${finalEarnedCoins} G獲得！` + (greedyBonus > 0 ? ` (強欲な壺 Lv.${greedyLevel} +${greedyBonus}G)` : "")
+            });
+
+            if (gameMode === 'normal' && currentWave >= MAX_WAVES) {
+                isC = true;
+                await showGameResultModal(true, gameOverReason);
+            } else if (gameMode === 'endless' || currentWave < MAX_WAVES) {
+                console.log("NPC defeated, proceeding to shop.");
+                await showGameResultModal(true, gameOverReason);
+                // ショップ遷移前のメッセージを生成 
+                let waveClearMessage = `${gameOverReason} コイン ${finalEarnedCoins} G獲得！`;
+                if (greedyBonus > 0) {
+                    waveClearMessage += ` (強欲な壺 Lv.${greedyLevel} 効果: +${greedyBonus}G)`;
+                }
+                waveClearMessage += " ショップへどうぞ！";
+                setMessage(waveClearMessage); 
+                updateUI();
+                if (betMainControls) betMainControls.style.display = 'none';
+                if (betActionContainer) betActionContainer.style.display = 'none';
+                if (actionArea) actionArea.style.display = 'none';
+                if (nextWaveArea) nextWaveArea.style.display = 'flex';
+                historyButton.disabled = true;
+                return; // WAVEクリア処理終了
+            }
+        }
         else if (playerScore <= 0) { isGO = true; gameOverReason = "持ち点が0になりました。"; await showGameResultModal(false, gameOverReason); }
         else if (playerScore < currentMinBet && isPlayerParent) { isGO = true; gameOverReason = `持ち点(${playerScore}点)が最低賭け金(${currentMinBet}点)未満のため、親で賭けられません。`; await showGameResultModal(false, gameOverReason); }
         else if (playerScore < currentMinBet && !isPlayerParent && npcScore >= currentMinBet) { /* 子の場合、NPCが賭けられるなら続行可能 */ } // この条件分岐不要かも
@@ -3926,7 +4049,40 @@ async function displayScoreCalculationAnimation(data) {
     function calculateEarnedCoins() { 
         const waveBonus = currentWave * 20; const defeatBonus = 80; const scoreGainInWave = Math.max(0, playerScore - scoreAtWaveStart); const scoreGainBonus = Math.min(30, Math.floor(scoreGainInWave * 0.05)); const overkillBonus = npcScore < 0 ? Math.min(50, Math.floor(Math.abs(npcScore) * 0.2)) : 0; const roundsTaken = Math.max(1, currentRoundInWave); const roundPenalty = Math.max(0, (roundsTaken - 1) * 20); const baseEarned = waveBonus + defeatBonus + scoreGainBonus + overkillBonus - roundPenalty; const earned = Math.min(300, Math.max(10, baseEarned)); console.log(`Coin Calculation: Wave=${currentWave}, Rounds=${roundsTaken}, ScoreAtStart=${scoreAtWaveStart}, ScoreNow=${playerScore}, Gain=${scoreGainInWave}, WaveBonus=${waveBonus}, DefeatBonus=${defeatBonus}, ScoreGainBonus=${scoreGainBonus}, OverkillBonus=${overkillBonus}, RoundPenalty=${roundPenalty}, BaseEarned=${baseEarned}, FinalEarned=${earned}`); return earned;
     }
-    function calculateAndAwardCoins() { const earned = calculateEarnedCoins(); if (earned <= 0) return; const startCoins = playerCoins; playerCoins += earned; console.log(`Awarded ${earned} coins. Total coins: ${playerCoins}`); playCoinAnimation(earned); animateScore(gameCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION); if (shopCoinDisplayEl) { animateScore(shopCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION); } } // (変更なし)
+    function calculateAndAwardCoins() {
+        let earned = calculateEarnedCoins();
+        if (earned <= 0) {
+             console.log("Wave cleared, but no coins earned.");
+             return { finalEarned: 0, greedyPotBonus: 0, greedyPotLevel: 0 }; // 獲得情報オブジェクトを返す
+        }
+
+        let baseEarnedForMessage = earned;
+        let greedyPotBonusCoins = 0;
+        let greedyPotLevel = 0;
+
+        const greedyPotCard = playerCards.find(c => c.id === 'greedyPot');
+        if (greedyPotCard) {
+            greedyPotLevel = greedyPotCard.level;
+            const bonusRate = [0.30, 0.40, 0.50][greedyPotLevel - 1];
+            greedyPotBonusCoins = Math.floor(baseEarnedForMessage * bonusRate);
+            earned += greedyPotBonusCoins;
+            console.log(`Card Effect Applied (Coin): 強欲な壺 Lv.${greedyPotLevel} -> +${greedyPotBonusCoins} G (Total Earned: ${earned} G)`);
+        }
+
+        const startCoins = playerCoins;
+        playerCoins += earned; // コイン加算はここで行う
+        console.log(`Awarded ${earned} coins. Total coins: ${playerCoins}`);
+        playCoinAnimation(earned);
+        animateScore(gameCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
+        if (shopCoinDisplayEl) {
+            animateScore(shopCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
+        }
+        return {
+            finalEarned: earned,
+            greedyPotBonus: greedyPotBonusCoins,
+            greedyPotLevel: greedyPotLevel
+        };
+    }
     function playCoinAnimation(amount) { 
         if (typeof amount !== 'number' || amount <= 0 || !gameCoinDisplayEl) return;
 
