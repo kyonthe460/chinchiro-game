@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
         { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['allEyeBonus'] },
-        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['bountyHunter'] },
+        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['offeringBox'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;
