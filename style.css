@@ -1311,4 +1311,77 @@ animation: shopContainerPulse 6s infinite alternate; /* ★ 全体の脈動 */ }
     border: 1px solid rgba(100, 255, 100, 0.3); /* 枠線追加 */
 }
 
+/* ===== ショップ キープ機能 ===== */
+.shop-keep-toggle {
+    position: absolute;
+    bottom: 55px; 
+    left: 8px;    
+    width: 45px;
+    height: 22px;
+    padding: 2px 5px;
+    font-size: 0.7em;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    z-index: 3;
+    text-align: center;
+    line-height: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.shop-keep-toggle:hover {
+    background-color: rgba(50, 50, 50, 0.6);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
+
+.shop-keep-toggle.kept {
+    background-color: #ffeb3b; /* キープ中の色 (黄色) */
+    color: #333; /* キープ中の文字色 */
+    border-color: #fdd835;
+    font-weight: 800; /* 少し太く */
+    box-shadow: 0 0 8px rgba(255, 235, 59, 0.7);
+}
+
+/* キープ中のアイテムに枠線やステッカーを追加 (ステッカー風) */
+.card.item-kept, .pack.item-kept, .boost-item.item-kept {
+    position: relative; /* ステッカーの位置基準用 */
+    /* border: 2px solid #ffeb3b; */ /* 光る枠線の代わりにステッカー */
+    /* box-shadow: 0 0 15px rgba(255, 235, 59, 0.5), 3px 3px 8px rgba(0, 0, 0, 0.4); */ /* 光る影も削除 */
+}
+
+/* KEEPステッカー (キープボタンとは別に表示) */
+.card.item-kept::after, .pack.item-kept::after, .boost-item.item-kept::after {
+    content: "KEEP";
+    position: absolute;
+    top: 8px; /* 位置調整 */
+    right: 8px; /* 位置調整 */
+    background-color: #ffeb3b;
+    color: #333;
+    padding: 3px 7px;
+    font-size: 0.8em;
+    font-weight: bold;
+    border-radius: 4px;
+    transform: rotate(10deg); /* 少し傾ける */
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    z-index: 4; /* 他の要素より手前 */
+    pointer-events: none; /* クリックを透過 */
+}
+
+/* 購入済みアイテムのキープボタンは非表示 */
+.shop-item.sold-out .shop-keep-toggle,
+.card.sold-out .shop-keep-toggle {
+    display: none;
+}
+/* 購入済みアイテムのKEEPステッカーも非表示 */
+.card.item-kept.sold-out::after,
+.pack.item-kept.sold-out::after,
+.boost-item.item-kept.sold-out::after {
+    display: none;
+}
+
 /* --- END OF style.css (Continuation) ---
