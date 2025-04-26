@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isShowingRoleResult = false;
     let isShowingGameResult = false;
     let playerName = "";
+    let activeCardsUsedThisRound = [];
 
     // --- キャラクターデータ --- 
     const characters = [
@@ -147,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
         { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['allEyeBonus'] },
-        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['greedyPot'] },
+        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['bountyHunter'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;
@@ -876,65 +877,77 @@ function handleSeVolumeChange(event) {
 
     // --- ヘルパー関数など --- 
     function getHandDisplayName(hand) { if (!hand) return '-'; if (hand.type === '役') return hand.name; if (hand.type === '目') return `目 (${hand.value})`; if (hand.type === 'ションベン') return 'ションベン'; if (hand.type === '目なし') return '目なし'; return '-'; }
-    function updateRoleRatesDisplay() { 
+    function updateRoleRatesDisplay() {
         const ratePinzoroEl = document.getElementById('role-rate-pinzoro');
         const rateArashiEl = document.getElementById('role-rate-arashi');
         const rateShigoroEl = document.getElementById('role-rate-shigoro');
         const rateHifumiEl = document.getElementById('role-rate-hifumi');
         const rateShonbenEl = document.getElementById('role-rate-shonben');
+
         const rateEyeEls = [];
         for (let i = 1; i <= 6; i++) {
             rateEyeEls[i] = document.getElementById(`role-rate-eye${i}`);
         }
-        if (!ratePinzoroEl || !rateArashiEl || !rateShigoroEl || !rateHifumiEl || !rateShonbenEl || rateEyeEls.some(el => !el)) {
-            console.warn("Required role rate elements not found in updateRoleRatesDisplay.");
-            return;
-       }
-        // 基本倍率
+
+        if (!ratePinzoroEl || !rateArashiEl || !rateShigoroEl || !rateHifumiEl || !rateShonbenEl || rateEyeEls.some((el, i) => i > 0 && !el)) { //★ index 0 は無視
+             console.warn("Required role rate elements not found in updateRoleRatesDisplay.");
+             return;
+        }
+
         let baseRatePinzoro = ROLES.PINZORO.payoutMultiplier;
         let baseRateArashi = ROLES.ARASHI.payoutMultiplier;
         let baseRateShigoro = ROLES.SHIGORO.payoutMultiplier;
         let baseRateEye = ROLES.NORMAL_EYE.payoutMultiplier;
         let baseRateHifumi = Math.abs(ROLES.HIFUMI.payoutMultiplier);
         let baseRateShonben = Math.abs(ROLES.SHONBEN.payoutMultiplier);
-        // カード効果によるボーナス/軽減値の初期化
-        let bonusArashi = 0, bonusShigoro = 0, reductionHifumi = 0, reductionShonben = 0;
-        // 各目ボーナスと全目ボーナスの変数を初期化 
-        let bonusEye = [0, 0, 0, 0, 0, 0]; // index 0 は未使用, index 1 が 1の目...
+
+        let bonusArashi = 0, bonusShigoro = 0;
+        let reductionHifumi = 0;  // 集計用変数は0で初期化
+        let reductionShonben = 0; // 集計用変数は0で初期化
+        let bonusEye = [0, 0, 0, 0, 0, 0, 0]; 
         let bonusAllEye = 0;
-        // プレイヤーカードの効果を集計
+
         playerCards.forEach(cardData => {
-            const cardDef = allCards.find(c => c.id === cardData.id); if (!cardDef || !cardDef.effectTag) return; // effectTagがないカードは無視
+            const cardDef = allCards.find(c => c.id === cardData.id); if (!cardDef || !cardDef.effectTag) return;
             const level = cardData.level;
 
             switch (cardDef.effectTag) {
                 case 'arashiBonus': bonusArashi += level; break;
                 case 'shigoroBonus': bonusShigoro += level; break;
-                case 'hifumiHalf': reductionHifumi += level; break;
-                case 'shonbenHalf': reductionShonben = [-0.5, -1.0, -1.5][level - 1]; break; // 軽減値を直接代入
+                case 'hifumiHalf':
+                    reductionHifumi -= level; // 負の値として加算 (例: Lv1なら-1)
+                    break;
+                case 'shonbenHalf':
+                    reductionShonben = [-0.5, -1.0, -1.5][level - 1]; // 直接代入 (負の値)
+                    break;
                 case 'oneEyeBonus': bonusEye[1] += level; break;
                 case 'twoEyeBonus': bonusEye[2] += level; break;
                 case 'threeEyeBonus': bonusEye[3] += level; break;
                 case 'fourEyeBonus': bonusEye[4] += level; break;
                 case 'fiveEyeBonus': bonusEye[5] += level; break;
-                case 'sixEyeBonus': bonusEye[6] += level; break;
+                case 'sixEyeBonus': bonusEye[6] += level; break; 
                 case 'allEyeBonus': bonusAllEye += [0.5, 1.0, 1.5][level - 1]; break;
             }
         });
-        // 各要素に最終的な倍率を設定
-        ratePinzoroEl.textContent = baseRatePinzoro; // ピンゾロは現在ボーナスなし
-        rateArashiEl.textContent = (baseRateArashi + bonusArashi).toFixed(1); // 小数点表示対応
-        rateShigoroEl.textContent = (baseRateShigoro + bonusShigoro).toFixed(1); // 小数点表示対応
-        rateHifumiEl.textContent = Math.max(0, baseRateHifumi + reductionHifumi).toFixed(1); // 軽減をマイナス値で加算、最低0倍
-        rateShonbenEl.textContent = Math.max(0, baseRateShonben + reductionShonben).toFixed(1); // 軽減をマイナス値で加算、最低0倍
-        // 各目の最終倍率を計算して表示 
-        for (let i = 1; i <= 6; i++) {
-            const finalEyeRate = baseRateEye + bonusAllEye + bonusEye[i];
-            rateEyeEls[i].textContent = finalEyeRate.toFixed(1); // 小数点表示
-        }
 
+        ratePinzoroEl.textContent = baseRatePinzoro;
+        rateArashiEl.textContent = (baseRateArashi + bonusArashi).toFixed(1);
+        rateShigoroEl.textContent = (baseRateShigoro + bonusShigoro).toFixed(1);
+        rateHifumiEl.textContent = Math.max(0, baseRateHifumi + reductionHifumi).toFixed(1);
+        rateShonbenEl.textContent = Math.max(0, baseRateShonben + reductionShonben).toFixed(1);
+
+        // 各目の最終倍率を計算して表示 (ループ範囲は1から6でOK)
+        for (let i = 1; i <= 6; i++) {
+            const finalEyeRate = baseRateEye + bonusAllEye + (bonusEye[i] || 0); // bonusEye[i] が undefined でも 0 として扱われるように
+            if (rateEyeEls[i]) { // 要素が存在するか確認
+                rateEyeEls[i].textContent = finalEyeRate.toFixed(1);
+            } else {
+                console.warn(`Element role-rate-eye${i} not found!`);
+            }
+        }
         console.log("Updated role rates display based on current cards.");
     } // updateRoleRatesDisplay 関数の終わり
+
 // === カード使用後などの自動進行チェック関数 ===
 async function checkAndProceedAfterAction() {
     console.log("Checking if player can proceed after action...");
@@ -980,7 +993,7 @@ async function checkAndProceedAfterAction() {
         console.log(` -> Actions available (Card: ${hasUsablePostRollCard}, Reroll: ${canRerollMenashi}). Waiting for player choice.`);
         // 使用可能なカードがある、または目なしで振り直せる場合は、
         // waitingForPlayerActionAfterRoll を true にしてボタン付きメッセージを表示する必要がある
-        // ★ この関数の呼び出し元 (handlePostRollPlayerAction) で waitingFor... を設定し、
+        // この関数の呼び出し元 (handlePostRollPlayerAction) で waitingFor... を設定し、
         //   setMessage でボタンを表示させるようにする
          if (!waitingForPlayerActionAfterRoll) {
              // この関数が呼ばれた時点で waiting... が false だった場合、
@@ -992,7 +1005,6 @@ async function checkAndProceedAfterAction() {
              updateCardButtonHighlight();
          } else {
              // 既に waiting... が true なら、ボタンは表示されているはずなので何もしない
-             // setMessageAfterActionCancel(); // ★ 削除: 不要なメッセージ上書きを防ぐ
          }
     }
 }
@@ -2623,8 +2635,9 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
         });
         setBetButton.disabled = betInput.disabled; maxBetButton.disabled = betInput.disabled; minBetButton.disabled = betInput.disabled;
     }
-    function startBettingPhase() {
+    function startBettingPhase() {         
         console.log("--- startBettingPhase START ---");
+        activeCardsUsedThisRound = []; // ラウンド開始時にリセット
         currentRoundInWave++;
         isGameActive = false;
         playerDice = [0, 0, 0]; npcDice = [0, 0, 0];
@@ -3924,37 +3937,42 @@ async function displayScoreCalculationAnimation(data) {
          if (npcImageArea && (npcImageArea.classList.contains('shake-happy') || npcImageArea.classList.contains('shake-damage'))) { setTimeout(() => { if (npcImageArea) npcImageArea.classList.remove('shake-happy', 'shake-damage') }, animationDuration); }
      });
 
-    // 使用されたアクティブカードのリストを作成 
-    const usedActiveCardsInRound = Object.entries(activeCardUses)
-        .filter(([cardId, count]) => {
-            // _roundStartCount があるものは、ラウンド中に使用回数が増えたかチェック
-            if (activeCardUses[`${cardId}_roundStartCount`] !== undefined) {
-                return count > (activeCardUses[`${cardId}_roundStartCount`] || 0);
-            }
-            // _roundStartCount がないものは、単純に使用回数が1以上かチェック (念のため)
-            // ただし、ラウンド開始時にリセットされる前提のものだけを対象とするのがより正確
-            // ここでは簡略化のため、usesPerWaveを持つカードでカウントが1以上のものを対象とする
-            const cardDef = allCards.find(c => c.id === cardId);
-            return cardDef && cardDef.usesPerWave && count > 0;
-        })
-        .map(([cardId, count]) => cardId); // カードIDの配列にする
-    console.log("Used active cards this round:", usedActiveCardsInRound);
+    // 使用されたアクティブカードのリスト
+    const usedActiveCardsForHistory = [...activeCardsUsedThisRound]; // 現在のラウンドで使用されたリストをコピーして使用
+    console.log("Used active cards this round (for history):", usedActiveCardsForHistory);
 
-    // 金策カードによるコイン獲得情報をまとめる 
+    // 金策カードによるコイン獲得情報を先に確定させる
     let coinBonusInfo = {};
+    let bountyCoinGain = 0;
+    let offeringCoinGain = 0;
+    let offeringSuccess = false; // 賽銭箱が成功したか
+
+    // 賞金稼ぎ (プレイヤー勝利時)
     if (pWin) {
         const bountyHunterCard = playerCards.find(c => c.id === 'bountyHunter');
         if (bountyHunterCard) {
             const level = bountyHunterCard.level;
-            coinBonusInfo.bounty = [30, 40, 50][level - 1];
+            bountyCoinGain = [30, 40, 50][level - 1];
+            if (bountyCoinGain > 0) {
+                 coinBonusInfo.bounty = bountyCoinGain; // 履歴用に記録
+            }
         }
     }
+    // 賽銭箱 (確率判定をここで行う)
     const offeringBoxCard = playerCards.find(c => c.id === 'offeringBox');
-    if (offeringBoxCard && Math.random() < 0.50) { // 注意: 確率判定が履歴登録と表示で2回行われる可能性
-                                                    // → 本来は確率判定を先に行い、結果を保持すべき
-                                                    // → 今回は簡略化のため、表示時に再度確率判定する可能性を許容
-         const level = offeringBoxCard.level;
-         coinBonusInfo.offering = [10, 20, 30][level - 1];
+    if (offeringBoxCard) {
+        if (Math.random() < 0.50) { // 50%の確率判定
+             offeringSuccess = true; // 成功フラグ
+             const level = offeringBoxCard.level;
+             offeringCoinGain = [10, 20, 30][level - 1];
+             if (offeringCoinGain > 0) {
+                 coinBonusInfo.offering = offeringCoinGain; // 履歴用に記録
+                 coinBonusInfo.offeringSuccess = true; // 履歴用に成功フラグも記録
+             }
+        } else {
+            coinBonusInfo.offeringSuccess = false; // 失敗したことも記録 
+            console.log(`Card Effect Skipped (Coin): 賽銭箱 Lv.${offeringBoxCard.level} (Failed probability check)`);
+        }
     }
 
     // 履歴登録 
@@ -3962,16 +3980,16 @@ async function displayScoreCalculationAnimation(data) {
         wave: currentWave, round: currentRoundInWave,
         parentBefore: parentBefore,
         result: rClass, scoreChange: sc, betAmount: currentBet,
-        playerDice: playerDice.join(' '), // スペース区切りで保存
+        playerDice: playerDice.join(' '),
         playerHandName: getHandDisplayName(playerHand),
-        npcDice: npcDice.join(' '), // スペース区切りで保存
+        npcDice: npcDice.join(' '),
         npcHandName: getHandDisplayName(npcHand),
         consecutiveWins: isPlayerParent ? consecutiveWins : 0,
         npcConsecutiveWins: !isPlayerParent ? npcConsecutiveWins : 0,
-        npcName: npcNameStr, // NPC名も渡す
-        calculationData: calculationData, // スコア計算詳細を追加
-        usedActiveCards: usedActiveCardsInRound, // 使用カードを追加
-        coinBonusInfo: coinBonusInfo // コインボーナス情報を追加
+        npcName: npcNameStr,
+        calculationData: calculationData,
+        usedActiveCards: usedActiveCardsForHistory, 
+        coinBonusInfo: coinBonusInfo 
     });
 
     // UI更新とゲーム終了チェックの遅延実行
@@ -3982,52 +4000,30 @@ async function displayScoreCalculationAnimation(data) {
         else if (parentKeptByCard) { finalMsg += ` (${playerNameStr}が親権維持発動！)`; }
         let coinBonusMessage = ""; // コインボーナス用メッセージ
 
-        // 賞金稼ぎの効果 (プレイヤー勝利時)
-        if (pWin) {
-            const bountyHunterCard = playerCards.find(c => c.id === 'bountyHunter');
-            if (bountyHunterCard) {
-                const level = bountyHunterCard.level;
-                const coinGain = [30, 40, 50][level - 1];
-                if (coinGain > 0) {
-                    const startCoins = playerCoins;
-                    playerCoins += coinGain;
-                    console.log(`Card Effect Applied (Coin): 賞金稼ぎ Lv.${level} -> +${coinGain} G`);
-                    playCoinAnimation(coinGain);
-                    animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
-                    if (shopScreen.classList.contains('active')) {
-                         animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
-                    }
-                    // アナウンス用メッセージ作成
-                    coinBonusMessage += ` 賞金稼ぎ効果！+${coinGain}G！`;
-                    // 履歴追加 (任意)
-                    // addHistoryEntry({ type: 'coin_bonus', card: 'bountyHunter', level: level, amount: coinGain });
-                }
+        // 賞金稼ぎ (確定値を使用)
+        if (bountyCoinGain > 0) {
+            const startCoins = playerCoins;
+            playerCoins += bountyCoinGain;
+            console.log(`Card Effect Applied (Coin): 賞金稼ぎ -> +${bountyCoinGain} G`);
+            playCoinAnimation(bountyCoinGain);
+            animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
+            if (shopScreen.classList.contains('active')) {
+                 animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
             }
+            coinBonusMessage += ` 賞金稼ぎ効果！+${bountyCoinGain}G！`;
         }
 
-        // 賽銭箱の効果 (ラウンド終了時、確率)
-        const offeringBoxCard = playerCards.find(c => c.id === 'offeringBox');
-        if (offeringBoxCard) {
-            if (Math.random() < 0.50) {
-                 const level = offeringBoxCard.level;
-                 const coinGain = [10, 20, 30][level - 1];
-                 if (coinGain > 0) {
-                     const startCoins = playerCoins;
-                     playerCoins += coinGain;
-                     console.log(`Card Effect Applied (Coin): 賽銭箱 Lv.${level} (Success!) -> +${coinGain} G`);
-                     playCoinAnimation(coinGain);
-                     animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
-                     if (shopScreen.classList.contains('active')) {
-                          animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
-                     }
-                     // アナウンス用メッセージ作成
-                     coinBonusMessage += ` 賽銭箱効果！+${coinGain}G！`;
-                     // 履歴追加 (任意)
-                     // addHistoryEntry({ type: 'coin_bonus', card: 'offeringBox', level: level, amount: coinGain });
-                 }
-            } else {
-                 console.log(`Card Effect Skipped (Coin): 賽銭箱 Lv.${offeringBoxCard.level} (Failed probability check)`);
-            }
+        // 賽銭箱 (確定値を使用)
+        if (offeringSuccess && offeringCoinGain > 0) {
+             const startCoins = playerCoins;
+             playerCoins += offeringCoinGain;
+             console.log(`Card Effect Applied (Coin): 賽銭箱 (Success!) -> +${offeringCoinGain} G`);
+             playCoinAnimation(offeringCoinGain);
+             animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
+             if (shopScreen.classList.contains('active')) {
+                  animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
+             }
+             coinBonusMessage += ` 賽銭箱効果！+${offeringCoinGain}G！`;
         }
 
         // 最終メッセージにコインボーナスアナウンスを追記
@@ -4301,7 +4297,8 @@ async function displayScoreCalculationAnimation(data) {
                     if (entry.coinBonusInfo.bounty > 0) {
                         coinStr += `💰賞金+${entry.coinBonusInfo.bounty}G `;
                     }
-                    if (entry.coinBonusInfo.offering > 0) {
+                    // 賽銭箱は成功した場合のみ表示 (coinBonusInfo.offeringSuccess で判定)
+                    if (entry.coinBonusInfo.offeringSuccess && entry.coinBonusInfo.offering > 0) {
                         coinStr += `💰賽銭+${entry.coinBonusInfo.offering}G `;
                     }
                 }
@@ -4347,17 +4344,16 @@ async function displayScoreCalculationAnimation(data) {
                 // 使用アクティブカード
                 if (entry.usedActiveCards && entry.usedActiveCards.length > 0) {
                     historyHtml += `<h5>使用カード:</h5><ul>`;
-                    entry.usedActiveCards.forEach(cardId => {
+                    entry.usedActiveCards.forEach(cardId => { // entry.usedActiveCards を参照
                         const cardDef = allCards.find(c => c.id === cardId);
                         historyHtml += `<li>${cardDef ? cardDef.name : cardId}</li>`;
                     });
                     historyHtml += `</ul>`;
                 } else {
-                     historyHtml += `<p>使用カードなし</p>`;
+                     historyHtml += `<p>使用カードなし</p>`; // 表示なしの場合
                 }
-                historyHtml += `</div>`; // history-details-content 終了
+                historyHtml += `</div>`;
             }
-
             li.innerHTML = historyHtml;
             historyLogEl.appendChild(li);
         });
@@ -5012,6 +5008,11 @@ async function displayScoreCalculationAnimation(data) {
                  postUseMessage += ` (残${remainingUses}/${getTotalUses(cardId)})`;
             }
             console.log(`Used card ${cardId}. Remaining uses: ${remainingUses}`);
+            // 使用したカードIDを記録 
+            if (!activeCardsUsedThisRound.includes(cardId)) { // 同じラウンドで複数回使っても1回だけ記録する場合
+                 activeCardsUsedThisRound.push(cardId);
+                 console.log("Added to activeCardsUsedThisRound:", cardId);
+            }
         }
 
         if (!waitingForUserChoice && postUseMessage) {
@@ -5543,6 +5544,14 @@ async function rerollWithGuarantee(level, currentDice) {
              }
              return;
         }
+
+        // 使用したカードIDを記録 
+        if (card.usesPerWave) { // usesPerWaveを持つカードのみ記録
+            if (!activeCardsUsedThisRound.includes(cardId)) {
+                 activeCardsUsedThisRound.push(cardId);
+                 console.log("Added to activeCardsUsedThisRound (from dice choice):", cardId);
+            }
+       }
 
         // ダイスと手札を更新
         playerDice = newDice;
