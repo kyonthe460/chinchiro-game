@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- キャラクターデータ --- 
     const characters = [
-        { id: 'char01', name: 'カオル', image: './Character Image/Character01.png', initialCardId: null, initialCardPool: ['destinyShift'] },
+        { id: 'char01', name: 'カオル', image: './Character Image/Character01.png', initialCardId: null, initialCardPool: ['lossInsurance'] },
         { id: 'char02', name: 'トキワ', image: './Character Image/Character02.png', initialCardId: null, initialCardPool: ['changeEyeToOne'] },
         { id: 'char03', name: 'ツキコ', image: './Character Image/Character03.png', initialCardId: null, initialCardPool: ['changeEyeToSix'] },
         { id: 'char04', name: 'カゲヤマ', image: './Character Image/Character04.png', initialCardId: null, initialCardPool: ['changeToOne'] },
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
         { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['allEyeBonus'] },
-        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['offeringBox'] },
+        { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['bountyHunter'] },
         { id: 'char16', name: 'ムサシボウ', image: './Character Image/Character16.png', initialCardId: null, initialCardPool: ['lastStand'] },
     ];
     let selectedCharacter = characters[0];
@@ -3789,31 +3789,29 @@ async function displayScoreCalculationAnimation(data) {
     }
     isGameActive = false; rollButton.disabled = true; historyButton.disabled = false;
 
-    // ラウンド結果とスコア計算に必要な変数を初期化
+    // --- ラウンド結果とスコア計算に必要な変数を初期化 ---
     let pWin = false, nWin = false, draw = false;
     let sc = 0, rClass = 'draw';
-    let finalMsg = ""; // 最終的に表示するメッセージ
-    let parentChanged = false; // 親交代が発生したか
-    let preventParentChange = false; // 親権維持カードで交代が阻止されたか
-    let parentKeptByCard = false; // 親権維持カードが使用されたか
-    const parentBefore = isPlayerParent ? 'Player' : 'NPC'; // ラウンド開始前の親
-    const playerInitialScore = playerScore; // 計算前のプレイヤースコア
-    const npcInitialScore = npcScore; // 計算前のNPCスコア
-    const playerNameStr = playerName || selectedCharacter?.name || 'あなた'; // 表示用プレイヤー名
-    const npcNameStr = currentNpcCharacter?.name || '相手'; // 表示用NPC名
-
-    // 連勝数を計算前に保持
+    let finalMsg = "";
+    let preventParentChange = false;
+    let parentKeptByCard = false;
+    const playerInitialScore = playerScore;
+    const npcInitialScore = npcScore;
+    const playerNameStr = playerName || selectedCharacter?.name || 'あなた';
+    const npcNameStr = currentNpcCharacter?.name || '相手';
     const consecutiveWinsBeforeRound = consecutiveWins;
     const npcConsecutiveWinsBeforeRound = npcConsecutiveWins;
-
-    // スコア計算用変数
-    let baseMultiplier = 1.0; // 基本倍率
-    let multiplierBonus = 0;  // カード効果などによる倍率の加減算
-    let streakBonusRate = 0.0;// 連勝ボーナス率
-    let isHifumiLoss = false; // プレイヤーがヒフミで負けたか
-    let isShonbenLoss = false;// プレイヤーがションベンで負けたか
-    let insuranceApplied = false; // 一撃保険が適用されたか
-    let appliedCardEffects = []; // 計算に使用された効果のログ
+    // (連勝数変数はグローバルなのでここでは初期化しない)
+    let baseMultiplier = 1.0;
+    let multiplierBonus = 0;
+    let streakBonusRate = 0.0; // スコア計算用のボーナス率
+    let isHifumiLoss = false;
+    let isShonbenLoss = false;
+    let insuranceApplied = false;
+    let appliedCardEffects = [];
+    let calculationData = {}; // スコア計算アニメーション用データ
+    let activeCardsUsedThisRoundForHistory = [...activeCardsUsedThisRound]; // 履歴用に使用カードをコピー
+    let coinBonusInfoForHistory = { bounty: 0, offering: 0, offeringSuccess: false };
 
     // --- 勝敗判定 ---
     if (playerHand?.type === 'ションベン') { nWin = true; isShonbenLoss = true; }
@@ -3829,98 +3827,103 @@ async function displayScoreCalculationAnimation(data) {
 
     // --- riskyBet 効果判定 ---
     const riskyCardCheckEnd = playerCards.find(c => c.id === 'riskyBet');
-    const wasRiskyBetActiveThisRound = riskyBetActive;
-    let riskyBetWinBonus = 0; // 勝利時の倍率ボーナス用
-    let riskyBetLossPenalty = false; // 敗北時の追加支払いフラグ
-
+    const wasRiskyBetActiveThisRound = riskyBetActive; // ラウンド開始時の状態を保持
+    let riskyBetWinBonus = 0;
+    let riskyBetLossPenalty = false;
     if (wasRiskyBetActiveThisRound && riskyCardCheckEnd) {
         const riskyLevel = riskyCardCheckEnd.level;
-        if (pWin) { // プレイヤー勝利
-            riskyBetWinBonus = 1; // 勝利時+1倍を記録
+        if (pWin) {
+            riskyBetWinBonus = 1;
             appliedCardEffects.push({ name: `危険な賭け Lv.${riskyLevel}`, value: `勝利 +1.0倍`, type: 'bonus' });
-            console.log(`Risky Bet Lv.${riskyLevel} recorded for Win (+1.0 bonus to be applied).`);
-        } else if (nWin) { // プレイヤー敗北
-            riskyBetLossPenalty = true; // 敗北時追加支払いフラグを立てる
-            appliedCardEffects.push({ name: `危険な賭け Lv.${riskyLevel}`, value: `敗北 支払い+1.0倍`, type: 'negative' }); // type は negative のまま、value を変更
-            console.log(`Risky Bet Lv.${riskyLevel} recorded for Lose (Payment +1.0x to be applied).`);
+        } else if (nWin) {
+            riskyBetLossPenalty = true;
+            appliedCardEffects.push({ name: `危険な賭け Lv.${riskyLevel}`, value: `敗北 支払い+1.0倍`, type: 'negative' });
         }
     }
 
-    // --- 親権維持カードの確認 (敗北時のみ) ---
+    // --- 親権維持カードの確認 (敗北時) ---
     const keepRightCard = playerCards.find(card => card.id === 'keepParentalRight');
     const maxKeepUses = keepRightCard ? getTotalUses('keepParentalRight') : 0;
     const keepRightUsesCount = activeCardUses['keepParentalRight'] || 0;
     if (isPlayerParent && nWin && keepRightCard && keepRightUsesCount < maxKeepUses) {
          const useKeepRight = await askKeepParentRight(keepRightCard.level);
          if (useKeepRight) {
-             preventParentChange = true; // 親交代を阻止
-             parentKeptByCard = true; // カードによって維持されたフラグ
-             if (keepRightCard.level >= 3) { keepParentDiscountNextRound = true; } // Lv3なら次回割引
-             activeCardUses['keepParentalRight'] = (activeCardUses['keepParentalRight'] || 0) + 1; // 使用回数カウント
-             updateCardButtonHighlight(); // ボタンのハイライト更新
-             // 効果ログに追加 (保険適用時でも表示されるように)
+             preventParentChange = true; // 親交代阻止
+             parentKeptByCard = true; // カード使用フラグ
+             if (keepRightCard.level >= 3) { keepParentDiscountNextRound = true; }
+             activeCardUses['keepParentalRight'] = (activeCardUses['keepParentalRight'] || 0) + 1;
+             updateCardButtonHighlight();
              appliedCardEffects.push({ name: '親権維持', value: '(親交代阻止)', type: 'info' });
              console.log(`Card Effect: 親権維持 Lv.${keepRightCard.level} used! Parent change prevented.`);
          }
      }
 
-    // --- 連勝数更新と親交代判定 (スコア計算前に確定) ---
-    if (pWin) { // プレイヤー勝利
-        if (parentBefore === 'Player') { // プレイヤーが親だった
-            consecutiveWins++; // プレイヤー連勝数+1
-            npcConsecutiveWins = 0; // 相手の連勝リセット
-        } else { // 相手が親だった
-            consecutiveWins = 1; // プレイヤーが新しく親になり1勝目
-            npcConsecutiveWins = 0; // 相手の連勝リセット
-            parentChanged = true; // 親交代フラグ
-            isPlayerParent = true; // 状態更新
+    // --- 連勝数更新と親交代判定 ---
+    const parentBefore = isPlayerParent ? 'Player' : 'NPC';
+    let parentChanged = false;
+
+    if (draw) {
+        // 引き分け: 連勝数は変更しない
+        console.log("Draw round. Consecutive wins remain unchanged.");
+    } else if (pWin) { // プレイヤー勝利
+        if (isPlayerParent) { // プレイヤーが親のまま勝利
+            consecutiveWins++;
+            console.log(`Player (Parent) wins, streak now ${consecutiveWins}`);
+        } else { // プレイヤーが子で勝利 -> 親交代
+            parentChanged = true;
+            isPlayerParent = true;
+            consecutiveWins = 1; // 1連勝目
+            npcConsecutiveWins = 0; // 交代したのでNPC連勝リセット
+            console.log("Player (Child) wins, becomes Parent, 1 win streak.");
         }
-    } else if (nWin) { // プレイヤー敗北
-        if (parentBefore === 'NPC') { // 相手が親だった
-            npcConsecutiveWins++; // 相手連勝数+1
+    } else if (nWin) { // プレイヤー敗北 (NPC勝利)
+        if (!isPlayerParent) { // NPCが親のまま勝利
+            npcConsecutiveWins++;
+            console.log(`NPC (Parent) wins, streak now ${npcConsecutiveWins}`);
+        } else { // プレイヤーが親で敗北
             consecutiveWins = 0; // プレイヤー連勝リセット
-        } else { // プレイヤーが親だった
-            if (!parentKeptByCard) { // 親権維持カードを使用していない場合のみリセット
-                consecutiveWins = 0; // プレイヤー連勝リセット
+            if (!preventParentChange) { // 親権維持未使用 -> 親交代
+                parentChanged = true;
+                isPlayerParent = false;
+                npcConsecutiveWins = 1; // 1連勝目
+                console.log("Player (Parent) loses, NPC becomes Parent, 1 win streak.");
             } else {
-                console.log("Parent kept by card, consecutiveWins not reset.");
-                // 親権維持カード使用時はプレイヤー連勝数はリセットしない
+                // 親権維持使用 -> 親交代なし
+                npcConsecutiveWins = 0; // プレイヤー親継続なのでNPC連勝は0
+                console.log("Player (Parent) loses, but kept parent status. Wins reset.");
             }
-            npcConsecutiveWins = 1; // 相手が新しく親になり1勝目
-            if (!preventParentChange) { // 親権維持を使わなかった場合
-                parentChanged = true; // 親交代フラグ
-                isPlayerParent = false; // 状態更新
-            }
-            // preventParentChange が true なら親交代しない
         }
-    } else { // 引き分け
-        // 親だった方の連勝数をリセット
-        if (parentBefore === 'Player') { consecutiveWins = 0; }
-        else { npcConsecutiveWins = 0; }
     }
-    console.log(`Round End - Wins: Player=${consecutiveWins}, NPC=${npcConsecutiveWins}, Parent Changed=${parentChanged}, Player is Parent=${isPlayerParent}`);
+    // 念のため、現在の親でない方の連勝数を0にする
+    if (isPlayerParent) npcConsecutiveWins = 0; else consecutiveWins = 0;
+
+    console.log(`Round End Update - Player Wins: ${consecutiveWins}, NPC Wins: ${npcConsecutiveWins}, Is Player Parent: ${isPlayerParent}, Parent Changed: ${parentChanged}`);
 
     // --- スコア計算 ---
     if (draw) {
+        // ... (引き分け時の処理 - drawBonusActive フラグのチェックとリセットもここで行う) ...
         let baseMsg = `引き分け！ (${getHandDisplayName(playerHand)} vs ${getHandDisplayName(npcHand)})`;
         rClass = 'draw';
         const drawBonusCardCheck = playerCards.find(c => c.id === 'drawBonus');
+        // drawBonusActive フラグをチェック
         if (drawBonusActive && drawBonusCardCheck) {
              const scoreGainPercent = (drawBonusCardCheck.level === 3) ? 1.0 : 0.5;
              const scoreGain = Math.floor(currentBet * scoreGainPercent);
              if (scoreGain > 0) {
-                 sc = scoreGain;
+                 sc = scoreGain; // スコア変動はプラス
                  finalMsg = baseMsg + ` (引き分けボーナス: +${sc}点)`;
-                 activeCardUses['drawBonus'] = (activeCardUses['drawBonus'] || 0) + 1;
+                 // 使用回数カウントは handleActiveCardUse で行う
                  appliedCardEffects.push({ name: `引き分けボーナス Lv.${drawBonusCardCheck.level}`, value: `+${sc}点`, type: 'bonus' });
              } else {
                   finalMsg = baseMsg;
              }
-             drawBonusActive = false; // フラグリセット
         } else {
             sc = 0;
             finalMsg = baseMsg;
         }
+        // drawBonusActive フラグは handleRoundEnd の最後でリセットする
+        streakBonusRate = 0; // 引き分けなのでボーナスなし
+
     } else { // 勝敗ありの場合
         const winnerHand = pWin ? playerHand : npcHand;
         const loserHand = pWin ? npcHand : playerHand;
@@ -3932,12 +3935,11 @@ async function displayScoreCalculationAnimation(data) {
             insuranceApplied = true;
             const level = insuranceCard.level;
             const insuranceMultiplier = [1.5, 1.3, 1.1][level - 1];
-            // 相手(勝者)のラウンド開始前の連勝数を取得
-            const opponentWinsBefore = parentBefore === 'NPC' ? npcConsecutiveWinsBeforeRound : 0;
+            // 相手(勝者=NPC)のラウンド開始前の連勝数を取得
+            const opponentWinsBefore = npcConsecutiveWinsBeforeRound; 
             const opponentStreakBonusRate = opponentWinsBefore >= 1 ? (opponentWinsBefore * CONSECUTIVE_WIN_BONUS_RATE) : 0.0;
-            // 保険の計算式で支払い額を決定
             const finalPaymentWithInsurance = currentBet * insuranceMultiplier * (1 + opponentStreakBonusRate);
-            sc = -Math.round(finalPaymentWithInsurance); // スコア変動はマイナス
+            sc = -Math.round(finalPaymentWithInsurance);
             // 効果ログは保険を主とする (riskyBet など他の倍率効果は表示しない)
             appliedCardEffects = appliedCardEffects.filter(eff => eff.type === 'info'); // info系(親権維持など)は残す
             appliedCardEffects.push({ name: `一撃保険 Lv.${level}`, value: `支払い=${Math.abs(sc)}点`, type: 'special' });
@@ -3973,7 +3975,7 @@ async function displayScoreCalculationAnimation(data) {
 
              // 2. カード効果による倍率ボーナス/ペナルティ計算 (riskyBet含む)
             multiplierBonus = 0; // 計算前にリセット
-            appliedCardEffects = appliedCardEffects.filter(eff => eff.type === 'info' || eff.name.includes('危険な賭け')); // ★ infoとriskyBet以外をリセット
+            // appliedCardEffects = appliedCardEffects.filter(eff => eff.type === 'info' || eff.name.includes('危険な賭け')); // ★ infoとriskyBet以外をリセット
 
             if (winnerIsPlayer) {
                 // --- 勝利時のカード効果適用 ---
@@ -4069,7 +4071,6 @@ async function displayScoreCalculationAnimation(data) {
                         appliedCardEffects.push({ name: `${cardName} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
                         console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
                     }
-
                     const arashiGuardCardData = playerCards.find(c => c.id === 'arashiLossGuard'); 
                     if (arashiGuardCardData && winnerHandName === ROLES.ARASHI.name) { 
                         const level = arashiGuardCardData.level; 
@@ -4080,7 +4081,6 @@ async function displayScoreCalculationAnimation(data) {
                         appliedCardEffects.push({ name: `${cardName} Lv.${level}`, value: `${reductionVal.toFixed(1)}倍`, type: 'negative' });
                         console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
                     }
-
                     const shigoroGuardCardData = playerCards.find(c => c.id === 'shigoroLossGuard'); 
                     if (shigoroGuardCardData && winnerHandName === ROLES.SHIGORO.name) { 
                         const level = shigoroGuardCardData.level; 
@@ -4092,7 +4092,6 @@ async function displayScoreCalculationAnimation(data) {
                         console.log(`Card Effect Applied (Loss): ${cardName} Lv.${level} -> Multiplier Bonus ${reductionVal}`);
                     }
                 } 
-
                 // multiplierBonus に役敗北軽減の合計を加算
                 multiplierBonus += roleLossReduction;
 
@@ -4142,15 +4141,34 @@ async function displayScoreCalculationAnimation(data) {
              multiplierBonus += riskyBetWinBonus;
 
              // 3. 連勝ボーナス計算
-             streakBonusRate = 0.0;
-             let winsForBonusCalculation = 0;
-             if (parentBefore === 'Player' && pWin) { winsForBonusCalculation = consecutiveWins; }
-             else if (parentBefore === 'NPC' && nWin) { winsForBonusCalculation = npcConsecutiveWins; }
-             if (winsForBonusCalculation >= 1) {
-                 streakBonusRate = winsForBonusCalculation * CONSECUTIVE_WIN_BONUS_RATE;
-                 if (parentBefore === 'Player' && pWin) { const spiritCard = playerCards.find(c => c.id === 'fightingSpirit'); if (spiritCard) { const level = spiritCard.level; const conditionMet = (level < 3 && playerInitialScore <= npcInitialScore / 2) || (level >= 3 && playerInitialScore <= npcInitialScore); if (conditionMet) { const spiritBonusRateInc = [0.1, 0.2, 0.3][level - 1]; streakBonusRate += spiritBonusRateInc; appliedCardEffects.push({ name: `逆境の魂 Lv.${level}`, value: `連勝率+${(spiritBonusRateInc * 100).toFixed(0)}%`, type: 'bonus' }); } } }
+             streakBonusRate = 0.0; // まずリセット
+             let currentParentWinsForBonus = 0;
+             // **現在の親が勝利した場合のみ**ボーナス発生
+             if (isPlayerParent && pWin) {
+                 currentParentWinsForBonus = consecutiveWins; // プレイヤー親勝利 -> 更新後のプレイヤー連勝数
+             } else if (!isPlayerParent && nWin) {
+                 currentParentWinsForBonus = npcConsecutiveWins; // NPC親勝利 -> 更新後のNPC連勝数
              }
-             streakBonusRate = Math.max(0, streakBonusRate);
+
+             if (currentParentWinsForBonus >= 1) { // 1連勝以上の場合
+                 streakBonusRate = currentParentWinsForBonus * CONSECUTIVE_WIN_BONUS_RATE;
+                 console.log(`Streak Bonus Calculation: Parent=${isPlayerParent ? 'Player':'NPC'}, Wins=${currentParentWinsForBonus}, Rate=${streakBonusRate}`);
+                 // 逆境の魂の効果 (プレイヤーが親で勝利した場合のみチェック)
+                 if (isPlayerParent && pWin) {
+                     const spiritCard = playerCards.find(c => c.id === 'fightingSpirit');
+                     if (spiritCard) {
+                          const level = spiritCard.level;
+                          const conditionMet = (level < 3 && playerInitialScore <= npcInitialScore / 2) || (level >= 3 && playerInitialScore <= npcInitialScore);
+                          if (conditionMet) {
+                              const spiritBonusRateInc = [0.1, 0.2, 0.3][level - 1];
+                              streakBonusRate += spiritBonusRateInc;
+                              appliedCardEffects.push({ name: `逆境の魂 Lv.${level}`, value: `連勝率+${(spiritBonusRateInc * 100).toFixed(0)}%`, type: 'bonus' });
+                              console.log(`Fighting Spirit Lv.${level} bonus applied: +${spiritBonusRateInc * 100}%`);
+                          }
+                      }
+                 }
+             }
+             streakBonusRate = Math.max(0, streakBonusRate); // 最低0%保証
 
              // 4. 最終スコア計算 (通常)
              const effectiveMultiplier = Math.max(0, baseMultiplier + multiplierBonus); // riskyBet 効果含む
@@ -4175,23 +4193,25 @@ async function displayScoreCalculationAnimation(data) {
         } // 保険が適用されない場合の else ブロック終了
 
         // 勝敗に応じた連勝メッセージ追加
-        if (rClass === 'win' && isPlayerParent && consecutiveWins >= 1) { finalMsg += ` (${consecutiveWins}連勝!)`; }
-        if (rClass === 'lose' && !isPlayerParent && npcConsecutiveWins >= 1) { finalMsg += ` (${npcNameStr}${npcConsecutiveWins}連勝中...)`; }
-        // スコア変動メッセージ追加
-        finalMsg += ` ${sc !== 0 ? (sc > 0 ? `+${sc}` : sc) + '点' : ''}`;
+        if (rClass === 'win') {
+            if (isPlayerParent && consecutiveWins >= 1) finalMsg += ` (${consecutiveWins}連勝!)`;
+       } else if (rClass === 'lose') {
+            if (!isPlayerParent && npcConsecutiveWins >= 1) finalMsg += ` (${npcNameStr}${npcConsecutiveWins}連勝中...)`;
+       }
+       finalMsg += ` ${sc !== 0 ? (sc > 0 ? `+${sc}` : sc) + '点' : ''}`;
 
     } // スコア計算の終わり (else draw)
 
     // スコア計算アニメーション表示データ準備
-    const calculationData = {
+    calculationData = {
         bet: currentBet, win: pWin, lose: nWin, draw: draw,
-        parent: parentBefore,
-        consecutiveWins: (parentBefore === 'Player' && pWin && consecutiveWins >= 1) ? consecutiveWins : 0,
-        npcConsecutiveWins: (parentBefore === 'NPC' && nWin && npcConsecutiveWins >= 1) ? npcConsecutiveWins : 0,
+        parent: isPlayerParent ? 'Player' : 'NPC', // 現在の親
+        consecutiveWins: isPlayerParent ? consecutiveWins : 0, // 現在の親の連勝数を渡す
+        npcConsecutiveWins: !isPlayerParent ? npcConsecutiveWins : 0, // 現在の親の連勝数を渡す
         playerHand: playerHand, npcHand: npcHand,
         baseMultiplier: baseMultiplier,
         multiplierBonus: multiplierBonus,
-        streakBonusRate: streakBonusRate,
+        streakBonusRate: streakBonusRate, // 計算済みのボーナス率
         insuranceApplied: insuranceApplied,
         finalScoreChange: sc,
         appliedCardEffects: appliedCardEffects
@@ -4207,7 +4227,7 @@ async function displayScoreCalculationAnimation(data) {
      if (playerImageArea) playerImageArea.classList.remove('shake-damage', 'shake-happy'); if (npcImageArea) npcImageArea.classList.remove('shake-damage', 'shake-happy'); if (playerIndicator) { playerIndicator.classList.remove('indicator-win', 'indicator-lose'); playerIndicator.textContent = ''; playerIndicator.style.visibility = 'hidden'; } if (npcIndicator) { npcIndicator.classList.remove('indicator-win', 'indicator-lose'); npcIndicator.textContent = ''; npcIndicator.style.visibility = 'hidden'; }
      requestAnimationFrame(() => {
          if (sc !== 0) { showScoreChangePopup(playerScoreContainer, sc); showScoreChangePopup(npcScoreContainer, -sc); if (sc > 0) { playSound('scoreUp'); } else { playSound('scoreDown'); } }
-         animateScore(playerScoreEl, playerInitialScore, psEnd, SCORE_ANIMATION_DURATION); animateScore(npcScoreEl, npcInitialScore, nsEnd, SCORE_ANIMATION_DURATION);
+         animateScore(playerScoreEl, playerInitialScore, playerScore, SCORE_ANIMATION_DURATION); animateScore(npcScoreEl, npcInitialScore, npcScore, SCORE_ANIMATION_DURATION);
          if (sc > 0 || (pWin && !draw)) { playSound('win'); if (playerImageArea) playerImageArea.classList.add('shake-happy'); if (playerIndicator) { playerIndicator.textContent = "WIN!"; playerIndicator.classList.add('indicator-win'); playerIndicator.style.visibility = 'visible'; setTimeout(() => { if (playerIndicator) { playerIndicator.classList.remove('indicator-win'); playerIndicator.textContent = ''; playerIndicator.style.visibility = 'hidden'; } }, indicatorRemoveDelay); } if (npcImageArea) npcImageArea.classList.add('shake-damage'); if (npcIndicator) { npcIndicator.textContent = "LOSE..."; npcIndicator.classList.add('indicator-lose'); npcIndicator.style.visibility = 'visible'; setTimeout(() => { if (npcIndicator) { npcIndicator.classList.remove('indicator-lose'); npcIndicator.textContent = ''; npcIndicator.style.visibility = 'hidden'; } }, indicatorRemoveDelay); } }
          else if (sc < 0 || (nWin && !draw)) { playSound('lose'); if (playerImageArea) playerImageArea.classList.add('shake-damage'); if (playerIndicator) { playerIndicator.textContent = "LOSE..."; playerIndicator.classList.add('indicator-lose'); playerIndicator.style.visibility = 'visible'; setTimeout(() => { if (playerIndicator) { playerIndicator.classList.remove('indicator-lose'); playerIndicator.textContent = ''; playerIndicator.style.visibility = 'hidden'; } }, indicatorRemoveDelay); } if (npcImageArea) npcImageArea.classList.add('shake-happy'); if (npcIndicator) { npcIndicator.textContent = "WIN!"; npcIndicator.classList.add('indicator-win'); npcIndicator.style.visibility = 'visible'; setTimeout(() => { if (npcIndicator) { npcIndicator.classList.remove('indicator-win'); npcIndicator.textContent = ''; npcIndicator.style.visibility = 'hidden'; } }, indicatorRemoveDelay); } }
          else if (draw && sc > 0) { playSound('scoreUp'); }
@@ -4219,11 +4239,10 @@ async function displayScoreCalculationAnimation(data) {
     const usedActiveCardsForHistory = [...activeCardsUsedThisRound]; // 現在のラウンドで使用されたリストをコピーして使用
     console.log("Used active cards this round (for history):", usedActiveCardsForHistory);
 
-    // 金策カードによるコイン獲得情報を先に確定させる
-    let coinBonusInfo = {};
+    // --- 金策カード効果処理と履歴情報生成 ---
     let bountyCoinGain = 0;
     let offeringCoinGain = 0;
-    let offeringSuccess = false; // 賽銭箱が成功したか
+    let offeringSuccess = false; // 賽銭箱成功フラグ
 
     // 賞金稼ぎ (プレイヤー勝利時)
     if (pWin) {
@@ -4232,42 +4251,42 @@ async function displayScoreCalculationAnimation(data) {
             const level = bountyHunterCard.level;
             bountyCoinGain = [30, 40, 50][level - 1];
             if (bountyCoinGain > 0) {
-                 coinBonusInfo.bounty = bountyCoinGain; // 履歴用に記録
+                coinBonusInfoForHistory.bounty = bountyCoinGain; // 履歴用に記録
             }
         }
     }
-    // 賽銭箱 (確率判定をここで行う)
+    // 賽銭箱 (確率判定)
     const offeringBoxCard = playerCards.find(c => c.id === 'offeringBox');
     if (offeringBoxCard) {
         if (Math.random() < 0.50) { // 50%の確率判定
-             offeringSuccess = true; // 成功フラグ
-             const level = offeringBoxCard.level;
-             offeringCoinGain = [10, 20, 30][level - 1];
-             if (offeringCoinGain > 0) {
-                 coinBonusInfo.offering = offeringCoinGain; // 履歴用に記録
-                 coinBonusInfo.offeringSuccess = true; // 履歴用に成功フラグも記録
-             }
+            offeringSuccess = true; // 成功フラグを立てる
+            const level = offeringBoxCard.level;
+            offeringCoinGain = [10, 20, 30][level - 1];
+            if (offeringCoinGain > 0) {
+                coinBonusInfoForHistory.offering = offeringCoinGain; // 履歴用に記録
+                coinBonusInfoForHistory.offeringSuccess = true;      // 成功したことを記録
+            }
         } else {
-            coinBonusInfo.offeringSuccess = false; // 失敗したことも記録 
+            coinBonusInfoForHistory.offeringSuccess = false; // 失敗したことを記録
             console.log(`Card Effect Skipped (Coin): 賽銭箱 Lv.${offeringBoxCard.level} (Failed probability check)`);
         }
     }
 
-    // 履歴登録 
+    // --- 履歴登録 ---
     addHistoryEntry({
         wave: currentWave, round: currentRoundInWave,
-        parentBefore: parentBefore,
+        parentBefore: parentBefore, // ラウンド開始前の親
         result: rClass, scoreChange: sc, betAmount: currentBet,
         playerDice: playerDice.join(' '),
         playerHandName: getHandDisplayName(playerHand),
         npcDice: npcDice.join(' '),
         npcHandName: getHandDisplayName(npcHand),
-        consecutiveWins: isPlayerParent ? consecutiveWins : 0,
-        npcConsecutiveWins: !isPlayerParent ? npcConsecutiveWins : 0,
+        consecutiveWins: consecutiveWins, // 終了時のプレイヤー連勝数
+        npcConsecutiveWins: npcConsecutiveWins, // 終了時のNPC連勝数
         npcName: npcNameStr,
         calculationData: calculationData,
-        usedActiveCards: usedActiveCardsForHistory, 
-        coinBonusInfo: coinBonusInfo 
+        usedActiveCards: activeCardsUsedThisRoundForHistory,
+        coinBonusInfo: coinBonusInfoForHistory // 確定した情報を渡す
     });
 
     // UI更新とゲーム終了チェックの遅延実行
@@ -4276,44 +4295,39 @@ async function displayScoreCalculationAnimation(data) {
         // 親交代メッセージなどの設定
         if (parentChanged) { finalMsg += ` 親交代！ 次は${isPlayerParent ? playerNameStr : npcNameStr}が親です。`; }
         else if (parentKeptByCard) { finalMsg += ` (${playerNameStr}が親権維持発動！)`; }
-        let coinBonusMessage = ""; // コインボーナス用メッセージ
-
-        // 賞金稼ぎ (確定値を使用)
-        if (bountyCoinGain > 0) {
-            const startCoins = playerCoins;
-            playerCoins += bountyCoinGain;
-            console.log(`Card Effect Applied (Coin): 賞金稼ぎ -> +${bountyCoinGain} G`);
-            playCoinAnimation(bountyCoinGain);
-            animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
-            if (shopScreen.classList.contains('active')) {
-                 animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
-            }
-            coinBonusMessage += ` 賞金稼ぎ効果！+${bountyCoinGain}G！`;
+        
+        // 金策アナウンスとコイン加算 (確定情報を使用) 
+        let coinBonusMessage = "";
+        // 賞金稼ぎ
+        if (coinBonusInfoForHistory.bounty > 0) {
+            const gain = coinBonusInfoForHistory.bounty;
+            const startCoins = playerCoins; playerCoins += gain;
+            console.log(`Card Effect Applied (Coin): 賞金稼ぎ -> +${gain} G`);
+            playCoinAnimation(gain); animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500); if (shopScreen.classList.contains('active')) { animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500); }
+            coinBonusMessage += ` 賞金稼ぎ効果！+${gain}G！`;
         }
-
-        // 賽銭箱 (確定値を使用)
-        if (offeringSuccess && offeringCoinGain > 0) {
-             const startCoins = playerCoins;
-             playerCoins += offeringCoinGain;
-             console.log(`Card Effect Applied (Coin): 賽銭箱 (Success!) -> +${offeringCoinGain} G`);
-             playCoinAnimation(offeringCoinGain);
-             animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500);
-             if (shopScreen.classList.contains('active')) {
-                  animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500);
-             }
-             coinBonusMessage += ` 賽銭箱効果！+${offeringCoinGain}G！`;
+        // 賽銭箱 (成功した場合のみ)
+        if (coinBonusInfoForHistory.offeringSuccess && coinBonusInfoForHistory.offering > 0) {
+             const gain = coinBonusInfoForHistory.offering;
+             const startCoins = playerCoins; playerCoins += gain;
+             console.log(`Card Effect Applied (Coin): 賽銭箱 (Success!) -> +${gain} G`);
+             playCoinAnimation(gain); animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500); if (shopScreen.classList.contains('active')) { animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500); }
+             coinBonusMessage += ` 賽銭箱効果！+${gain}G！`;
         }
+        finalMsg += coinBonusMessage;
 
         // 最終メッセージにコインボーナスアナウンスを追記
         finalMsg += coinBonusMessage;
         setMessage(finalMsg); // 最終的なメッセージを設定
-        if (giveUpEyeUsedThisTurn) { giveUpEyeUsedThisTurn = false; }
 
-        // フラグリセットなど
+        // フラグリセット
+        if (giveUpEyeUsedThisTurn) { giveUpEyeUsedThisTurn = false; }
         rewardAmplifierActive = false;
         doubleUpBetActive = false;
+        drawBonusActive = false;
         console.log("Resetting rewardAmplifierActive and doubleUpBetActive flags after round end processing.");
-        // ここから「土俵際」の効果発動チェックを追加 
+
+        // 土俵際チェック (スコア更新後に行う)
         const lastStandCard = playerCards.find(c => c.id === 'lastStand');
         const lastStandActivatedKey = `lastStand_activated_wave_${currentWave}`;
         // 条件: 敗北(sc<0) かつ 最低賭け金未満 かつ カード持ち かつ WAVE未発動
@@ -4357,7 +4371,6 @@ async function displayScoreCalculationAnimation(data) {
                     finalNode.classList.add('bonus'); // 色を変えるなど
                  }
             }
-
             // メッセージエリアにも効果発動を追記
             // finalMsg に追記するのではなく、新しいメッセージとして表示
             setMessage(lastStandMessage);
