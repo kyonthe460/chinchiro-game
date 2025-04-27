@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['allEyeBonus'] },
         { id: 'char15', name: 'リキョウ', image: './Character Image/Character15.png', initialCardId: null, initialCardPool: ['bountyHunter'] },
         { id: 'char16', name: 'ムサシボウ', image: './Character Image/Character16.png', initialCardId: null, initialCardPool: ['lastStand'] },
+        { id: 'char17', name: 'ガロウ', image: './Character Image/Character17.png', initialCardId: null, initialCardPool: ['keepParentalRight'] },
     ];
     let selectedCharacter = characters[0];
     playerName = selectedCharacter.name;
@@ -1230,7 +1231,8 @@ function setMessage(msg, buttonType = 'none') {
             else if (!isPlayerParent && npcConsecutiveWins >= 1) { consWinsDisplay.textContent = ` (相手${npcConsecutiveWins}連勝中...)`; consWinsDisplay.classList.add('npc-losing-streak'); consWinsDisplay.style.display = 'inline'; } // 1勝から表示
             else { consWinsDisplay.textContent = ''; consWinsDisplay.style.display = 'none'; } } }
              // BGM切り替え判定: ゲーム画面が表示されていて、かつロール中でない場合のみ実行
-             if (gameScreen.classList.contains('active') && !diceAnimationId && !isShowingRoleResult && !isShowingGameResult && !isGameActive && !waitingForPlayerActionAfterRoll && !activeCardBeingUsed) {
+             const isBettingPhase = !isGameActive && !waitingForPlayerActionAfterRoll && !activeCardBeingUsed;
+        if (gameScreen.classList.contains('active') && isBettingPhase && !diceAnimationId && !isShowingRoleResult && !isShowingGameResult) {
                 let situationBgm = 'game_normal'; // デフォルト
                 const pinchThreshold = scoreAtWaveStart * 0.3;
                 const chanceThreshold = scoreAtWaveStart * 1.5;
@@ -4314,7 +4316,6 @@ async function displayScoreCalculationAnimation(data) {
              playCoinAnimation(gain); animateScore(gameCoinDisplayEl, startCoins, playerCoins, 500); if (shopScreen.classList.contains('active')) { animateScore(shopCoinDisplayEl, startCoins, playerCoins, 500); }
              coinBonusMessage += ` 賽銭箱効果！+${gain}G！`;
         }
-        finalMsg += coinBonusMessage;
 
         // 最終メッセージにコインボーナスアナウンスを追記
         finalMsg += coinBonusMessage;
