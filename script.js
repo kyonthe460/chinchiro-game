@@ -248,19 +248,19 @@ const boostItems = [
      // --- カードデータ定義 --- 
      const allCards = [
          { id: 'reroll1', name: '振り直し回数+1', type: 'support', cost: 50, rarity: 1, flavor: 'もう一回！あと一回だけ！', applyEffect: (level = 1) => currentMaxRolls = BASE_MAX_ROLLS + level, removeEffect: (level = 1) => currentMaxRolls = BASE_MAX_ROLLS, image: './Card Image/01.jpeg' },
-         { id: 'shonbenHalf', name: 'ションベン軽減', type: 'score', cost: 100, rarity: 1, flavor: 'おっとっと、少しこぼしただけさ。', effectTag: 'shonbenHalf', image: './Card Image/02.jpeg' },
+         { id: 'shonbenHalf', name: 'ションベン軽減', type: 'score', cost: 100, rarity: 1, flavor: 'おっとっと、少しこぼしただけさ。', effectTag: 'shonbenHalf', image: './Card Image/02.png' },
          { id: 'ignoreMinBet', name: '最低賭け金無視', type: 'support', cost: 40, rarity: 1, flavor: 'チリも積もれば...', usesPerWave: 1, image: './Card Image/03.jpeg' },
          { id: 'shopChoicePlus1', name: 'ショップ選択肢＋', type: 'support', cost: 150, rarity: 2, flavor: '選択肢は多いほうがいい。人生も、カードも。', applyEffect: (level = 1) => shopChoicePlus1Active = true, removeEffect: () => shopChoicePlus1Active = false, image: './Card Image/04.jpeg' },
         { id: 'changeToOne', name: '1に変更', type: 'dice', cost: 60, rarity: 1, flavor: 'ピンゾロ狙い？それとも…？', usesPerWave: 1, image: './Card Image/05.jpeg' },
         { id: 'changeToSix', name: '6に変更', type: 'dice', cost: 90, rarity: 1, flavor: '目は力なり。最大値をその手に。', usesPerWave: 1, image: './Card Image/06.jpeg' },
         { id: 'zoroChanceUp', name: 'ゾロ目確率UP', type: 'dice', cost: 120, rarity: 2, flavor: '揃え！揃え！揃えー！(このラウンド中有効)', usesPerWave: 1, image: './Card Image/07.jpeg' },
         { id: 'avoid123_456', name: '役回避', type: 'dice', cost: 40, rarity: 1, flavor: '危ない橋は渡らない主義でね。', usesPerWave: 1, image: './Card Image/08.jpeg' },
-        { id: 'sixEyeBonus', name: '6の目ボーナス', type: 'score', cost: 100, rarity: 1, flavor: '最高の一点で、最高の報酬を。', effectTag: 'sixEyeBonus', image: './Card Image/09.jpeg' },
-        { id: 'oneEyeBonus', name: '1の目ボーナス', type: 'score', cost: 50, rarity: 1, flavor: '最弱の目が、最強の切り札に。', effectTag: 'oneEyeBonus', image: './Card Image/10.jpeg' },
-        { id: 'arashiBonus', name: 'アラシ強化', type: 'score', cost: 150, rarity: 2, flavor: '吹き荒れろ！嵐の如く！', effectTag: 'arashiBonus', image: './Card Image/11.jpeg' },
-        { id: 'shigoroBonus', name: 'シゴロ強化', type: 'score', cost: 130, rarity: 1, flavor: '4-5-6！幸運の階段。', effectTag: 'shigoroBonus', image: './Card Image/12.jpeg' },
-        { id: 'hifumiHalf', name: 'ヒフミ軽減', type: 'score', cost: 180, rarity: 2, flavor: '1-2-3...痛恨のミスも、少しだけ軽く。', effectTag: 'hifumiHalf', image: './Card Image/13.jpeg' },
-        { id: 'drawBonus', name: '引き分けボーナス', type: 'support', cost: 90, rarity: 1, flavor: 'まあ、悪くないんじゃない？', usesPerWave: 1, image: './Card Image/14.jpeg' },
+        { id: 'sixEyeBonus', name: '6の目ボーナス', type: 'score', cost: 100, rarity: 1, flavor: '最高の一点で、最高の報酬を。', effectTag: 'sixEyeBonus', image: './Card Image/09.png' },
+        { id: 'oneEyeBonus', name: '1の目ボーナス', type: 'score', cost: 50, rarity: 1, flavor: '最弱の目が、最強の切り札に。', effectTag: 'oneEyeBonus', image: './Card Image/10.png' },
+        { id: 'arashiBonus', name: 'アラシ強化', type: 'score', cost: 150, rarity: 2, flavor: '吹き荒れろ！嵐の如く！', effectTag: 'arashiBonus', image: './Card Image/11.png' },
+        { id: 'shigoroBonus', name: 'シゴロ強化', type: 'score', cost: 130, rarity: 1, flavor: '4-5-6！幸運の階段。', effectTag: 'shigoroBonus', image: './Card Image/12.png' },
+        { id: 'hifumiHalf', name: 'ヒフミ軽減', type: 'score', cost: 180, rarity: 2, flavor: '1-2-3...痛恨のミスも、少しだけ軽く。', effectTag: 'hifumiHalf', image: './Card Image/13.png' },
+        { id: 'drawBonus', name: '引き分けボーナス', type: 'support', cost: 90, rarity: 1, flavor: 'まあ、悪くないんじゃない？', usesPerWave: 1, image: './Card Image/14.png' },
         { id: 'blessingDice', name: '天の恵み', type: 'dice', cost: 130, rarity: 2, flavor: '天よ、我に力を！(このラウンド中6が出やすく)', usesPerWave: 1, image: './Card Image/15.png' },
         { id: 'adjustEye', name: '隣接変更', type: 'dice', cost: 60, rarity: 1, flavor: '隣の目に変えて、流れを変える。', usesPerWave: 1, image: './Card Image/16.png' },
         { id: 'stormWarning', name: '嵐の予感', type: 'dice', cost: 180, rarity: 3, flavor: '嵐の前触れ…次こそは！(無料ロール時ゾロ目率UP)', usesPerWave: 1, image: './Card Image/17.png' },
@@ -383,86 +383,112 @@ let settings = {
 const SETTINGS_STORAGE_KEY = 'chinchiroSettings'; // LocalStorage用キー
 
     // --- 基本関数 ---
-    function showScreen(screenId) { 
-        console.log("Showing screen:", screenId);
-        document.querySelectorAll('.screen').forEach(s => {
-            s.classList.remove('active');
-            s.style.display = 'none';
-        });
-        const screenToShow = document.getElementById(screenId);
-        if (screenToShow && screenToShow.classList.contains('screen')) {
-            const flexScreens = ['title-screen', 'result-screen', 'character-select-screen', 'shop-screen', 'game-screen'];
-            if (flexScreens.includes(screenId)) {
-                screenToShow.style.display = 'flex';
-            } else {
-                screenToShow.style.display = 'block';
-            }
-            requestAnimationFrame(() => {
-                 screenToShow.classList.add('active');
-            });
-            // 画面に応じたBGM切り替え
-            let targetBgm = null;
-            switch (screenId) {
-                case 'title-screen': targetBgm = 'title'; break;
-                case 'game-screen': targetBgm = 'game_normal'; break;
-                case 'shop-screen': targetBgm = 'shop'; break;
-                case 'result-screen':
-                    //\リザルト画面の内容に応じて切り替え 
-                    const resultTitleElem = document.getElementById('result-title'); // 変数名変更
-                    if (resultTitleElem && resultTitleElem.classList.contains('clear')) {
-                        targetBgm = 'result_clear';
-                    } else {
-                        targetBgm = 'result_over'; // ★ ゲームオーバーBGMに
-                    }
-                    break;
-                case 'character-select-screen':
-                    targetBgm = 'title'; // タイトル画面と同じBGMを使用
-                    break;
-                default:
-                    // その他の画面ではBGMを停止するか、デフォルトBGMを流すなど
-                    stopBGM(true); // 例としてフェードアウトで停止
-                    break;
-            }
+    const FADE_DURATION = 400; // アニメーション時間 (ms)
 
-            if (targetBgm) {
-                // 現在再生中のBGMと比較し、異なる場合のみ切り替え
-                if (!currentBgm || currentBgm !== bgms[targetBgm]) {
-                     switchBGM(targetBgm);
-                 } else if (currentBgm.paused) {
-                     // 同じBGMだが停止している場合（例: AudioContextアンロック待ち後）は再生再開
-                     playBGM(targetBgm);
-                 }
-            }
-            if (screenId === 'title-screen') {
-                if (startGameButton) startGameButton.disabled = false;
-                if (selectCharacterButton) selectCharacterButton.disabled = false;
-                if(modeButtons) modeButtons.forEach(btn => btn.disabled = false);
-                previewingCharacter = null;
-            }
-            else if (screenId === 'character-select-screen') {
-                populateCharacterList();
-                if(characterPreviewImageEl) characterPreviewImageEl.style.display = 'none';
-                if(characterPreviewPlaceholderEl) {
-                     characterPreviewPlaceholderEl.style.display = 'block';
-                     characterPreviewPlaceholderEl.textContent = '← リストから選択';
-                }
-                if(characterPreviewCardEl) characterPreviewCardEl.style.display = 'none';
-                if(characterConfirmAreaEl) characterConfirmAreaEl.style.display = 'none';
-                previewingCharacter = null;
-                 if (characterConfirmMessageEl) {
-                     characterConfirmMessageEl.textContent = 'このキャラクターにしますか？';
-                     characterConfirmMessageEl.style.color = '#eee';
-                 }
-                 if(confirmCharacterYesButton) confirmCharacterYesButton.style.display = 'inline-block';
-                 if(confirmCharacterNoButton) confirmCharacterNoButton.style.display = 'inline-block';
-                 if(characterListEl) {
-                     characterListEl.querySelectorAll('button.selected').forEach(btn => btn.classList.remove('selected'));
-                 }
-            } else if (screenId === 'shop-screen') {
-                updateShopUI();
-            }
+    function showScreen(screenId) {
+        console.log("Showing screen:", screenId);
+        const screenToShow = document.getElementById(screenId);
+        if (!screenToShow || !screenToShow.classList.contains('screen')) {
+            console.error("Screen not found or invalid:", screenId);
+            return;
+        }
+
+        let activeScreen = null;
+        document.querySelectorAll('.screen.active').forEach(s => {
+            activeScreen = s;
+            // 既存のアニメーションクラスがあれば削除（念のため）
+            s.classList.remove('screen-fade-in');
+            // フェードアウト開始
+            s.classList.add('screen-fade-out');
+        });
+
+        // フェードアウト後に非表示処理
+        if (activeScreen) {
+            setTimeout(() => {
+                activeScreen.classList.remove('active', 'screen-fade-out');
+                activeScreen.style.display = 'none';
+            }, FADE_DURATION);
+        }
+
+        // フェードイン処理
+        // display プロパティを設定
+        const flexScreens = ['title-screen', 'result-screen', 'character-select-screen', 'shop-screen', 'game-screen'];
+        if (flexScreens.includes(screenId)) {
+            screenToShow.style.display = 'flex';
         } else {
-            console.error("Screen not found:", screenId);
+            screenToShow.style.display = 'block'; // デフォルトは block (もしあれば)
+        }
+
+        // 既存のアニメーションクラスがあれば削除（念のため）
+        screenToShow.classList.remove('screen-fade-out');
+
+        // 少し遅延させてからフェードイン開始（display反映待ち）
+        requestAnimationFrame(() => {
+            screenToShow.classList.add('active', 'screen-fade-in');
+             // アニメーション完了後にクラスを削除（任意）
+             setTimeout(() => {
+                 screenToShow.classList.remove('screen-fade-in');
+             }, FADE_DURATION);
+        });
+
+        // --- 画面ごとの処理 ---
+        // 画面に応じたBGM切り替え
+        let targetBgm = null;
+        switch (screenId) {
+            case 'title-screen': targetBgm = 'title'; break;
+            case 'game-screen': targetBgm = 'game_normal'; break;
+            case 'shop-screen': targetBgm = 'shop'; break;
+            case 'result-screen':
+                const resultTitleElem = document.getElementById('result-title');
+                if (resultTitleElem && resultTitleElem.classList.contains('clear')) {
+                    targetBgm = 'result_clear';
+                } else {
+                    targetBgm = 'result_over';
+                }
+                break;
+            case 'character-select-screen':
+                targetBgm = 'title';
+                break;
+            default:
+                stopBGM(true);
+                break;
+        }
+        if (targetBgm) {
+            if (!currentBgm || currentBgm !== bgms[targetBgm]) {
+                switchBGM(targetBgm, FADE_DURATION); // フェード時間を指定
+            } else if (currentBgm.paused) {
+                playBGM(targetBgm);
+            }
+        }
+
+        // その他の画面初期化処理
+        if (screenId === 'title-screen') {
+            if (startGameButton) startGameButton.disabled = false;
+            if (selectCharacterButton) selectCharacterButton.disabled = false;
+            if(modeButtons) modeButtons.forEach(btn => btn.disabled = false);
+            previewingCharacter = null;
+        }
+        else if (screenId === 'character-select-screen') {
+            populateCharacterList();
+            if(characterPreviewImageEl) characterPreviewImageEl.style.display = 'none';
+            if(characterPreviewPlaceholderEl) {
+                 characterPreviewPlaceholderEl.style.display = 'block';
+                 characterPreviewPlaceholderEl.textContent = '← リストから選択';
+            }
+            if(characterPreviewCardEl) characterPreviewCardEl.style.display = 'none';
+            if(characterConfirmAreaEl) characterConfirmAreaEl.style.display = 'none';
+            previewingCharacter = null;
+             if (characterConfirmMessageEl) {
+                 characterConfirmMessageEl.textContent = 'このキャラクターにしますか？';
+                 characterConfirmMessageEl.style.color = '#eee';
+             }
+             if(confirmCharacterYesButton) confirmCharacterYesButton.style.display = 'inline-block';
+             if(confirmCharacterNoButton) confirmCharacterNoButton.style.display = 'inline-block';
+             if(characterListEl) {
+                 characterListEl.querySelectorAll('button.selected').forEach(btn => btn.classList.remove('selected'));
+             }
+        } else if (screenId === 'shop-screen') {
+            updateShopUI();
         }
     }
 
