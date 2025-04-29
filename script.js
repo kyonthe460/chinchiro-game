@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'char08', name: 'シノブ', image: './Character Image/Character08.png', initialCardId: null, initialCardPool: ['riskyBet'] },
         { id: 'char09', name: 'アラシマル', image: './Character Image/Character09.png', initialCardId: null, initialCardPool: ['stormWarning'] },
         { id: 'char10', name: 'トウヤマ', image: './Character Image/Character10.png', initialCardId: null, initialCardPool: ['hifumiHalf'] },
-        { id: 'char11', name: 'カラスマ', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['retryRoll'] },
+        { id: 'char11', name: 'カラスマ', image: './Character Image/Character11.png', initialCardId: null, initialCardPool: ['soulRoll'] },
         { id: 'char12', name: 'ゼニボウズ', image: './Character Image/Character12.png', initialCardId: null, initialCardPool: ['rewardAmplifier'] },
         { id: 'char13', name: 'イナリ', image: './Character Image/Character13.png', initialCardId: null, initialCardPool: ['blindingDice'] },
         { id: 'char14', name: 'アズミ', image: './Character Image/Character14.png', initialCardId: null, initialCardPool: ['allEyeBonus'] },
@@ -2870,15 +2870,55 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
         discardModal.style.display = 'none';
         setShopMessage(DEFAULT_SHOP_MESSAGE);
     }
-    function setShopMessage(msg) { if (shopMessageEl) shopMessageEl.textContent = msg; } // (変更なし)
-    async function handleSellCard(event) { // (変更なし)
-        playSound('click'); // ★ SE追加
-        const button = event.target; const cardId = button.dataset.cardId; const sellPrice = parseInt(button.dataset.sellPrice || '0'); const cardName = button.dataset.cardName || cardId; const cardLevel = button.dataset.cardLevel || '?';
-        setShopMessage(`${cardName} [Lv.${cardLevel}] を ${sellPrice}G で売却しますか？`); if (shopActionsEl) shopActionsEl.style.display = 'none';
-        let confirmationContainer = document.getElementById('shop-confirmation-buttons'); if (confirmationContainer) { confirmationContainer.remove(); } confirmationContainer = document.createElement('div'); confirmationContainer.id = 'shop-confirmation-buttons'; confirmationContainer.className = 'shop-actions'; if (shopActionsEl && shopActionsEl.parentNode) { shopActionsEl.parentNode.insertBefore(confirmationContainer, shopActionsEl.nextSibling); } else { const shopContent = document.querySelector('.shop-content'); if(shopContent) shopContent.appendChild(confirmationContainer); console.warn("#shop-actions not found, appending confirmation buttons to .shop-content"); }
-        const confirmButton = document.createElement('button'); confirmButton.textContent = '売却'; confirmButton.className = 'button-pop'; confirmButton.style.backgroundColor = '#d9534f'; confirmButton.onclick = () => { playSound('click'); handleShopConfirmation(true); }; confirmationContainer.appendChild(confirmButton); // ★ SE追加
-        const cancelButton = document.createElement('button'); cancelButton.textContent = 'キャンセル'; cancelButton.className = 'button-subtle'; cancelButton.onclick = () => { playSound('click'); handleShopConfirmation(false); }; confirmationContainer.appendChild(cancelButton); // ★ SE追加
-        const confirmSell = await waitForShopConfirmation();
+    function setShopMessage(msg) { if (shopMessageEl) shopMessageEl.textContent = msg; } 
+    
+    async function handleSellCard(event) {
+        playSound('click'); // SE追加
+        const button = event.target;
+        const cardId = button.dataset.cardId;
+        const sellPrice = parseInt(button.dataset.sellPrice || '0');
+        const cardName = button.dataset.cardName || cardId;
+        const cardLevel = button.dataset.cardLevel || '?';
+
+        setShopMessage(`${cardName} [Lv.${cardLevel}] を ${sellPrice}G で売却しますか？`);
+        if (shopActionsEl) shopActionsEl.style.display = 'none'; // 通常アクション非表示
+
+        let confirmationContainer = document.getElementById('shop-confirmation-buttons');
+        if (confirmationContainer) { confirmationContainer.remove(); } // 既存があれば削除
+
+        confirmationContainer = document.createElement('div');
+        confirmationContainer.id = 'shop-confirmation-buttons';
+        confirmationContainer.className = 'shop-actions'; 
+        confirmationContainer.style.display = 'flex'; 
+        // 確認ボタン追加ロジック 
+        const confirmButton = document.createElement('button');
+        confirmButton.textContent = '売却';
+        confirmButton.className = 'button-pop'; // スタイルクラス
+        confirmButton.style.backgroundColor = '#ff79c6'; // 直接指定 (またはCSSで定義)
+        confirmButton.style.borderColor = '#f850a3';     // 直接指定 (またはCSSで定義)
+        confirmButton.onclick = () => { playSound('click'); handleShopConfirmation(true); };
+        confirmationContainer.appendChild(confirmButton);
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'キャンセル';
+        cancelButton.className = 'button-subtle'; // スタイルクラス
+        cancelButton.onclick = () => { playSound('click'); handleShopConfirmation(false); };
+        confirmationContainer.appendChild(cancelButton);
+
+        // コンテナ挿入ロジック 
+        if (shopActionsEl && shopActionsEl.parentNode) {
+            shopActionsEl.parentNode.insertBefore(confirmationContainer, shopActionsEl.nextSibling);
+        } else {
+            const shopFooter = document.querySelector('.shop-footer'); // フッター取得
+            if(shopFooter) {
+                shopFooter.appendChild(confirmationContainer); // フッターに追加
+            } else {
+                console.warn("#shop-actions or .shop-footer not found, appending confirmation buttons might fail.");
+            }
+        }
+
+        const confirmSell = await waitForShopConfirmation(); // 待機
+
+        if (confirmationContainer) confirmationContainer.remove(); // 即時削除する場合
 
         if (confirmSell) {
             playSound('shopSell');
@@ -2888,14 +2928,18 @@ async function purchaseBoost(boostDefinition, purchaseCost) {
 
             setShopMessage(`${cardName} を ${sellPrice}G で売却しました。`);
             console.log(`Sold card ${cardId} from shop hand for ${sellPrice}G.`);
-            updateShopUI();
+            updateShopUI(); // UI更新 (手札表示など)
 
             if (sellPrice > 0) {
                 animateScore(shopCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
                 animateScore(gameCoinDisplayEl, startCoins, playerCoins, COIN_ANIMATION_DURATION);
                 playCoinAnimation(sellPrice);
             }
-        } else { setShopMessage(DEFAULT_SHOP_MESSAGE); } // キャンセル時もメッセージ戻す
+        } else {
+            setShopMessage(DEFAULT_SHOP_MESSAGE);
+        }
+        // 通常アクションを再表示
+        if (shopActionsEl) shopActionsEl.style.display = 'flex';
     }
     function updateBetLimits() {
         let playerMaxPotential = playerScore;
@@ -4876,7 +4920,7 @@ async function displayScoreCalculationAnimation(data) {
         if (cardDetailModal && cardDetailModal.style.display === 'flex') { cardDetailModal.style.display = 'none'; } // ★ 詳細モーダルも閉じる
         console.log("Opening Card Action Modal"); displayCardsInModal(); cardActionModal.style.display = 'flex';
     }
-    function displayCardsInModal() { 
+    function displayCardsInModal() {
         const activeCardDisplay = document.getElementById('active-card-display');
         const passiveCardDisplay = document.getElementById('passive-card-display');
         const activeCardMessage = document.getElementById('active-card-message');
@@ -4886,7 +4930,29 @@ async function displayScoreCalculationAnimation(data) {
             return;
         }
 
+        const activeSection = activeCardDisplay.closest('.card-section');
+        if (activeSection) {
+            const activeTitleH3 = activeSection.querySelector('h3');
+            if (activeTitleH3 && !activeTitleH3.querySelector('.section-title-text')) { // spanがまだなければ追加
+                activeTitleH3.innerHTML = `<span class="section-title-text">${activeTitleH3.textContent}</span>`;
+            }
+        } else {
+            console.warn("Could not find active card section parent.");
+        }
+
+        const passiveSection = passiveCardDisplay.closest('.card-section');
+        if (passiveSection) {
+            const passiveTitleH3 = passiveSection.querySelector('h3');
+            if (passiveTitleH3 && !passiveTitleH3.querySelector('.section-title-text')) { // spanがまだなければ追加
+                 const originalText = passiveTitleH3.textContent; // 例: "パッシブカード (装備カード)"
+                 passiveTitleH3.innerHTML = `<span class="section-title-text">${originalText}</span>`;
+            }
+        } else {
+            console.warn("Could not find passive card section parent.");
+        }
+
         activeCardMessage.textContent = "使用したいカードを選択してください。";
+        passiveCardMessage.textContent = "現在装備中のカードです。"; // メッセージ設定も移動・統一
 
         activeCardDisplay.innerHTML = ''; passiveCardDisplay.innerHTML = ''; activeCardDisplay.classList.remove('empty'); passiveCardDisplay.classList.remove('empty');
         let activeCards = []; let passiveCards = [];
@@ -4894,7 +4960,6 @@ async function displayScoreCalculationAnimation(data) {
 
         let usableActiveCardFound = false;
         if (activeCards.length === 0) {
-            activeCardMessage.textContent = "使用可能なカードはありません。";
             activeCardDisplay.classList.add('empty');
             activeCardDisplay.textContent = "(手札にアクティブカードがありません)";
         } else {
@@ -4909,7 +4974,6 @@ async function displayScoreCalculationAnimation(data) {
                 const remainingUses = getRemainingUses(cardData.id);
                 const totalUses = getTotalUses(cardData.id);
 
-                // ボタンHTML生成
                 const detailButtonHtml = `<button class="card-detail-button button-subtle" data-card-id="${cardData.id}" data-current-level="${cardData.level}">詳細</button>`;
                 let useButtonHtml = '';
                 if (totalUses !== Infinity) {
@@ -4938,7 +5002,7 @@ async function displayScoreCalculationAnimation(data) {
                 const cardInnerHtml = `
                     <span class="card-type-badge">${getCardTypeName(card.type)}</span>
                     ${rarityBadgeHtml}
-                    <h3 class="card-name">${cardNameHtml}</h3>
+                    <div class="card-name">${cardNameHtml}</div> <!-- h3をdivに変更 -->
                     ${levelSpanHtml}
                     <div class="card-item-footer"> ${detailButtonHtml} ${useButtonHtml} </div>`;
                 cardElement.innerHTML = cardInnerHtml;
@@ -4948,29 +5012,25 @@ async function displayScoreCalculationAnimation(data) {
                     cardElement.style.backgroundPosition = 'center';
                 }
 
-                // イベントリスナーをここで設定 
                 const detailBtn = cardElement.querySelector('.card-detail-button');
                 if (detailBtn) {
-                    detailBtn.addEventListener('click', handleDetailButtonClick); // SE不要箇所
+                    detailBtn.addEventListener('click', handleDetailButtonClick);
                 }
                 const useBtn = cardElement.querySelector('.use-card-button');
                 if (useBtn) {
-                    useBtn.addEventListener('click', handleActiveCardUse); // handleActiveCardUse 内でSE再生
+                    useBtn.addEventListener('click', handleActiveCardUse);
                 }
 
                 activeCardDisplay.appendChild(cardElement);
             });
             if (!usableActiveCardFound && activeCards.length > 0) {
-                 activeCardMessage.textContent = "現在使用できるカードはありません。";
             }
         }
 
         if (passiveCards.length === 0) {
-            passiveCardMessage.textContent = "装備中のカードはありません。";
             passiveCardDisplay.classList.add('empty');
             passiveCardDisplay.textContent = "(手札にパッシブカードがありません)";
         } else {
-            passiveCardMessage.textContent = "現在装備中のカードです。";
             passiveCards.forEach(cardData => {
                 const card = allCards.find(c => c.id === cardData.id);
                 const cardElement = document.createElement('div');
@@ -4989,7 +5049,7 @@ async function displayScoreCalculationAnimation(data) {
                 const cardInnerHtml = `
                     <span class="card-type-badge">${getCardTypeName(card.type)}</span>
                     ${rarityBadgeHtml}
-                    <h3 class="card-name">${cardNameHtml}</h3>
+                    <div class="card-name">${cardNameHtml}</div> <!-- h3をdivに変更 -->
                     ${levelSpanHtml}
                     <div class="card-item-footer"> ${detailButtonHtml} </div>`;
                 cardElement.innerHTML = cardInnerHtml;
@@ -4999,16 +5059,16 @@ async function displayScoreCalculationAnimation(data) {
                     cardElement.style.backgroundPosition = 'center';
                 }
 
-                // イベントリスナーをここで設定
                 const detailBtn = cardElement.querySelector('.card-detail-button');
                 if (detailBtn) {
-                    detailBtn.addEventListener('click', handleDetailButtonClick); // SE不要箇所
+                    detailBtn.addEventListener('click', handleDetailButtonClick);
                 }
 
                 passiveCardDisplay.appendChild(cardElement);
             });
         }
     } // <-- displayCardsInModal 関数の終了
+
     if (closeCardActionModalButton && cardActionModal) { // (SE追加)
         closeCardActionModalButton.addEventListener('click', () => {
             playSound('click'); // ★ SE追加

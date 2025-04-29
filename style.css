@@ -52,6 +52,22 @@ body::before {
 
 /* ===== アニメーション定義 ===== */
 
+/* オレンジ用アニメーション定義 */
+@keyframes titleFlickerOrange {
+    0%, 16%, 24%, 27%, 51%, 58%, 100% { opacity: 1; }
+    18%, 26%, 55% { opacity: 0.75; }
+}
+@keyframes titlePulseNeonOrange {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 5px rgba(255, 152, 0, 0.8), 0 0 15px rgba(255, 152, 0, 0.7), 0 0 30px rgba(255, 152, 0, 0.5), 0 0 50px rgba(255, 87, 34, 0.4), 0 0 75px rgba(255, 87, 34, 0.3);
+    }
+    50% {
+        transform: scale(1.03);
+        text-shadow: 0 0 8px rgba(255, 152, 0, 1), 0 0 20px rgba(255, 152, 0, 0.9), 0 0 40px rgba(255, 152, 0, 0.7), 0 0 60px rgba(255, 87, 34, 0.6), 0 0 90px rgba(255, 87, 34, 0.4);
+    }
+}
+
 @keyframes gradientBG {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -441,6 +457,36 @@ body::before {
     to { opacity: 0; }
 }
 
+/* レアリティ用アニメーション */
+@keyframes rarePulseBlue {
+    0%, 100% { box-shadow: 0 0 5px rgba(74, 144, 226, 0.5), 1px 1px 2px rgba(0,0,0,0.5); transform: scale(1); }
+    50% { box-shadow: 0 0 10px rgba(74, 144, 226, 0.8), 1px 1px 2px rgba(0,0,0,0.5); transform: scale(1.05); }
+}
+@keyframes epicPulsePurple {
+    0%, 100% { box-shadow: 0 0 8px rgba(156, 39, 176, 0.7), 1px 1px 2px rgba(0,0,0,0.5); filter: brightness(1); }
+    50% { box-shadow: 0 0 15px rgba(186, 104, 200, 1), 1px 1px 2px rgba(0,0,0,0.5); filter: brightness(1.2); }
+}
+@keyframes legendaryShineOrange { /* 既存のshiningとは別のアニメーション */
+    0%, 100% { box-shadow: 0 0 12px rgba(255, 152, 0, 0.8), 1px 1px 2px rgba(0,0,0,0.5); opacity: 1; }
+    50% { box-shadow: 0 0 20px rgba(255, 183, 77, 1), 1px 1px 2px rgba(0,0,0,0.5); opacity: 0.8; }
+}
+@keyframes sparkleGeneral { /* キラキラ汎用 */
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 0.7; }
+    99% { opacity: 0; transform: scale(1.5) rotate(90deg); }
+}
+
+@keyframes fadeInBottom { /* 下からフェードイン */
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ===== 画面共通スタイル ===== */
 
 .screen {
@@ -627,27 +673,75 @@ button:disabled {
     overflow-y: auto;
 }
 
-.title-content { /* screen-content-boxへ統合済み */
-    max-width: 700px;
+.title-content {
+    /* 既存の screen-content-box スタイルから一部継承/上書き */
+    background: rgba(25, 30, 55, 0.2);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(15, 20, 40, 0.7), 0 0 15px rgba(0, 255, 255, 0.2);
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    position: relative;
+    z-index: 2;
+    width: 90%; /* 幅は画面サイズに追従 */
+    max-width: 1000px; 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: auto;
+    min-height: 450px; /* 最低限の高さを確保 (調整可能) */
+    padding: 40px 60px; /* 上下より左右のパディングを多めに */
+    overflow: hidden; /* 背景画像用 */
+    background-image: url('./UI Image/Title Image.png');
+    background-repeat: no-repeat; /* または repeat */
+    background-size: cover; /* または contain など */
+    background-position: center center; /* 中央 */
+    background-blend-mode: luminosity; /* または overlay, multiply など */
 }
 
 .game-title {
     font-family: 'Orbitron', sans-serif;
-    font-size: 5em; /* サイズアップ */
-    font-weight: 700; /* 少し細くしてネオン感UP */
+    font-size: 5em; /* ★ 全体の基準サイズを少し調整 */
+    font-weight: 700;
     margin-bottom: 40px;
-    color: #0ff; /* 基本色をシアンに */
-    text-shadow: /* ネオンシャドウ強化 */
+    /* color: #0ff; */ /* 下の span で個別に指定 */
+    text-shadow: none; /* 下の span で個別に指定 */
+    animation: none; /* アニメーションも span で */
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    line-height: 1.1; /* 行間を詰める */
+    text-align: center; /* 中央揃え */
+}
+
+/* タイトルの各行用の span スタイル */
+.game-title .title-line {
+    display: block; /* 改行させる */
+    animation-timing-function: ease-in-out; /* アニメーションタイミング共通化 */
+}
+
+.game-title .title-line-1 { /* CHINCHIRO */
+    font-size: 0.5em; 
+    color: #ff9800; 
+    text-shadow:
+        0 0 5px rgba(255, 152, 0, 0.8),
+        0 0 15px rgba(255, 152, 0, 0.7),
+        0 0 30px rgba(255, 152, 0, 0.5),
+        0 0 50px rgba(255, 87, 34, 0.4), 
+        0 0 75px rgba(255, 87, 34, 0.3);
+    animation: titleFlickerOrange 5.5s infinite linear alternate, titlePulseNeonOrange 2.8s infinite ease-in-out; 
+}
+
+.game-title .title-line-2 { /* CASCADE */
+    font-size: 1em; 
+    color: #0ff; 
+    text-shadow: 
         0 0 5px rgba(0, 255, 255, 0.8),
         0 0 15px rgba(0, 255, 255, 0.7),
         0 0 30px rgba(0, 255, 255, 0.5),
         0 0 50px rgba(255, 0, 255, 0.4),
         0 0 75px rgba(255, 0, 255, 0.3);
-    animation: titleFlicker 5s infinite linear alternate, titlePulseNeon 2.5s infinite ease-in-out;
-    background: none;
-    -webkit-background-clip: unset;
-    background-clip: unset;
-    /* color: #0ff; */ /* 重複削除 */
+    animation: titleFlicker 5s infinite linear alternate, titlePulseNeon 2.5s infinite ease-in-out; 
 }
 
 .mode-selector {
@@ -824,8 +918,9 @@ button:disabled {
     overflow-y: auto;
 }
 
-.character-select-content { /* screen-content-boxへ統合済み */
+.character-select-content {
     max-width: 700px;
+    /* screen-content-box スタイルを継承 */
 }
 #character-select-screen h2 {
     color: #ffcc70;
@@ -833,6 +928,7 @@ button:disabled {
     font-size: 2.5em;
     font-family: 'Yuji Syuku', serif;
     margin-top: 0;
+    text-shadow: 0 0 8px rgba(255, 204, 112, 0.7); /* ネオンシャドウ追加 */
 }
 .character-select-body {
     display: flex;
@@ -846,21 +942,14 @@ button:disabled {
     background: rgba(0,0,0,0.2);
     padding: 15px;
     border-radius: 8px;
-    max-height: 60vh; /* スクロール用 */
-    overflow-y: auto; /* スクロール用 */
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 60vh; /* 縦スクロール用高さ制限 */
+    overflow-y: auto; /* 縦スクロール有効化 */
+    border: 1px solid rgba(0, 255, 255, 0.2); /* ボーダー調整 */
     display: flex;
     flex-direction: column;
     gap: 8px;
-    /* スクロールバーのスタイル */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 255, 255, 0.5) rgba(15, 20, 40, 0.8);
+    /* スクロールバースタイルは共通定義で適用 */
 }
-#character-list::-webkit-scrollbar { width: 8px; }
-#character-list::-webkit-scrollbar-track { background: rgba(15, 20, 40, 0.8); border-radius: 4px;}
-#character-list::-webkit-scrollbar-thumb { background-color: rgba(0, 255, 255, 0.5); border-radius: 4px; border: 1px solid rgba(0, 255, 255, 0.7);}
-#character-list::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 255, 255, 0.8); }
-
 #character-list p {
     color: #aaa;
     text-align: center;
@@ -869,33 +958,42 @@ button:disabled {
 }
 #character-list button {
     width: 100%;
-    padding: 10px; /* 調整 */
+    padding: 15px; 
     font-size: 1.1em;
-    background-color: rgba(255, 255, 255, 0.08);
-    font-family: 'M PLUS Rounded 1c', sans-serif;
-    color: #eee;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 100, 130, 0.4);
+    color: #adefff;
+    border: 1px solid rgba(0, 255, 255, 0.3);
     border-radius: 5px;
-    text-align: left;
+    text-align: center; 
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    box-shadow: none;
-    text-shadow: none;
-    font-weight: normal;
-    white-space: nowrap; /* はみ出し防止 */
-    overflow: hidden; /* はみ出し防止 */
-    text-overflow: ellipsis; /* はみ出し防止 */
-    box-sizing: border-box; /* はみ出し防止 */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+    text-shadow: 0 0 3px rgba(0, 200, 255, 0.5);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 50px; 
 }
 #character-list button:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 150, 180, 0.6);
+    border-color: rgba(0, 255, 255, 0.7);
+    color: #fff;
+    transform: translateY(-2px); 
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.3), 0 0 10px rgba(0, 255, 255, 0.3);
 }
 #character-list button.selected {
-    background-color: rgba(255, 235, 59, 0.3);
-    border-color: #ffeb3b;
-    color: #fff;
+    background: linear-gradient(45deg, rgba(255, 235, 59, 0.6), rgba(255, 193, 7, 0.7)); /* 背景色 */
+    border-color: #ffeb3b; 
+    color: #fff; /* 文字色 */
     font-weight: bold;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(255, 235, 59, 0.7); /* シャドウ */
+    text-shadow: 0 0 5px rgba(255, 235, 59, 0.8); /* テキストシャドウ */
+    transform: translateY(0px); /* 選択時は移動なし */
 }
 
 #character-preview {
@@ -925,36 +1023,73 @@ button:disabled {
     border-radius: 5px;
     background-color: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.1);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2)); /* 画像にドロップシャドウ */
 }
-#character-preview-card { /* 既存スタイル */
-    margin-top: 15px; color: #ffcc70; font-weight: bold; font-size: 1.1em; display: none; font-family: 'M PLUS Rounded 1c', sans-serif;
+#character-preview-card {
+    margin-top: 15px;
+    color: #ffcc70;
+    font-weight: bold;
+    font-size: 1.1em;
+    display: none;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    text-shadow: 0 0 5px rgba(255, 204, 112, 0.6); /* テキストシャドウ */
 }
 #character-confirm-area {
     display: none;
-    margin-top: 15px;
+    margin-top: 20px; /* マージン調整 */
+    padding-top: 15px; /* 上パディング */
+    border-top: 1px dashed rgba(0, 255, 255, 0.2); /* 区切り線 */
+    width: 100%; /* 幅を100%に */
 }
 #character-confirm-message {
     color: #eee;
     margin-bottom: 15px;
     font-size: 1.1em;
+    transition: color 0.3s ease; /* 色変化アニメーション */
 }
 #character-confirm-area button {
     margin: 0 10px;
     padding: 10px 25px;
 }
-#confirm-character-yes {
-    background: linear-gradient(180deg, #ffeb3b, #ffc107);
-    font-family: 'M PLUS Rounded 1c', sans-serif;
-    /* .button-pop スタイルを継承 */
+#confirm-character-yes { /* 「はい」ボタン - button-pop スタイルに合わせる */
+    background: linear-gradient(180deg, #ffdd57, #ffc107);
+    color: #333;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 235, 150, 0.5);
+    border: none; /* ボーダー削除 */
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* フォント指定 */
+    animation: confirmYesPulse 2s infinite ease-in-out; /* 脈動アニメーション */
+}
+@keyframes confirmYesPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 235, 150, 0.5); }
+    50% { transform: scale(1.04); box-shadow: 0 6px 12px rgba(255, 200, 0, 0.5), inset 0 1px 1px rgba(255, 235, 150, 0.6), 0 0 10px #ffeb3b; }
 }
 #confirm-character-yes:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 10px rgba(255, 200, 0, 0.4);
+    background: linear-gradient(180deg, #ffeb84, #ffd24d);
+    box-shadow: 0 8px 15px rgba(255, 200, 0, 0.5), inset 0 1px 1px rgba(255, 235, 150, 0.6), 0 0 12px #ffeb3b;
+    transform: translateY(-2px); /* ホバー時 */
 }
-#back-to-title-button {
+
+#confirm-character-no { /* 「いいえ」ボタン - button-subtle スタイルに合わせる */
+    background: linear-gradient(180deg, rgba(70, 80, 110, 0.9), rgba(50, 60, 90, 0.95));
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    color: #ccc;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* フォント指定 */
+}
+#confirm-character-no:hover:not(:disabled) {
+    background: linear-gradient(180deg, rgba(85, 95, 125, 0.9), rgba(60, 70, 100, 0.95));
+    border-color: rgba(0, 255, 255, 0.3);
+    color: #fff;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 0 8px rgba(0, 255, 255, 0.2);
+    transform: translateY(-2px); /* ホバー時 */
+}
+
+#back-to-title-button { /* タイトルへ戻るボタン */
     margin-top: 20px;
     padding: 10px 30px;
-    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-family: 'M PLUS Rounded 1c', sans-serif; /* フォント指定 */
     /* .button-subtle スタイルを継承 */
 }
 
@@ -973,7 +1108,7 @@ button:disabled {
 
 #game-header {
     width: 100%;
-    background-color: rgba(15, 20, 40, 0.97);
+    background-color: rgba(15, 20, 40, 0.95);
     padding: 8px 20px;
     display: flex;
     justify-content: space-between; /* 両端揃え */
@@ -1203,18 +1338,24 @@ button:disabled {
 
 /* プレイヤー情報ボックス */
 .player-box {
-    background-color: rgba(25, 30, 55, 0.95);
+    background-color: rgba(25, 30, 55, 0.55); 
     padding: 15px;
     border-radius: 8px;
-    flex: 1 1 28%; /* 基礎幅、伸縮率、最大幅 */
+    flex: 1 1 28%;
     max-width: 280px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* 内容を中央揃え（垂直） */
+    justify-content: center;
     border: 1px solid rgba(0, 255, 255, 0.3);
     box-shadow: inset 0 0 10px rgba(15, 20, 40, 0.6);
-    position: relative;
+    position: relative; /* 背景画像用 */
+    overflow: hidden; /* 背景画像用 */
+    background-image: url('./UI Image/Info Image.png'); 
+    background-repeat: no-repeat; /* または repeat, repeat-x, repeat-y */
+    background-size: cover; /* または contain, auto 100% など */
+    background-position: center center; /* 中央基準 */
+    background-blend-mode: soft-light; /* または overlay, multiply など */
 }
 .player-box h2 {
     margin-top: 0;
@@ -1546,13 +1687,20 @@ button:disabled {
 }
 #bottom-control-bar {
     width: 100%;
-    background-color: rgba(15, 20, 40, 0.98);
+    background-color: rgba(15, 20, 40, 0.95); 
     padding: 5px 10px 5px 10px;
     border-top: 1px solid rgba(0, 255, 255, 0.4);
     box-shadow: 0 -5px 15px rgba(0, 255, 255, 0.15);
     z-index: 100;
     box-sizing: border-box;
     flex-shrink: 0;
+    position: relative; 
+    /* overflow: hidden; 
+    background-image: url('./UI Image/Header Image.png'); 
+    background-repeat: repeat-x; 
+    background-size: auto 100%;  
+    background-position: center bottom; 
+    background-blend-mode: overlay; /* 背景色とのブレンドモード (multiply, screen, overlay, luminosity など試す) */
 }
 #control-area {
     display: flex;
@@ -1878,6 +2026,7 @@ button:disabled {
     font-weight: 500;
     text-shadow: 0 0 6px #ffcc70, 1px 1px 4px rgba(0,0,0,0.6);
     font-family: 'Yuji Syuku', serif;
+    font-size: 2em;
 }
 .modal h3 { /* 破棄モーダル用など */
     margin-top: 0;
@@ -2083,7 +2232,7 @@ button:disabled {
 /* ===== 設定モーダル ===== */
 .settings-modal-content {
     max-width: 700px; /* 幅維持 */
-    max-height: 80vh; /* 高さを制限 */
+    max-height: 85vh; /* 高さを制限 */
     display: flex; /* Flexboxレイアウトに変更 */
     flex-direction: column; /* 縦積み */
     overflow: hidden; /* 全体はスクロールしない */
@@ -2109,6 +2258,7 @@ button:disabled {
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .settings-nav-button:hover {
     background-color: rgba(0, 255, 255, 0.2);
@@ -2125,13 +2275,11 @@ button:disabled {
     box-shadow: 0 0 12px rgba(255, 235, 59, 0.6);
 }
 #settings-content {
-    overflow-y: auto; /* ここでスクロールさせる */
+    overflow-y: auto; /* 縦スクロールを許可 */
     text-align: left;
     padding-right: 15px; /* スクロールバー用 */
-    flex-grow: 1; /* 残りの高さを埋める */
-    /* スクロールバー統一 */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 255, 255, 0.5) rgba(15, 20, 40, 0.8);
+    flex-grow: 1; /* 親要素の残りの高さを埋める */
+    height: 85vh; 
 }
 #settings-content::-webkit-scrollbar { width: 8px; }
 #settings-content::-webkit-scrollbar-track { background: rgba(15, 20, 40, 0.8); border-radius: 4px;}
@@ -2144,11 +2292,13 @@ button:disabled {
     margin-bottom: 15px;
     border-bottom: 1px dashed rgba(255, 204, 112, 0.4);
     padding-bottom: 8px;
+    font-family: 'Yuji Syuku', serif;
 }
 #settings-content ul, #settings-content dl {
     font-size: 0.95em;
     line-height: 1.7;
     color: #ddd;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 #settings-content ul {
     padding-left: 20px;
@@ -2160,15 +2310,18 @@ button:disabled {
 }
 #settings-content dt {
     font-weight: bold;
-    color: #ffeb3b;
+    color: #ffcc70;
     margin-top: 15px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    font-family: 'Yuji Syuku', serif;
+    font-size: 1.2em;
 }
 #settings-content dd {
     margin-left: 15px;
     margin-bottom: 8px;
     line-height: 1.5;
     color: #d0d8e8;
+    font-family: 'Orbitron', sans-serif;
 }
 #settings-content strong {
     font-weight: bold;
@@ -2200,12 +2353,14 @@ button:disabled {
     font-size: 1.1em;
     text-align: center;
     border-bottom: none;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .score-calculation-info p {
     margin-bottom: 8px;
-    font-size: 0.9em;
+    font-size: 0.8em;
     line-height: 1.6;
     color: #ccc;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .calculation-formula {
     font-family: monospace;
@@ -2257,11 +2412,13 @@ button:disabled {
     margin-top: -5px;
     margin-bottom: 10px;
     font-style: italic;
+    font-family: 'Orbitron', sans-serif;
 }
 .card-effect-rate span {
     font-weight: bold;
     color: #87CEFA;
     font-style: normal;
+    font-family: 'Orbitron', sans-serif;
 }
 /* ルール説明の強調 */
 #settings-rules-content h4 {
@@ -2272,6 +2429,7 @@ button:disabled {
     padding-bottom: 5px;
     border-bottom: 1px dotted rgba(135, 206, 250, 0.6);
     font-weight: bold;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 #settings-rules-content h4:first-of-type {
     margin-top: 0;
@@ -2285,6 +2443,7 @@ button:disabled {
     color: #ffeb3b;
     font-weight: bold;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    font-family: 'Orbitron', sans-serif;
 }
 
 /* ===== カード一覧モーダル(設定内) ===== */
@@ -2311,6 +2470,7 @@ button:disabled {
     border-bottom: 2px solid transparent;
     font-weight: 500;
     box-shadow: none;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .filter-tab:hover { color: #0ff; }
 .filter-tab.active {
@@ -2326,12 +2486,6 @@ button:disabled {
     margin-top: 10px;
     /* スクロールは親(#settings-content)に任せる */
 }
-/* #settings-card-list-content {
-    max-height: 60vh;
-    overflow-y: auto;
-    text-align: left;
-    padding-right: 10px;
-} */ /* スクロール削除 */
 
 .card-list-item {
     background-color: rgba(40, 45, 65, 0.6);
@@ -2346,38 +2500,38 @@ button:disabled {
 .card-list-item h3 {
     margin: 0 0 8px 0;
     color: #ffeb3b;
-    font-size: 1.2em;
+    font-size: 1.4em;
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     flex-wrap: wrap;
     gap: 5px 15px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .card-list-item h3 .card-meta {
     font-size: 0.8em;
     color: #ccc;
     font-weight: normal;
 }
-.card-list-item h3 .card-meta span {
+.card-list-item h3 .card-meta span { /* 共通スタイル */
     margin-left: 10px;
     font-weight: normal;
+    padding: 2px 6px; 
+    border-radius: 8px; 
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); 
+    font-size: 0.9em; 
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
-/* タイプ・レアリティ表示スタイル */
-.card-list-item h3 .card-meta .type-support,
-.card-list-item h3 .card-meta .type-dice,
-.card-list-item h3 .card-meta .type-score { font-weight: 500; }
-.card-list-item h3 .card-meta .rarity-normal,
-.card-list-item h3 .card-meta .rarity-rare,
-.card-list-item h3 .card-meta .rarity-epic,
-.card-list-item h3 .card-meta .rarity-legendary { font-weight: bold; }
-/* レアリティ・タイプ色 */
-.card-list-item h3 .rarity-normal { color: #bdbdbd; }
-.card-list-item h3 .rarity-rare { color: #64b5f6; }
-.card-list-item h3 .rarity-epic { color: #ba68c8; }
-.card-list-item h3 .rarity-legendary { color: #ffb74d; }
-.card-list-item h3 .type-support { color: #81b7f3; }
-.card-list-item h3 .type-dice { color: #f18a8a; }
-.card-list-item h3 .type-score { color: #77cc87; }
+/* タイプ別 ネオンスタイル */
+.card-list-item h3 .card-meta .type-support { color: #fff; background-color: rgba(74, 144, 226, 0.7); }
+.card-list-item h3 .card-meta .type-dice { color: #fff; background-color: rgba(230, 82, 82, 0.7); }
+.card-list-item h3 .card-meta .type-score { color: #fff; background-color: rgba(40, 167, 69, 0.7); }
+
+/* レアリティ別 ネオンスタイル */
+.card-list-item h3 .card-meta .rarity-normal { color: #e0e0e0; background-color: rgba(158, 158, 158, 0.6); }
+.card-list-item h3 .card-meta .rarity-rare { color: #fff; background-color: rgba(74, 144, 226, 0.7); text-shadow: 0 0 4px #87CEFA, 1px 1px 2px #000; }
+.card-list-item h3 .card-meta .rarity-epic { color: #fff; background-color: rgba(156, 39, 176, 0.7); text-shadow: 0 0 5px #d38de0, 1px 1px 2px #000; animation: epicPulsePurple 2s infinite alternate; }
+.card-list-item h3 .card-meta .rarity-legendary { color: #fff; background-color: rgba(255, 152, 0, 0.8); text-shadow: 0 0 7px #ffb74d, 1px 1px 2px #000; animation: legendaryShineOrange 1.8s infinite alternate; }
 /* カードタイプに応じた左ボーダー */
 .card-list-item.card-type-active { border-left-color: #f18a8a; } /* ダイス色 */
 .card-list-item.card-type-passive { border-left-color: #81b7f3; } /* サポート色 */
@@ -2388,12 +2542,14 @@ button:disabled {
     margin: 5px 0;
     line-height: 1.5;
     font-size: 0.95em;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .card-list-item .flavor-text {
     font-style: italic;
     color: #bbb;
     font-size: 0.9em;
     margin-bottom: 8px;
+    font-family: 'Yuji Syuku', serif;
 }
 .card-list-item .effect-details {
     display: block; /* 常に表示 */
@@ -2408,6 +2564,8 @@ button:disabled {
     margin-top: 8px;
     margin-bottom: 2px;
     color: #ffcc70;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9em;
 }
 .effect-details .effect-level-description {
     padding-left: 10px;
@@ -2417,6 +2575,7 @@ button:disabled {
     line-height: 1.5;
     overflow-wrap: break-word;
     word-break: break-word;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .effect-details .effect-level-title:first-of-type {
     margin-top: 0;
@@ -2442,6 +2601,7 @@ button:disabled {
     margin-top: 0;
     margin-bottom: 15px;
     font-weight: 500;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .volume-slider-container {
     display: flex;
@@ -2454,6 +2614,7 @@ button:disabled {
     text-align: right;
     font-size: 0.9em;
     color: #ccc;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .volume-slider-container input[type="range"] {
     flex-grow: 1;
@@ -2504,6 +2665,7 @@ button:disabled {
     margin: 15px auto 5px auto;
     padding: 10px 20px;
     font-size: 1em;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
     /* .button-subtle スタイルを継承 */
 }
 .settings-note {
@@ -2512,6 +2674,7 @@ button:disabled {
     text-align: center;
     margin-top: 0;
     margin-bottom: 15px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 
 /* ===== ショップ画面レイアウト ===== */
@@ -2557,28 +2720,43 @@ button:disabled {
         inset 0 0 20px rgba(15, 20, 40, 0.7),
         0 0 25px rgba(120, 100, 255, 0.4);
     animation: shopContainerPulse 6s infinite alternate;
+    background-image: url('./UI Image/Shop Image.png'); 
+    background-repeat: no-repeat; /* または repeat */
+    background-size: cover; /* または contain など */
+    background-position: center center; /* 中央 */
+    background-blend-mode: overlay; /* または multiply, screen など */
 }
 
 .shop-header {
     width: 100%;
     box-sizing: border-box;
-    background-color: rgba(40, 40, 60, 0.95);
+    background-color: rgba(15, 20, 40, 0.7); 
     padding: 8px 20px 5px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.4); /* ネオンボーダー */
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15); /* ネオングロー */
     flex-shrink: 0;
     z-index: 3;
     text-align: center;
+    position: relative; /* 疑似要素用 */
+}
+.shop-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px; /* 線の太さ */
+    background: linear-gradient(to right, transparent, rgba(0, 255, 255, 0.7), transparent);
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    opacity: 0.8;
 }
 #shop-scrollable-offers {
     flex-grow: 1;
     overflow-y: auto;
     padding: 10px 15px;
-    background-color: rgba(30, 30, 50, 0.9);
+    background-color: rgba(25, 25, 45, 0.7); 
     z-index: 1;
-    /* スクロールバー統一 */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 255, 255, 0.5) rgba(15, 20, 40, 0.8);
+    /* スクロールバースタイルは共通定義で適用済み */
 }
 #shop-scrollable-offers::-webkit-scrollbar { width: 8px; }
 #shop-scrollable-offers::-webkit-scrollbar-track { background: rgba(15, 20, 40, 0.8); border-radius: 4px;}
@@ -2588,12 +2766,24 @@ button:disabled {
 .shop-footer {
     width: 100%;
     box-sizing: border-box;
-    background-color: rgba(40, 40, 60, 0.95);
+    background-color: rgba(15, 20, 40, 0.7); 
     padding: 10px 20px 10px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(0, 255, 255, 0.4); /* ネオンボーダー */
+    box-shadow: 0 -4px 15px rgba(0, 255, 255, 0.15); /* ネオングロー */
     flex-shrink: 0;
     z-index: 3;
+    position: relative; /* 疑似要素用 */
+}
+.shop-footer::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px; /* 線の太さ */
+    background: linear-gradient(to right, transparent, rgba(0, 255, 255, 0.7), transparent);
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    opacity: 0.8;
 }
 
 /* ショップタイトル (看板風) */
@@ -2606,7 +2796,7 @@ button:disabled {
     transform-origin: top center;
 }
 .shop-title {
-    font-size: 2.5em;
+    font-size: 3em;
     font-family: 'Yuji Syuku', serif;
     color: #0ff;
     margin: 0;
@@ -2662,13 +2852,13 @@ button:disabled {
     font-size: 1em;
     color: #ffeb3b;
     font-weight: bold;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    text-shadow: 0 0 5px #ffeb3b, 1px 1px 2px rgba(0,0,0,0.5);
     text-align: left;
     flex-basis: auto; /* 自動幅 */
     font-family: 'Orbitron', sans-serif;
 }
 #coin-display #player-coins {
-    font-size: 1.4em; /* Gと同じサイズに */
+    font-size: 1.4em; 
 }
 #shop-player-score {
     font-size: 1.1em;
@@ -2678,7 +2868,7 @@ button:disabled {
     flex-basis: auto; /* 自動幅 */
     font-family: 'Orbitron', sans-serif;
 }
-#shop-player-score-value { color: #ffeb3b; font-family: 'Orbitron', sans-serif; }
+#shop-player-score-value { color: #ffeb3b; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 5px #ffeb3b, 1px 1px 2px rgba(0,0,0,0.5); }
 #shop-player-hand {
     font-size: 0.8em;
     color: #ccc;
@@ -2716,28 +2906,31 @@ button:disabled {
     gap: 8px;
     font-family: 'M PLUS Rounded 1c', sans-serif;
 }
-.sell-card-button { /* 売却ボタン */
-    background-color: rgba(220, 53, 69, 0.7); /* 赤系 */
-    color: #eee;
-    border: none;
-    border-radius: 10px;
-    padding: 2px 6px;
-    font-size: 0.8em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+.sell-card-button { /* 手札の売却ボタン */
     font-family: 'M PLUS Rounded 1c', sans-serif;
+    background: linear-gradient(180deg, #ff79c6, #f850a3); /* ネオンピンク系 */
+    color: #fff;
+    text-shadow: 0 0 3px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 80, 163, 0.5);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1);
+    padding: 3px 8px; 
+    font-size: 0.85em; 
+    border-radius: 12px; 
 }
 .sell-card-button:hover {
-    background-color: rgba(220, 53, 69, 0.9);
+    background: linear-gradient(180deg, #ff94d1, #fa6aaa);
+    border-color: rgba(255, 80, 163, 0.8);
+    box-shadow: 0 3px 8px rgba(255, 80, 163, 0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+    transform: translateY(-1px);
 }
 .shop-message {
-    font-size: 0.9em;
+    font-size: 1em;
     color: #ffcc70;
     text-shadow: 0 0 3px #ffcc70;
     margin-bottom: 5px;
     min-height: 1em;
     font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-style: italic; /* 斜体を追加 */
 }
 
 /* オファーコンテナとセクション */
@@ -2756,19 +2949,74 @@ button:disabled {
     padding-bottom: 0;
 }
 .shop-section-title {
-    font-size: 1.4em;
+    font-size: 1.5em;
     color: #ffcc70;
     text-align: left;
     margin-top: 0;
     margin-bottom: 15px;
     padding-left: 15px;
-    font-weight: 500;
+    font-weight: 800;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #ffcc70;
     position: relative;
     border-left: 4px solid #ffcc70;
     animation: titleGlowYellow 3s infinite alternate;
     font-family: 'M PLUS Rounded 1c', sans-serif;
 }
+/* タイプ別 色分け */
+#active-card-offers ~ .shop-section-title, /* セレクタ修正の可能性あり */
+.shop-section:has(#active-card-offers) .shop-section-title /* より確実な指定 */
+{
+    color: #ff7b7b; /* 赤系ネオン */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #ff7b7b;
+    border-left-color: #ff7b7b;
+    animation-name: titleGlowRed; /* アニメーション名変更 */
+}
+
+#passive-card-offers ~ .shop-section-title, /* セレクタ修正の可能性あり */
+.shop-section:has(#passive-card-offers) .shop-section-title
+{
+    color: #87CEFA; /* 青系ネオン */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #87CEFA;
+    border-left-color: #87CEFA;
+    animation-name: titleGlowBlue; /* アニメーション名変更 */
+}
+
+#pack-offers ~ .shop-section-title, /* セレクタ修正の可能性あり */
+.shop-section:has(#pack-offers) .shop-section-title
+{
+    color: #ba68c8; /* 紫系ネオン */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #ba68c8;
+    border-left-color: #ba68c8;
+    animation-name: titleGlowPurple; /* アニメーション名変更 */
+}
+
+#boost-offers ~ .shop-section-title,
+.shop-section:has(#boost-offers) .shop-section-title
+{
+    color: #90ee90; /* 緑系ネオン */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #90ee90;
+    border-left-color: #90ee90;
+    animation-name: titleGlowGreen; /* アニメーション名変更 */
+}
+
+/* グローアニメーション追加 */
+@keyframes titleGlowRed {
+    from { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #ff7b7b; border-left-color: #ff7b7b; }
+    to { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 15px #ff9c9c; border-left-color: #ff9c9c; }
+}
+@keyframes titleGlowBlue {
+    from { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #87CEFA; border-left-color: #87CEFA; }
+    to { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 15px #a7e4ff; border-left-color: #a7e4ff; }
+}
+@keyframes titleGlowPurple {
+    from { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #ba68c8; border-left-color: #ba68c8; }
+    to { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 15px #d38de0; border-left-color: #d38de0; }
+}
+@keyframes titleGlowGreen {
+    from { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 8px #90ee90; border-left-color: #90ee90; }
+    to { text-shadow: 1px 1px 3px rgba(0,0,0,0.5), 0 0 15px #a0ffa0; border-left-color: #a0ffa0; }
+}
+
 .shop-item-row {
     display: flex;
     flex-wrap: nowrap; /* 横スクロール */
@@ -2809,9 +3057,19 @@ button:disabled {
     padding-top: 0; /* 上パディング削除 */
     border-top: none; /* 上ボーダー削除 */
 }
-#shop-confirmation-buttons {
-    justify-content: center; /* 確認ボタンは中央揃え */
+#shop-confirmation-buttons { 
+    display: none;  
+    justify-content: center;
     gap: 15px;
+    margin-top: 20px; /* shop-actions と合わせる */
+    padding-top: 15px; /* shop-actions と合わせる */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeInBottom 0.4s ease-out; /* アニメーション適用 */
+}
+#shop-confirmation-buttons button { /* 確認ボタン共通 */
+    padding: 10px 25px;
+    font-size: 1.1em;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 #reroll-button {
     padding: 5px 15px;
@@ -2836,30 +3094,58 @@ button:disabled {
 #reroll-button:hover:not(:disabled) .reroll-icon {
     transform: rotate(180deg);
 }
-#close-shop-button {
-    padding: 10px 25px;
-    font-size: 1.4em;
-    cursor: pointer;
-    border: none;
-    border-radius: 20px;
-    color: white;
-    font-weight: bold;
-    transition: all 0.2s ease;
-    text-shadow: 0px -1px 1px rgba(0,0,0,0.4);
-    box-shadow: 0 3px 5px rgba(0,0,0,0.3);
-    background: linear-gradient(180deg, #f0ad4e, #ec971f);
-    margin-top: 0;
+#close-shop-button { /* 閉じるボタン - button-pop ベース (オレンジ系) */
     font-family: 'M PLUS Rounded 1c', sans-serif;
+    padding: 10px 25px;
+    font-size: 1.2em; /* サイズ調整 */
+    background: linear-gradient(180deg, #f0ad4e, #ec971f); /* オレンジ系 */
+    color: white;
+    text-shadow: 0px -1px 1px rgba(0,0,0,0.4);
+    border-radius: 20px; /* 維持 */
+    border: none; /* 維持 */
+    box-shadow: 0 3px 5px rgba(0,0,0,0.3); /* 維持 */
 }
 #close-shop-button:hover {
     background: linear-gradient(180deg, #f3bc70, #f0a540);
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(236, 151, 31, 0.4);
 }
-#shop-confirmation-buttons button {
+
+#shop-confirmation-buttons button { /* 売却確認ボタン */
     padding: 10px 25px;
     font-size: 1.1em;
     font-family: 'M PLUS Rounded 1c', sans-serif;
+}
+/* 売却確認モーダルの「売却」ボタン */
+#shop-confirmation-buttons button:first-child { /* 想定される売却ボタン */
+    /* ★ 赤系ネオンに変更 */
+    background: linear-gradient(180deg, #ff79c6, #f850a3); /* ネオンピンク系 */
+    color: #fff;
+    text-shadow: 0 0 3px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 80, 163, 0.5);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1);
+}
+#shop-confirmation-buttons button:first-child:hover {
+    background: linear-gradient(180deg, #ff94d1, #fa6aaa);
+    border-color: rgba(255, 80, 163, 0.8);
+    box-shadow: 0 3px 8px rgba(255, 80, 163, 0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+    transform: translateY(-1px);
+}
+/* 売却確認モーダルの「キャンセル」ボタン */
+#shop-confirmation-buttons button:last-child { /* 想定されるキャンセルボタン */
+    /* .button-subtle スタイルを適用 */
+    background: linear-gradient(180deg, rgba(70, 80, 110, 0.9), rgba(50, 60, 90, 0.95));
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    color: #ccc;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+#shop-confirmation-buttons button:last-child:hover {
+    background: linear-gradient(180deg, rgba(85, 95, 125, 0.9), rgba(60, 70, 100, 0.95));
+    border-color: rgba(0, 255, 255, 0.3);
+    color: #fff;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 0 8px rgba(0, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
 /* ショップカード/パック/ブースト要素 */
@@ -2940,15 +3226,23 @@ button:disabled {
 .card-type-badge, .card-rarity-badge {
     position: absolute;
     top: 0;
-    padding: 3px 10px;
-    font-size: 0.8em;
+    padding: 3px 10px; /* パディング調整 */
+    font-size: 0.85em; /* サイズ調整 */
     font-weight: bold;
     color: #fff;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* 影を濃く */
     z-index: 1;
+    border: none; /* ボーダー削除 */
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.5); /* 基本の影 */
 }
-.card-type-badge { left: 0; border-radius: 10px 0 10px 0; }
-.card-rarity-badge { right: 0; border-radius: 0 10px 0 10px; }
+.card-type-badge {
+    left: 0;
+    border-radius: 10px 0 10px 0;
+}
+.card-rarity-badge {
+    right: 0;
+    border-radius: 0 10px 0 10px;
+}
 /* レアリティ・タイプ色定義 */
 .card.rarity-normal .card-rarity-badge, .rarity-normal { background-color: #9e9e9e; }
 .card.rarity-rare .card-rarity-badge, .rarity-rare { background-color: #4a90e2; }
@@ -3325,7 +3619,7 @@ button:disabled {
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: rollModalAppearPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* animation: rollModalAppearPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); */
     position: relative; /* 閉じるボタン用 */
     overflow: hidden;
     margin: auto; /* 中央寄せ */
@@ -3371,14 +3665,27 @@ button:disabled {
     border-bottom: none;
     padding-bottom: 0;
 }
-.card-section h3 {
-    color: #ffcc70;
+.card-section h3 { 
     font-size: 1.3em;
     margin-top: 0;
     margin-bottom: 8px;
     text-align: left;
     padding-left: 5px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-weight: bold;
 }
+/* タイプ別 色分け */
+.card-section:has(#active-card-display) h3 .section-title-text
+{
+    color: #ff7b7b; /* 赤系ネオン */
+    text-shadow: 0 0 6px #ff7b7b;
+}
+.card-section:has(#passive-card-display) h3 .section-title-text
+{
+    color: #87CEFA; /* 青系ネオン */
+    text-shadow: 0 0 6px #87CEFA;
+}
+
 .card-section-message {
     font-size: 0.95em;
     color: #ccc;
@@ -3387,6 +3694,7 @@ button:disabled {
     text-align: left;
     padding-left: 5px;
     font-style: italic;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .card-display-area {
     display: flex;
@@ -3415,6 +3723,7 @@ button:disabled {
     font-style: italic;
     min-height: 100px;
     overflow-x: hidden;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .card-action-item { /* 手札モーダルのカード */
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -3438,17 +3747,63 @@ button:disabled {
     padding-bottom: 50px; /* フッター分 */
 }
 /* バッジ、名前、レベルのスタイルはショップカードと共通化可能なら検討 */
-.card-action-item .card-type-badge, .card-action-item .card-rarity-badge { /* 位置決めなど */
-    position: absolute; top: 0; padding: 3px 10px; font-size: 0.8em; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); z-index: 1;
+.card-action-item .card-type-badge,
+.card-action-item .card-rarity-badge {
+    position: absolute;
+    top: 0;
+    padding: 4px 10px;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #fff; /* デフォルト白 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    z-index: 1;
+    border: none;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    animation: none; /* アニメーションリセット */
 }
 .card-action-item .card-type-badge { left: 0; border-radius: 10px 0 10px 0; }
 .card-action-item .card-rarity-badge { right: 0; border-radius: 0 10px 0 10px; }
+
+/* タイプ別 ネオンスタイル */
+.card-action-item.type-support .card-type-badge { background: linear-gradient(135deg, #4a90e2, #3174b0); text-shadow: 0 0 4px #87CEFA, 1px 1px 2px #000; }
+.card-action-item.type-dice .card-type-badge { background: linear-gradient(135deg, #e65252, #b33030); text-shadow: 0 0 4px #ff8a8a, 1px 1px 2px #000; }
+.card-action-item.type-score .card-type-badge { background: linear-gradient(135deg, #28a745, #1c7430); text-shadow: 0 0 4px #90ee90, 1px 1px 2px #000; }
+
+/* レアリティ別 ネオンスタイル */
+.card-action-item.rarity-normal .card-rarity-badge { background: linear-gradient(135deg, #9e9e9e, #616161); color: #e0e0e0; animation: none; }
+.card-action-item.rarity-rare .card-rarity-badge { background: linear-gradient(135deg, #4a90e2, #3174b0); text-shadow: 0 0 5px #87CEFA, 1px 1px 2px #000; animation: rarePulseBlue 2.5s infinite ease-in-out; }
+.card-action-item.rarity-epic .card-rarity-badge { background: linear-gradient(135deg, #9c27b0, #6a0080); text-shadow: 0 0 6px #d38de0, 1px 1px 2px #000; animation: epicPulsePurple 2s infinite alternate; }
+.card-action-item.rarity-legendary .card-rarity-badge { background: linear-gradient(135deg, #ff9800, #e65100); text-shadow: 0 0 8px #ffb74d, 1px 1px 2px #000; animation: legendaryShineOrange 1.8s infinite alternate; }
+
 /* 色指定は共通スタイルに依存 */
-.card-action-item .card-name { /* サイズや位置調整 */
-    font-size: 1.1em; color: #ffeb3b; margin-top: 25px; margin-bottom: 8px; font-weight: 800; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); padding: 5px 8px; border-radius: 8px; display: block; text-align: center; width: auto; margin-left: auto; margin-right: auto; max-width: 90%; box-sizing: border-box;
+.card-action-item .card-name { 
+    font-size: 1.2em;
+    color: #ffcc70; 
+    margin-top: 25px;
+    margin-bottom: 8px;
+    font-weight: 800;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.6); 
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 5px 8px;
+    border-radius: 8px;
+    display: block; 
+    text-align: center; 
+    width: 85%; 
+    margin-left: auto; 
+    margin-right: auto; 
+    box-sizing: border-box;
+    overflow: hidden; 
+    white-space: nowrap; 
+    text-overflow: ellipsis; 
+    min-height: 1.4em; 
+    line-height: 1.4; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
 }
 .card-action-item .card-level { /* 位置調整 */
-    display: block; font-size: 0.8em; color: #ffcc70; font-weight: normal; text-align: center; margin-top: -5px; margin-bottom: 10px;
+    display: block; font-size: 0.8em; color: #ffcc70; font-weight: normal; text-align: center; margin-top: -5px; margin-bottom: 10px; font-family: 'Orbitron', sans-serif;
 }
 .card-action-item .card-level-value-2 { color: #90ee90; text-shadow: 0 0 3px #28a745; font-weight: bold;}
 .card-action-item .card-level-value-3 { color: #ff8c00; text-shadow: 0 0 5px #ffeb3b; font-weight: bold;}
@@ -3456,10 +3811,10 @@ button:disabled {
     position: absolute; bottom: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
 }
 .card-action-item .card-detail-button { /* .button-subtle継承 */
-    padding: 6px 12px; font-size: 0.85em; flex-grow: 0;
+    padding: 6px 12px; font-size: 0.85em; flex-grow: 0; font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 .card-action-item .use-card-button { /* 使用ボタン */
-    padding: 6px 12px; font-size: 0.85em; background: linear-gradient(180deg, #5bc0de, #31b0d5); color: white; flex-grow: 0;
+    padding: 6px 12px; font-size: 0.85em; background: linear-gradient(180deg, #5bc0de, #31b0d5); color: white; flex-grow: 0; font-family: 'M PLUS Rounded 1c', sans-serif;
     /* .button-pop ベース */
 }
 .card-action-item .use-card-button:hover:not(:disabled) {
@@ -3563,11 +3918,12 @@ button:disabled {
 }
 #item-reveal-name {
     font-size: 1.5em;
-    color: #ffeb3b;
+    color: #ffcc70;
     margin-top: 0;
     margin-bottom: 8px;
     font-weight: bold;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    font-family: 'Yuji Syuku', serif;
 }
 #item-reveal-meta {
     font-size: 0.9em;
@@ -3576,12 +3932,14 @@ button:disabled {
     display: flex;
     justify-content: center;
     gap: 15px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 #item-reveal-meta .rarity-badge, #item-reveal-meta .type-badge {
     padding: 3px 8px;
     border-radius: 10px;
     font-weight: bold;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 /* レアリティ・タイプ色は共通スタイル利用 */
 #item-reveal-description { /* 獲得時は非表示 */
@@ -3594,10 +3952,12 @@ button:disabled {
     margin-top: -5px;
     margin-bottom: 10px;
     display: none; /* JSで制御 */
+    font-family: 'Orbitron', sans-serif;
 }
 #confirm-item-reveal-button { /* 確認ボタン */
     padding: 10px 30px;
-    font-size: 1.1em;
+    font-size: 1.2em;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
     /* .button-pop スタイル継承 */
 }
 
@@ -3625,7 +3985,7 @@ button:disabled {
     /* 各役に応じたスタイルは下に定義 */
 }
 #role-result-name {
-    font-size: 7em; /* ベースサイズ */
+    font-size: 8em; /* ベースサイズ */
     font-weight: 800;
     color: white;
     text-shadow: 3px 3px 0 #444, 6px 6px 10px rgba(0, 0, 0, 0.7);
@@ -3656,13 +4016,13 @@ button:disabled {
 .role-reveal-shigoro #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 9em; color: #ffe082; text-shadow: 3px 3px 5px rgba(0,0,0,0.8), 0 0 8px #ff9800; animation: shigoroTextRevealDrop 0.9s ease-out forwards; }
 .role-reveal-shigoro #role-result-dice-display { font-size: 4.5em; color: #ffe082; }
 .role-reveal-normal-eye #role-result-modal-body { padding: 25px 40px; background-color: rgba(40, 40, 80, 0.8); border-radius: 10px; }
-.role-reveal-normal-eye #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 7em; color: #eee; text-shadow: 3px 3px 6px rgba(0,0,0,0.7); }
+.role-reveal-normal-eye #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 8em; color: #eee; text-shadow: 3px 3px 6px rgba(0,0,0,0.7); }
 .role-reveal-normal-eye #role-result-dice-display { font-size: 4.2em; color: #fff; }
 .role-reveal-hifumi #role-result-modal-body { padding: 30px 40px; background-color: rgba(30, 40, 70, 0.8); border-radius: 10px; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
-.role-reveal-hifumi #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 7.5em; color: #aec4d8; text-shadow: 1px 1px 5px rgba(0,0,0,0.8), 0 0 6px #6892c4; animation: hifumiTextShiverStrong 1s ease-in-out forwards; }
+.role-reveal-hifumi #role-result-name { font-family: 'Yuji Syuku', serif; font-size: 8.5em; color: #aec4d8; text-shadow: 1px 1px 5px rgba(0,0,0,0.8), 0 0 6px #6892c4; animation: hifumiTextShiverStrong 1s ease-in-out forwards; }
 .role-reveal-hifumi #role-result-dice-display { font-size: 4.5em; opacity: 0.6; color: #b0c4de; }
 .role-reveal-shonben #role-result-modal-body { padding: 25px 40px; background: linear-gradient(rgba(50,50,50,0.6), rgba(30,30,30,0.8)); border-radius: 10px; }
-.role-reveal-shonben #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 6em; color: #777; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); filter: grayscale(90%) blur(1.5px); animation: shonbenTextCrumbleFast 1s ease-out forwards; }
+.role-reveal-shonben #role-result-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 8em; color: #777; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); filter: grayscale(90%) blur(1.5px); animation: shonbenTextCrumbleFast 1s ease-out forwards; }
 .role-reveal-shonben #role-result-dice-display { display: none; }
 .role-reveal-wave-clear #role-result-modal-body { padding: 40px 60px; position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 0 50px rgba(144, 238, 144, 0.8); animation: waveClearBodyPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .role-reveal-wave-clear #role-result-modal-body::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, rgba(144,238,144,0) 70%), url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQMAAACXljzdAAAABlBMVEVVVP////8vZtJdAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAHUlEQVQ4y2NgoBpgImBqBNAyAMgwgM0IFJsKANqnHbcY5t6dAAAAAElFTkSuQmCC); background-size: cover, auto; animation: move-twink-back 20s linear infinite, fadeIn 1s ease-out; opacity: 0.6; z-index: -1; }
@@ -3742,7 +4102,7 @@ button:disabled {
 }
 #card-detail-name {
     font-size: 1.6em;
-    color: #ffeb3b;
+    color: #ffcc70;
     margin-top: 0;
     margin-bottom: 10px;
     font-weight: bold;
@@ -3750,6 +4110,7 @@ button:disabled {
     text-align: center;
     border-bottom: 1px solid rgba(0, 255, 255, 0.2);
     padding-bottom: 8px;
+    font-family: 'Yuji Syuku', sans-serif;
 }
 #card-detail-meta {
     font-size: 0.9em;
@@ -3762,6 +4123,7 @@ button:disabled {
     text-align: center;
     padding-bottom: 10px;
     border-bottom: 1px dashed rgba(0, 255, 255, 0.15);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 #card-detail-meta .rarity-badge,
 #card-detail-meta .type-badge {
@@ -3770,6 +4132,7 @@ button:disabled {
     font-weight: bold;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
     font-size: 0.95em;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 /* レアリティ・タイプ色は共通スタイル利用 */
 #card-detail-level {
@@ -3779,9 +4142,10 @@ button:disabled {
     border-radius: 12px;
     font-weight: bold;
     font-size: 0.95em;
+    font-family: 'Orbitron', sans-serif;
 }
 #card-detail-info h3 {
-    color: #aaa;
+    color: #ffcc70;
     font-size: 0.9em;
     margin-top: 15px;
     margin-bottom: 5px;
@@ -3790,6 +4154,7 @@ button:disabled {
     letter-spacing: 0.5px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 3px;
+    font-family: 'Yuji Syuku', sans-serif;
 }
 #card-detail-description-container,
 #card-detail-flavor-container,
@@ -3807,6 +4172,7 @@ button:disabled {
     margin: 0;
     word-break: break-word;
     overflow-wrap: break-word;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
 }
 #card-detail-flavor {
     font-style: italic;
@@ -3815,6 +4181,7 @@ button:disabled {
 #card-detail-uses {
     font-weight: bold;
     color: #ffeb3b;
+    font-family: 'Orbitron', sans-serif;
 }
 
 /* 設定カードリスト内の詳細ボタン配置 */
@@ -3825,6 +4192,79 @@ button:disabled {
     padding: 5px 12px;
     font-size: 0.8em;
     /* .button-subtle スタイルを継承 */
+}
+
+/* ===== スクロールバー共通スタイル ===== */
+/* Firefox用 */
+.modal-content, /* モーダル全般 */
+#history-log,
+#settings-content,
+#settings-card-list-inner, /* 設定カードリスト */
+#shop-scrollable-offers,
+#hand-cards, /* ショップ手札 */
+#character-list,
+.card-action-modal-content, /* カードアクションモーダル */
+.card-detail-modal .modal-content /* カード詳細モーダル */
+{
+    scrollbar-width: thin; /* スクロールバーを細く */
+    scrollbar-color: rgba(0, 255, 255, 0.6) rgba(15, 20, 40, 0.6); /* つまみ色 トラック色 */
+}
+
+/* Webkit (Chrome, Safari, Edge)用 */
+.modal-content::-webkit-scrollbar,
+#history-log::-webkit-scrollbar,
+#settings-content::-webkit-scrollbar,
+#settings-card-list-inner::-webkit-scrollbar,
+#shop-scrollable-offers::-webkit-scrollbar,
+#hand-cards::-webkit-scrollbar,
+#character-list::-webkit-scrollbar,
+.card-action-modal-content::-webkit-scrollbar,
+.card-detail-modal .modal-content::-webkit-scrollbar
+{
+    width: 8px; /* スクロールバーの幅 */
+    height: 8px; /* 横スクロールバーの高さ */
+}
+
+.modal-content::-webkit-scrollbar-track,
+#history-log::-webkit-scrollbar-track,
+#settings-content::-webkit-scrollbar-track,
+#settings-card-list-inner::-webkit-scrollbar-track,
+#shop-scrollable-offers::-webkit-scrollbar-track,
+#hand-cards::-webkit-scrollbar-track,
+#character-list::-webkit-scrollbar-track,
+.card-action-modal-content::-webkit-scrollbar-track,
+.card-detail-modal .modal-content::-webkit-scrollbar-track
+{
+    background: rgba(15, 20, 40, 0.6); /* トラックの背景色 */
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+#history-log::-webkit-scrollbar-thumb,
+#settings-content::-webkit-scrollbar-thumb,
+#settings-card-list-inner::-webkit-scrollbar-thumb,
+#shop-scrollable-offers::-webkit-scrollbar-thumb,
+#hand-cards::-webkit-scrollbar-thumb,
+#character-list::-webkit-scrollbar-thumb,
+.card-action-modal-content::-webkit-scrollbar-thumb,
+.card-detail-modal .modal-content::-webkit-scrollbar-thumb
+{
+    background-color: rgba(0, 255, 255, 0.6); /* つまみの色 (シアン) */
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 255, 0.8); /* つまみの境界線 */
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+#history-log::-webkit-scrollbar-thumb:hover,
+#settings-content::-webkit-scrollbar-thumb:hover,
+#settings-card-list-inner::-webkit-scrollbar-thumb:hover,
+#shop-scrollable-offers::-webkit-scrollbar-thumb:hover,
+#hand-cards::-webkit-scrollbar-thumb:hover,
+#character-list::-webkit-scrollbar-thumb:hover,
+.card-action-modal-content::-webkit-scrollbar-thumb:hover,
+.card-detail-modal .modal-content::-webkit-scrollbar-thumb:hover
+{
+    background-color: rgba(0, 255, 255, 0.8); /* ホバー時のつまみ色 */
 }
 
 /* ===== レスポンシブデザイン ===== */
